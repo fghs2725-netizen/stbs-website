@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import { PageHero } from "@/components/page-hero";
-import { Reveal } from "@/components/reveal";
-import { gallery } from "@/lib/company";
-export const metadata: Metadata={title:"Gallery",description:"A look at the field, equipment and work behind professional borewell and tubewell services."};
-export default function Gallery(){return <><PageHero eyebrow="Our work" title="The field is our workshop." text="A visual perspective on the equipment, coordination and site discipline behind water infrastructure work."/><section className="bg-black px-5 py-24 lg:px-8"><div className="mx-auto grid max-w-7xl gap-5 md:grid-cols-2">{[...gallery,...gallery].map((x,i)=><Reveal key={`${x.label}-${i}`} delay={(i%4)*.05}><figure className={`group relative overflow-hidden ${i%3===0?"h-[520px]":"h-[340px]"}`}><Image src={x.src} alt={x.alt} fill className="object-cover grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" sizes="(max-width:768px) 100vw,50vw"/><div className="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent"/><figcaption className="absolute bottom-6 left-6 font-display text-2xl uppercase">{x.label}</figcaption></figure></Reveal>)}</div><p className="mx-auto mt-10 max-w-7xl text-xs text-white/35">Representative industry imagery. Replace with verified company project photographs when supplied.</p></section></>}
+import { GalleryClient } from "@/components/gallery-client";
+
+export const metadata: Metadata = {
+  title: "Gallery",
+  description: "Proof of work: images of drilling, installation, and completed projects from our field operations.",
+};
+
+export default function Gallery() {
+  return <GalleryClient />;
+}

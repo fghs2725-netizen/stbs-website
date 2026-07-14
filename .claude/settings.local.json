@@ -17,7 +17,11 @@
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\HP\\\\my-website\" -Exclude node_modules | Where-Object { $_.PSIsContainer -or $_.Extension -match '\\\\.\\(html|css|js|tsx|jsx|ts|vue\\)$' } | Select-Object FullName)",
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\HP\\\\my-website\\\\public\" -Recurse | Where-Object { $_.Extension -match \"\\(?i\\)\\\\.\\(png|jpg|jpeg|svg|gif\\)\" } | Select-Object -ExpandProperty FullName)",
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\HP\\\\my-website\" -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"logo\" -and $_.FullName -notmatch \"node_modules\" -and $_.FullName -notmatch \"\\\\.next\" } | Select-Object -ExpandProperty FullName)",
-      "PowerShell(Move-Item *)"
+      "PowerShell(Move-Item *)",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(rm -rf .next)",
+      "Bash(npx next *)"
     ]
   }
 }
