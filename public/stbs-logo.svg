@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 190" role="img" aria-labelledby="title desc">
+  <title id="title">STBS logo</title>
+  <desc id="desc">Silver outlined STBS lettering with a gold drilling and water ripple mark</desc>
+  <defs>
+    <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".5" stop-color="#cfd3d6"/>
+      <stop offset="1" stop-color="#8c9296"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe07a"/>
+      <stop offset=".5" stop-color="#e3ad2f"/>
+      <stop offset="1" stop-color="#b87c12"/>
+    </linearGradient>
+  </defs>
+  <g transform="skewX(-8)" font-family="Arial Black, Impact, sans-serif" font-size="136" font-weight="900" letter-spacing="-9">
+    <text x="30" y="126" fill="url(#silver)" stroke="#8b9094" stroke-width="5" paint-order="stroke">STBS</text>
+    <text x="30" y="126" fill="none" stroke="#ffffff" stroke-opacity=".8" stroke-width="2">STBS</text>
+  </g>
+  <path d="M202 35v116l-11 10 11 10 11-10-11-10V35Z" fill="url(#gold)"/>
+  <path d="M185 38h34l-12 13h-35Z" fill="url(#gold)"/>
+  <g fill="none" stroke="url(#gold)" stroke-width="5">
+    <ellipse cx="202" cy="166" rx="54" ry="12"/>
+    <ellipse cx="202" cy="166" rx="38" ry="8"/>
+    <ellipse cx="202" cy="166" rx="20" ry="4"/>
+  </g>
+</svg>

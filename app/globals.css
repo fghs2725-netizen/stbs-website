@@ -13,3 +13,5 @@ p, li, blockquote { text-wrap: pretty; }
 .outline-text { color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,.22); }
 .field { width: 100%; border: 1px solid rgba(255,255,255,.14); background: #111; padding: 1rem; color: white; outline: none; transition: border-color .2s; }
 .field:focus { border-color: #f7c600; }
+.field:focus-visible, a:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid #f7c600; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }

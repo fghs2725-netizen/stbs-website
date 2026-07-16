@@ -13,7 +13,7 @@ export const company = {
   vision: "Excel in what we do and build a safe and secure environment for our community.",
 };
 
-export const clients = ["Brackparts Pvt. Ltd.", "Ashoka University", "Jupiter Laminator Pvt. Ltd.", "LT Overseas Pvt. Ltd. (Dawat Rice Mill)", "Amul Milk, Murthal", "Nidaan Hospital", "Devi Lal Park, Sonipat/Panipat", "Alaina Indane Gas", "Voestalpine VAE VKN India Pvt. Ltd.", "Maneta Pvt. Ltd.", "Avicreations", "Ajit Industries Pvt. Ltd.", "Shreeji International School", "Parker Mall, Kundli", "TDI City, Kundli", "ITEC Technopark, IIT Delhi Sonipat Campus", "Coral Drugs Pvt. Ltd.", "Rishi Laser Limited", "Marut Techno Tools Pvt. Ltd.", "A-One Tex Tech Pvt. Ltd."];
+export const clients = ["Brackparts Pvt. Ltd.", "Ashoka University", "Jupiter Laminator Pvt. Ltd.", "LT Overseas Pvt. Ltd. (Dawat Rice Mill)", "Amul Milk, Murthal", "BigBasket, Sonipat Site", "Nidaan Hospital", "Devi Lal Park, Sonipat/Panipat", "Alaina Indane Gas", "Voestalpine VAE VKN India Pvt. Ltd.", "Maneta Pvt. Ltd.", "Avicreations", "Ajit Industries Pvt. Ltd.", "Shreeji International School", "Parker Mall, Kundli", "TDI City, Kundli", "ITEC Technopark, IIT Delhi Sonipat Campus", "Coral Drugs Pvt. Ltd.", "Rishi Laser Limited", "Marut Techno Tools Pvt. Ltd.", "A-One Tex Tech Pvt. Ltd."];
 
 export const services = [
   { title: "Borewell Drilling", icon: Drill, text: "Precision drilling planned around site conditions, depth requirements and dependable water access." },

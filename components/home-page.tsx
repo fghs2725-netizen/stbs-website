@@ -32,7 +32,7 @@ function TestimonialCard({ item }: { item: typeof testimonials[0] }) {
         ))}
       </div>
       <blockquote className="text-base leading-7 text-white/80">
-        "{item.quote}"
+        &quot;{item.quote}&quot;
       </blockquote>
       <div className="mt-auto">
         <p className="font-bold text-white">{item.name}</p>
@@ -44,25 +44,31 @@ function TestimonialCard({ item }: { item: typeof testimonials[0] }) {
 
 function ProcessCardGrid() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 items-stretch lg:gap-5">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12 mt-16">
       {processSteps.map((step, i) => (
         <motion.div
           key={step.title}
-          initial={{ opacity: 0, y: 28 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-          className="relative flex h-full min-h-[24rem] flex-col border border-white/10 bg-white/5 px-7 py-10 transition-all hover:border-signal/30 hover:bg-white/8 sm:px-8 sm:py-11 lg:px-9 lg:py-12"
+          className="flex flex-col group relative"
         >
-          <span className="absolute -top-3 left-6 bg-black px-3 font-display text-4xl font-bold text-signal">
+          {/* Giant Outlined Step Number */}
+          <div className="font-display text-8xl lg:text-[7rem] xl:text-[8rem] font-bold leading-none select-none outline-text opacity-40 transition-all duration-300 group-hover:opacity-90 group-hover:text-signal/10 group-hover:-translate-y-1">
             {step.step}
-          </span>
-          <div className="mt-8 flex min-h-[4.5rem] items-end">
-            <h3 className="font-display text-[1.35rem] font-semibold uppercase leading-tight text-white [overflow-wrap:anywhere]">
-              {step.title}
-            </h3>
           </div>
-          <p className="mt-4 text-sm leading-[1.7] text-white/60 [overflow-wrap:anywhere]">
+
+          {/* Divider Line */}
+          <div className="w-10 h-[2px] bg-signal mt-2 mb-4 transition-all duration-300 group-hover:w-20" />
+
+          {/* Step Title */}
+          <h3 className="font-display text-xl font-bold uppercase tracking-wider text-white">
+            {step.title}
+          </h3>
+
+          {/* Step Description */}
+          <p className="mt-3 text-sm leading-[1.7] text-white/55">
             {step.text}
           </p>
         </motion.div>
@@ -85,11 +91,11 @@ export function HomePage() {
           className="absolute inset-0"
         >
           <Image
-            src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=2200&q=80"
-            alt="Precision drilling machinery at an industrial site"
+            src="/hero-industrial-cross-section.png"
+            alt="Industrial site with a borewell cross-section showing groundwater layers"
             fill
             priority
-            className="object-cover opacity-[.28] grayscale-[.4]"
+            className="object-cover object-center opacity-[.58]"
             sizes="100vw"
           />
         </motion.div>
@@ -240,7 +246,7 @@ export function HomePage() {
                 </h2>
               </div>
               <p className="max-w-md text-sm leading-7 text-white/50">
-                Real feedback from projects across Haryana and NCR. No stock reviews.
+                Project feedback gathered from work across Haryana and NCR.
               </p>
             </div>
           </Reveal>

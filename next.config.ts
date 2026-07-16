@@ -3,7 +3,7 @@ import path from "node:path";
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }],
+    remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }, { protocol: "https", hostname: "logo.clearbit.com" }],
   },
   webpack(config) {
     config.resolve.alias["@splinetool/react-spline/next"] = path.resolve(

@@ -1,0 +1,7 @@
+export type QuotationItem = { id: string; description: string; unit: string; quantity: number; rate: number };
+export type ClientDetails = { companyName: string; contactPerson: string; addressLine1: string; addressLine2: string; city: string; state: string; pinCode: string; phone: string; email: string };
+export type QuotationState = { quotationReference: string; quotationDate: string; validity: string; client: ClientDetails; serviceType: string; customServiceType: string; subject: string; items: QuotationItem[] };
+export const serviceOptions = ["Borewell Construction", "Rainwater Harvesting Borewell System", "Rainwater Harvesting", "Tubewell Boring", "Borewell Cleaning", "Borewell Material Supply", "Custom"];
+export const serviceLabel = (q: QuotationState) => q.serviceType === "Custom" ? q.customServiceType || "Custom Service" : q.serviceType;
+export const defaultSubject = (q: QuotationState) => `Price Offer for ${serviceLabel(q)}${q.serviceType === "Rainwater Harvesting" ? " Work" : ""}`;
+export const initialQuotation: QuotationState = { quotationReference: "STBS/2026/001", quotationDate: "16/07/2026", validity: "15 days from date of submission", client: { companyName: "", contactPerson: "", addressLine1: "", addressLine2: "", city: "", state: "", pinCode: "", phone: "", email: "" }, serviceType: serviceOptions[0], customServiceType: "", subject: "", items: [{ id: "1", description: "", unit: "", quantity: 1, rate: 0 }] };

@@ -130,13 +130,13 @@ export default function About() {
                 <div>
                   <h3 className="mb-4 font-display text-2xl font-bold uppercase">Our Story</h3>
                   <p className="leading-8 text-black/60">
-                    Saini Tubewell Boring Service was founded in 1992 with a simple mission: to provide dependable water infrastructure across Haryana. Starting as a one-man operation, we've grown to a professional team trusted by businesses and communities alike.
+                    Saini Tubewell Boring Service was founded in 1992 with a simple mission: to provide dependable water infrastructure across Haryana. Starting as a one-man operation, we&apos;ve grown to a professional team trusted by businesses and communities alike.
                   </p>
                 </div>
                 <div>
                   <h3 className="mb-4 font-display text-2xl font-bold uppercase">Our Experience</h3>
                   <p className="leading-8 text-black/60">
-                    From rainwater harvesting systems to deep borewell drilling, we've completed over 1200 projects. Our experience spans 100mm to 400mm borewells, complete tubewell construction, and modern recharge systems built for challenging local conditions.
+                    From rainwater harvesting systems to deep borewell drilling, we&apos;ve completed over 1200 projects. Our experience spans 100mm to 400mm borewells, complete tubewell construction, and modern recharge systems built for challenging local conditions.
                   </p>
                 </div>
                 <div>

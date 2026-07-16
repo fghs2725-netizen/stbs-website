@@ -1,0 +1,26 @@
+"use client";
+import { useMemo, useState } from "react";
+import { QuotationPreview } from "./QuotationPreview";
+import { defaultSubject, initialQuotation, serviceOptions, type QuotationState } from "./quotation-model";
+import "./editor.css";
+
+const money = (n:number) => `₹${n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const today = () => { const d = new Date(); return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`; };
+const emptyItem = () => ({ id: crypto.randomUUID(), description: "", unit: "", quantity: 1, rate: 0 });
+
+export function QuotationEditor() {
+  const [q,setQ] = useState<QuotationState>(initialQuotation);
+  const [open,setOpen] = useState({ info:true, client:true, service:true, items:true });
+  const [tab,setTab] = useState<"edit"|"preview">("edit");
+  const [zoom,setZoom] = useState(60);
+  const update = (key:keyof QuotationState,value:unknown) => setQ(x=>({...x,[key]:value}));
+  const updateClient = (key:string,value:string) => setQ(x=>({...x,client:{...x.client,[key]:value}}));
+  const setService = (serviceType:string) => setQ(x=>({...x,serviceType,subject:x.subject ? x.subject : defaultSubject({...x,serviceType})}));
+  const setItem = (id:string,key:string,value:string|number) => setQ(x=>({...x,items:x.items.map(i=>i.id===id?{...i,[key]:value}:i)}));
+  const removeItem = (id:string) => setQ(x=>({...x,items:x.items.filter(i=>i.id!==id)}));
+  const addItem = () => setQ(x=>({...x,items:[...x.items,emptyItem()]}));
+  const total = useMemo(()=>q.items.reduce((a,i)=>a+(Number(i.quantity)||0)*(Number(i.rate)||0),0),[q.items]);
+  const reset = () => { if(confirm("Start a new quotation? Unsaved changes will be cleared.")) setQ({...initialQuotation,quotationDate:today(),items:[]}); };
+  const section = (key:keyof typeof open,title:string,children:React.ReactNode) => <section className="editor-section"><button className="section-toggle" onClick={()=>setOpen(x=>({...x,[key]:!x[key]}))}><span>{title}</span><b>{open[key]?"−":"+"}</b></button>{open[key]&&<div className="section-content">{children}</div>}</section>;
+  return <div className="quotation-editor"><aside className="editor-panel"><div className="editor-top"><div className="editor-brand">STBS <span>QUOTATION BUILDER</span></div><button className="new-quotation" onClick={reset}>NEW QUOTATION</button></div><h2>Build quotation</h2>{section("info","Quotation information",<><label>Reference<input value={q.quotationReference} onChange={e=>update("quotationReference",e.target.value)}/></label><label>Date<input value={q.quotationDate} onChange={e=>update("quotationDate",e.target.value)}/></label><label>Validity<input value={q.validity} onChange={e=>update("validity",e.target.value)}/></label></>)}{section("client","Prepared for",Object.entries(q.client).map(([k,v])=><label key={k}>{k.replace(/([A-Z])/g," $1")}<input value={v} onChange={e=>updateClient(k,e.target.value)}/></label>))}{section("service","Service & subject",<><label>Quotation type<select value={q.serviceType} onChange={e=>setService(e.target.value)}>{serviceOptions.map(x=><option key={x}>{x}</option>)}</select></label>{q.serviceType==="Custom"&&<label>Custom service name<input value={q.customServiceType} onChange={e=>update("customServiceType",e.target.value)}/></label>}<label>Subject<input value={q.subject || defaultSubject(q)} onChange={e=>update("subject",e.target.value)}/></label></>)}{section("items","Price items",<><div className="items-list">{q.items.map((i,n)=><div className="editor-item" key={i.id}><div className="item-heading"><strong>ITEM {String(n+1).padStart(2,"0")}</strong><button onClick={()=>removeItem(i.id)} disabled={q.items.length===1}>Delete</button></div><label>Description<input placeholder="Describe the work or material" value={i.description} onChange={e=>setItem(i.id,"description",e.target.value)}/></label><div className="item-grid"><label>Unit<input value={i.unit} onChange={e=>setItem(i.id,"unit",e.target.value)}/></label><label>Quantity<input type="number" min="0" value={i.quantity} onChange={e=>setItem(i.id,"quantity",Number(e.target.value))}/></label><label>Rate<input type="number" min="0" value={i.rate} onChange={e=>setItem(i.id,"rate",Number(e.target.value))}/></label></div><div className="item-amount">Amount <b>{money(i.quantity*i.rate)}</b></div></div>)}</div><button type="button" className="add-item" onClick={addItem}>+ ADD ITEM</button><div className="editor-total">Total <b>{money(total)}</b></div></>)}</aside><main className={`editor-preview ${tab==='edit'?"show-edit":"show-preview"}`}><div className="mobile-tabs"><button className={tab==='edit'?"active":""} onClick={()=>setTab("edit")}>EDIT</button><button className={tab==='preview'?"active":""} onClick={()=>setTab("preview")}>PREVIEW</button></div><div className="preview-controls"><span>QUOTATION PREVIEW</span><button onClick={()=>setZoom(Math.max(50,zoom-10))}>−</button><b>{zoom}%</b><button onClick={()=>setZoom(Math.min(100,zoom+10))}>+</button><button onClick={()=>setZoom(60)}>FIT WIDTH</button><small>4 Pages</small></div><div className="preview-zoom" style={{"--preview-zoom":zoom/60} as React.CSSProperties}><QuotationPreview quotation={q}/></div></main></div>;
+}
