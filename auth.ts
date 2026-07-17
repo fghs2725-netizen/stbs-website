@@ -3,12 +3,11 @@ import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import authConfig from "@/auth.config";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  trustHost: true,
+  ...authConfig,
   adapter: PrismaAdapter(prisma),
-  pages: { signIn: "/admin/login" },
-  session: { strategy: "jwt", maxAge: 60 * 60 * 8 },
   providers: [
     Credentials({
       name: "Admin credentials",
