@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import { Manrope, Oswald } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
-const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald" });
+// Keep builds offline-safe. These local faces preserve the existing variable names
+// used by the public site while avoiding a fonts.googleapis.com build dependency.
+const manrope = localFont({ src: [{ path: "../public/fonts/inter-latin-400.woff2", weight: "400" }, { path: "../public/fonts/inter-latin-600.woff2", weight: "600" }], variable: "--font-manrope", display: "swap" });
+const oswald = localFont({ src: [{ path: "../public/fonts/noto-sans-regular.ttf", weight: "400" }], variable: "--font-oswald", display: "swap" });
 export const metadata: Metadata = { metadataBase: new URL("https://sainitubewell.com"), title: { default: "Saini Tubewell Boring Service | Since 1992", template: "%s | Saini Tubewell" }, description: "Professional borewell drilling, rainwater harvesting, borewell material supply and tubewell construction services since 1992.", keywords: ["borewell drilling", "tubewell construction", "rainwater harvesting", "borewell material supply"], icons: { icon: "/logo.png" }, openGraph: { title: "Saini Tubewell Boring Service", description: "Drilling deep. Building trust. Since 1992.", type: "website", images: ["/logo.png"] } };
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="en"><body className={`${manrope.variable} ${oswald.variable} font-sans antialiased`}>{children}</body></html> }

@@ -1,26 +1,265 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useCallback, useRef, useMemo, useState, useEffect } from "react";
 import { QuotationPreview } from "./QuotationPreview";
-import { defaultSubject, initialQuotation, serviceOptions, type QuotationState } from "./quotation-model";
+import { QuotationDocument } from "./QuotationDocument";
+import { defaultSubject, initialQuotation, serviceOptions, type QuotationState, type QuotationItem, validateItem, isItemValid, calcAmount, formatINR, getValidItems, calcTotal } from "./quotation-model";
 import "./editor.css";
 
-const money = (n:number) => `₹${n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const today = () => { const d = new Date(); return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`; };
-const emptyItem = () => ({ id: crypto.randomUUID(), description: "", unit: "", quantity: 1, rate: 0 });
+const today = () => { const d = new Date(); return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; };
+const emptyItem = (): QuotationItem => ({ id: crypto.randomUUID(), description: "", unit: "", quantity: 1, rate: 0 });
+
+/* ---------- Dev test data (NOT permanently stored) ---------- */
+const TEST_ITEMS: QuotationItem[] = [
+  { id: "t1", description: "Supply and installation of 6\" PVC casing pipe (ISI marked) for borewell construction", unit: "Rft", quantity: 200, rate: 480 },
+  { id: "t2", description: "Borewell drilling in hard rock formation using DTH method (150mm dia)", unit: "Rft", quantity: 300, rate: 320 },
+  { id: "t3", description: "Supply of MS pipe 4\" heavy duty for borewell housing pipe", unit: "Rft", quantity: 120, rate: 550 },
+  { id: "t4", description: "Submersible pump installation 5HP with cable and accessories", unit: "Set", quantity: 1, rate: 45000 },
+  { id: "t5", description: "Supply of river sand filter media (washed) for borewell filtration", unit: "CFt", quantity: 50, rate: 180 },
+  { id: "t6", description: "Cement grouting work for borewell sealing (OPC 43 Grade)", unit: "Bag", quantity: 30, rate: 420 },
+  { id: "t7", description: "Rainwater harvesting filter unit SS304 with auto-flush mechanism", unit: "No.", quantity: 2, rate: 18500 },
+  { id: "t8", description: "PVC pipe 110mm SWR type for rainwater collection and drainage network", unit: "Rft", quantity: 400, rate: 95 },
+  { id: "t9", description: "Recharge pit construction 3m × 3m × 3m with gravel bed and geotextile lining", unit: "No.", quantity: 3, rate: 25000 },
+  { id: "t10", description: "Transportation and mobilization of heavy drilling rig and equipment to site", unit: "LS", quantity: 1, rate: 35000 },
+  { id: "t11", description: "Chlorination and flushing of borewell after completion as per CGWA norms", unit: "LS", quantity: 1, rate: 8500 },
+  { id: "t12", description: "Yield test and water quality analysis report from NABL accredited laboratory", unit: "No.", quantity: 1, rate: 5500 },
+  { id: "t13", description: "Site supervision charges for complete project duration including daily progress reports", unit: "Month", quantity: 2, rate: 12000 },
+];
 
 export function QuotationEditor() {
-  const [q,setQ] = useState<QuotationState>(initialQuotation);
-  const [open,setOpen] = useState({ info:true, client:true, service:true, items:true });
-  const [tab,setTab] = useState<"edit"|"preview">("edit");
-  const [zoom,setZoom] = useState(60);
-  const update = (key:keyof QuotationState,value:unknown) => setQ(x=>({...x,[key]:value}));
-  const updateClient = (key:string,value:string) => setQ(x=>({...x,client:{...x.client,[key]:value}}));
-  const setService = (serviceType:string) => setQ(x=>({...x,serviceType,subject:x.subject ? x.subject : defaultSubject({...x,serviceType})}));
-  const setItem = (id:string,key:string,value:string|number) => setQ(x=>({...x,items:x.items.map(i=>i.id===id?{...i,[key]:value}:i)}));
-  const removeItem = (id:string) => setQ(x=>({...x,items:x.items.filter(i=>i.id!==id)}));
-  const addItem = () => setQ(x=>({...x,items:[...x.items,emptyItem()]}));
-  const total = useMemo(()=>q.items.reduce((a,i)=>a+(Number(i.quantity)||0)*(Number(i.rate)||0),0),[q.items]);
-  const reset = () => { if(confirm("Start a new quotation? Unsaved changes will be cleared.")) setQ({...initialQuotation,quotationDate:today(),items:[]}); };
-  const section = (key:keyof typeof open,title:string,children:React.ReactNode) => <section className="editor-section"><button className="section-toggle" onClick={()=>setOpen(x=>({...x,[key]:!x[key]}))}><span>{title}</span><b>{open[key]?"−":"+"}</b></button>{open[key]&&<div className="section-content">{children}</div>}</section>;
-  return <div className="quotation-editor"><aside className="editor-panel"><div className="editor-top"><div className="editor-brand">STBS <span>QUOTATION BUILDER</span></div><button className="new-quotation" onClick={reset}>NEW QUOTATION</button></div><h2>Build quotation</h2>{section("info","Quotation information",<><label>Reference<input value={q.quotationReference} onChange={e=>update("quotationReference",e.target.value)}/></label><label>Date<input value={q.quotationDate} onChange={e=>update("quotationDate",e.target.value)}/></label><label>Validity<input value={q.validity} onChange={e=>update("validity",e.target.value)}/></label></>)}{section("client","Prepared for",Object.entries(q.client).map(([k,v])=><label key={k}>{k.replace(/([A-Z])/g," $1")}<input value={v} onChange={e=>updateClient(k,e.target.value)}/></label>))}{section("service","Service & subject",<><label>Quotation type<select value={q.serviceType} onChange={e=>setService(e.target.value)}>{serviceOptions.map(x=><option key={x}>{x}</option>)}</select></label>{q.serviceType==="Custom"&&<label>Custom service name<input value={q.customServiceType} onChange={e=>update("customServiceType",e.target.value)}/></label>}<label>Subject<input value={q.subject || defaultSubject(q)} onChange={e=>update("subject",e.target.value)}/></label></>)}{section("items","Price items",<><div className="items-list">{q.items.map((i,n)=><div className="editor-item" key={i.id}><div className="item-heading"><strong>ITEM {String(n+1).padStart(2,"0")}</strong><button onClick={()=>removeItem(i.id)} disabled={q.items.length===1}>Delete</button></div><label>Description<input placeholder="Describe the work or material" value={i.description} onChange={e=>setItem(i.id,"description",e.target.value)}/></label><div className="item-grid"><label>Unit<input value={i.unit} onChange={e=>setItem(i.id,"unit",e.target.value)}/></label><label>Quantity<input type="number" min="0" value={i.quantity} onChange={e=>setItem(i.id,"quantity",Number(e.target.value))}/></label><label>Rate<input type="number" min="0" value={i.rate} onChange={e=>setItem(i.id,"rate",Number(e.target.value))}/></label></div><div className="item-amount">Amount <b>{money(i.quantity*i.rate)}</b></div></div>)}</div><button type="button" className="add-item" onClick={addItem}>+ ADD ITEM</button><div className="editor-total">Total <b>{money(total)}</b></div></>)}</aside><main className={`editor-preview ${tab==='edit'?"show-edit":"show-preview"}`}><div className="mobile-tabs"><button className={tab==='edit'?"active":""} onClick={()=>setTab("edit")}>EDIT</button><button className={tab==='preview'?"active":""} onClick={()=>setTab("preview")}>PREVIEW</button></div><div className="preview-controls"><span>QUOTATION PREVIEW</span><button onClick={()=>setZoom(Math.max(50,zoom-10))}>−</button><b>{zoom}%</b><button onClick={()=>setZoom(Math.min(100,zoom+10))}>+</button><button onClick={()=>setZoom(60)}>FIT WIDTH</button><small>4 Pages</small></div><div className="preview-zoom" style={{"--preview-zoom":zoom/60} as React.CSSProperties}><QuotationPreview quotation={q}/></div></main></div>;
+  const [q, setQ] = useState<QuotationState>(initialQuotation);
+  const [open, setOpen] = useState({ info: true, client: true, service: true, items: true });
+  const [tab, setTab] = useState<"edit" | "preview">("edit");
+  const [subjectEdited, setSubjectEdited] = useState(false);
+  const [zoom, setZoom] = useState(60);
+  const [page4Overflow, setPage4Overflow] = useState(false);
+  const [showTestPanel, setShowTestPanel] = useState(false);
+  const previewPanelRef = useRef<HTMLElement>(null);
+  const descriptionRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+
+  // --- Derived values (never stored in state) ---
+  const validItems = useMemo(() => getValidItems(q.items), [q.items]);
+  const total = useMemo(() => calcTotal(validItems), [validItems]);
+  const canGenerateQuotation = q.client.companyName.trim() !== "" && q.serviceType.trim() !== "" && (q.serviceType !== "Custom" || q.customServiceType.trim() !== "") && q.subject.trim() !== "" && validItems.length > 0;
+
+  const fitPreviewToPanel = useCallback(() => {
+    const width = previewPanelRef.current?.clientWidth ?? 900;
+    const a4WidthPx = 210 / 25.4 * 96;
+    setZoom(Math.round(Math.min(100, Math.max(50, ((width - 40) / a4WidthPx) * 100))));
+  }, []);
+
+  const generatePdf = useCallback(async () => {
+    if (!canGenerateQuotation || page4Overflow) return;
+    await document.fonts.ready;
+    const images = Array.from(document.querySelectorAll<HTMLImageElement>(".quotation-editor img"));
+    await Promise.all(images.map(image => image.complete ? Promise.resolve() : new Promise<void>(resolve => {
+      image.addEventListener("load", () => resolve(), { once: true });
+      image.addEventListener("error", () => resolve(), { once: true });
+    })));
+    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    window.print();
+  }, [canGenerateQuotation, page4Overflow]);
+
+  useEffect(() => {
+    const panel = previewPanelRef.current;
+    if (!panel) return;
+    const observer = new ResizeObserver(() => { if (tab === "preview") fitPreviewToPanel(); });
+    observer.observe(panel);
+    return () => observer.disconnect();
+  }, [fitPreviewToPanel, tab]);
+
+  // --- Updaters ---
+  const update = (key: keyof QuotationState, value: unknown) => setQ(x => ({ ...x, [key]: value }));
+  const updateClient = (key: string, value: string) => setQ(x => ({ ...x, client: { ...x.client, [key]: value } }));
+  const setService = (serviceType: string) => setQ(x => ({ ...x, serviceType, subject: subjectEdited ? x.subject : defaultSubject({ ...x, serviceType }) }));
+  const setCustomService = (customServiceType: string) => setQ(x => ({ ...x, customServiceType, subject: subjectEdited ? x.subject : defaultSubject({ ...x, customServiceType }) }));
+  const setItem = (id: string, key: string, value: string | number) => setQ(x => ({ ...x, items: x.items.map(i => i.id === id ? { ...i, [key]: value } : i) }));
+  const removeItem = (id: string) => setQ(x => ({ ...x, items: x.items.filter(i => i.id !== id) }));
+
+  const addItem = useCallback(() => {
+    const item = emptyItem();
+    setQ(x => ({ ...x, items: [...x.items, item] }));
+    // Focus description field after render
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = descriptionRefs.current.get(item.id);
+        el?.focus();
+        el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+    });
+  }, []);
+
+  const reset = () => { if (confirm("Start a new quotation? Unsaved changes will be cleared.")) { setQ({ ...initialQuotation, quotationDate: today(), items: [] }); setSubjectEdited(false); } };
+
+  const handlePage4Overflow = useCallback((isOver: boolean) => {
+    setPage4Overflow(isOver);
+  }, []);
+
+  // --- Dev test helpers ---
+  const loadTestItems = (count: number) => {
+    setQ(x => ({ ...x, items: TEST_ITEMS.slice(0, count) }));
+  };
+
+  // --- Section toggle helper ---
+  const section = (key: keyof typeof open, title: string, children: React.ReactNode) => (
+    <section className="editor-section">
+      <button className="section-toggle" onClick={() => setOpen(x => ({ ...x, [key]: !x[key] }))}>
+        <span>{title}</span><b>{open[key] ? "−" : "+"}</b>
+      </button>
+      {open[key] && <div className="section-content">{children}</div>}
+    </section>
+  );
+
+  // --- Validation per item ---
+  const itemErrors = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof validateItem>>();
+    q.items.forEach(item => {
+      const errs = validateItem(item);
+      if (Object.keys(errs).length > 0) map.set(item.id, errs);
+    });
+    return map;
+  }, [q.items]);
+
+  return (
+    <div className="quotation-editor">
+      <div className="mobile-tabs" role="tablist" aria-label="Quotation view">
+        <button role="tab" aria-selected={tab === "edit"} className={tab === "edit" ? "active" : ""} onClick={() => setTab("edit")}>EDIT</button>
+        <button role="tab" aria-selected={tab === "preview"} className={tab === "preview" ? "active" : ""} onClick={() => { setTab("preview"); fitPreviewToPanel(); }}>PREVIEW</button>
+      </div>
+      <aside className="editor-panel">
+        {/* Sticky header */}
+        <div className="editor-header-sticky">
+          <div className="editor-top">
+            <div className="editor-brand">STBS <span>QUOTATION BUILDER</span></div>
+            <button className="new-quotation" onClick={reset}>NEW QUOTATION</button>
+          </div>
+          <h2>Build quotation</h2>
+        </div>
+
+        {/* Scrollable content */}
+        <div className="editor-scroll-content">
+          {/* Overflow warning */}
+          {page4Overflow && (
+            <div className="editor-warning">
+              ⚠ Price table exceeds the available space on Page 4.
+            </div>
+          )}
+
+          {section("info", "Quotation information", <>
+            <label>Reference<input value={q.quotationReference} onChange={e => update("quotationReference", e.target.value)} /></label>
+            <label>Date<input value={q.quotationDate} onChange={e => update("quotationDate", e.target.value)} /></label>
+            <label>Validity<input value={q.validity} onChange={e => update("validity", e.target.value)} /></label>
+          </>)}
+
+          {section("client", "Prepared for", <>
+            {Object.entries(q.client).map(([k, v]) => (
+              <label key={k}>{k.replace(/([A-Z])/g, " $1")}<input value={v} onChange={e => updateClient(k, e.target.value)} /></label>
+            ))}
+          </>)}
+
+          {section("service", "Service & subject", <>
+            <label>Quotation type
+              <select value={q.serviceType} onChange={e => setService(e.target.value)}>
+                {serviceOptions.map(x => <option key={x}>{x}</option>)}
+              </select>
+            </label>
+            {q.serviceType === "Custom" && <label>Custom service name<input value={q.customServiceType} onChange={e => setCustomService(e.target.value)} /></label>}
+            <label>Subject<input value={q.subject || defaultSubject(q)} onChange={e => { setSubjectEdited(true); update("subject", e.target.value); }} /></label>
+          </>)}
+
+          {section("items", "Price items", <>
+            {q.items.length === 0 ? (
+              <div className="items-empty-state">
+                <p>No price items added yet.</p>
+                <button type="button" className="add-first-item" onClick={addItem}>+ ADD FIRST ITEM</button>
+              </div>
+            ) : (
+              <>
+                <div className="items-list">
+                  {q.items.map((item, n) => {
+                    const errs = itemErrors.get(item.id);
+                    return (
+                      <div className={`editor-item ${errs ? "has-errors" : ""}`} key={item.id}>
+                        <div className="item-heading">
+                          <strong>ITEM {String(n + 1).padStart(2, "0")}</strong>
+                          <button onClick={() => removeItem(item.id)}>Delete</button>
+                        </div>
+                        <label>
+                          Description
+                          <input
+                            ref={el => { if (el) descriptionRefs.current.set(item.id, el); else descriptionRefs.current.delete(item.id); }}
+                            placeholder="Describe the work or material"
+                            value={item.description}
+                            onChange={e => setItem(item.id, "description", e.target.value)}
+                            className={errs?.description ? "field-error" : ""}
+                          />
+                          {errs?.description && <span className="validation-msg">{errs.description}</span>}
+                        </label>
+                        <div className="item-grid">
+                          <label>
+                            Unit
+                            <input value={item.unit} onChange={e => setItem(item.id, "unit", e.target.value)} className={errs?.unit ? "field-error" : ""} />
+                            {errs?.unit && <span className="validation-msg">{errs.unit}</span>}
+                          </label>
+                          <label>
+                            Quantity
+                            <input type="number" min="1" step="1" value={item.quantity} onChange={e => setItem(item.id, "quantity", Number(e.target.value))} className={errs?.quantity ? "field-error" : ""} />
+                            {errs?.quantity && <span className="validation-msg">{errs.quantity}</span>}
+                          </label>
+                          <label>
+                            Rate
+                            <input type="number" min="0" step="0.01" value={item.rate} onChange={e => setItem(item.id, "rate", Number(e.target.value))} className={errs?.rate ? "field-error" : ""} />
+                            {errs?.rate && <span className="validation-msg">{errs.rate}</span>}
+                          </label>
+                        </div>
+                        <div className="item-amount">
+                          Amount <b>{isItemValid(item) ? formatINR(calcAmount(item.quantity, item.rate)) : "—"}</b>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <button type="button" className="add-item" onClick={addItem}>+ ADD ITEM</button>
+                <div className="editor-total">Total <b>{formatINR(total)}</b></div>
+              </>
+            )}
+          </>)}
+
+          {/* Dev test panel */}
+          <div className="dev-test-panel">
+            <button className="dev-test-toggle" onClick={() => setShowTestPanel(!showTestPanel)}>
+              {showTestPanel ? "▾ DEV TEST" : "▸ DEV TEST"}
+            </button>
+            {showTestPanel && (
+              <div className="dev-test-buttons">
+                <span>Load test items:</span>
+                <button onClick={() => loadTestItems(1)}>1</button>
+                <button onClick={() => loadTestItems(5)}>5</button>
+                <button onClick={() => loadTestItems(10)}>10</button>
+                <button onClick={() => loadTestItems(13)}>13</button>
+                <button onClick={() => setQ(x => ({ ...x, items: [] }))}>Clear</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      <main ref={previewPanelRef} className={`editor-preview ${tab === "edit" ? "show-edit" : "show-preview"}`} data-can-generate={canGenerateQuotation}>
+        <div className="preview-controls">
+          <span>QUOTATION PREVIEW</span>
+          <button onClick={() => setZoom(Math.max(50, zoom - 10))}>−</button>
+          <b>{zoom}%</b>
+          <button onClick={() => setZoom(Math.min(100, zoom + 10))}>+</button>
+          <button onClick={fitPreviewToPanel}>FIT WIDTH</button>
+          <button className="generate-pdf" disabled={!canGenerateQuotation || page4Overflow} title={canGenerateQuotation && !page4Overflow ? "Open the browser save-as-PDF dialog" : "Complete the quotation and resolve Page 4 overflow first"} onClick={generatePdf}>GENERATE / SAVE PDF</button>
+          <small>4 Pages</small>
+        </div>
+        <div className="preview-zoom" style={{ "--preview-zoom": zoom / 60, transform: `scale(${zoom / 60})` } as React.CSSProperties}>
+          <QuotationPreview quotation={q} onPage4Overflow={handlePage4Overflow} />
+        </div>
+      </main>
+      <div className="quotation-print-document" aria-hidden="true">
+        <QuotationDocument quotation={q} isEditorPreview={false} />
+      </div>
+    </div>
+  );
 }

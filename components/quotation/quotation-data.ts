@@ -12,7 +12,7 @@ export const quotation = {
     ["JCB Work", "All JCB-related work will be charged extra."],
     ["Validity", "This offer is valid for 15 days from the date of submission. After this period, the offer will be subject to our confirmation."],
   ],
-  about: "Saini tubewell boring service established in 1992 & itself as one of the leaders in borewell, material supply and rain water harvesting services. We provide the best services allowing us to give our customers full satisfaction. We also follow up on all clients to ensure that all equipment supplied is efficiently running and serviced on time.",
+  about: "Saini Tubewell Boring Service, established in 1992, has built a strong presence in borewell construction, borewell material supply, and rainwater harvesting services. We are committed to delivering reliable solutions and high-quality service to our customers. We also provide ongoing support to help ensure that supplied equipment operates efficiently and is serviced when required.",
   mission: "It’s the policy of the company to provide customers with products and services which achieve and sustain the highest possible quality standards. This statement is the basis of our management philosophy and reflects the commitment of every individual within the organization.",
   vision: "Excel in what we do and build a safe and secure environment for our community.",
   capabilities: ["Rain water harvesting work.", "Borewell 100mm to 400mm.", "Provide best quality of borewell material.", "Provide material at a reasonable rate.", "On time work."],

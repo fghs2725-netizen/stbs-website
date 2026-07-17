@@ -1,11 +1,27 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { quotation as fixed } from "./quotation-data";
-import { serviceLabel, type QuotationState } from "./quotation-model";
-import "./quotation.css";
-import "./quotation-refinement.css";
-function SidePanel(){return <aside className="q-side"><div className="q-depth">STBS<br/><span>ENGINEERING</span></div><div className="q-strata"><i/><i/><i/><i/><i/></div><div className="q-casing"><span className="q-slot s1"/><span className="q-slot s2"/><span className="q-slot s3"/><span className="q-slot s4"/></div><div className="q-water"/><div className="q-scale"><span>0m</span><span>50m</span><span>100m</span><span>150m</span></div></aside>}
-function Watermark(){return <div className="q-watermark" aria-hidden="true"><div className="wm-ground wm-one"/><div className="wm-ground wm-two"/><div className="wm-ground wm-three"/><div className="pump-ring"/><div className="pump-body"/><div className="pump-pipe"/><div className="pump-flow"/></div>}
-function Page({n,kicker,title,children}:{n:number;kicker:string;title:string;children:React.ReactNode}){const ref=useRef<HTMLDivElement>(null);const[over,setOver]=useState(false);useEffect(()=>{const f=()=>setOver(!!ref.current&&ref.current.scrollHeight>ref.current.clientHeight+1);f();const r=new ResizeObserver(f);if(ref.current)r.observe(ref.current);return()=>r.disconnect()},[]);return <section ref={ref} className="q-page"><img className="q-banner" src="/quotation/banner/stbs-premium-banner.png" alt="Saini Tubewell Boring Service"/><SidePanel/><Watermark/><div className="q-main"><div className="q-kicker">{kicker} <span>/{String(n).padStart(2,"0")}</span></div><h1>{title}</h1>{children}</div>{over&&<div className="q-overflow">PAGE {n} OVERFLOW DETECTED</div>}<footer><span>SAINI TUBEWELL BORING SERVICE</span><span>{String(n).padStart(2,"0")} / 04</span></footer></section>}
-const Section=({title,children}:{title:string;children:React.ReactNode})=><div className="q-section"><h2>{title}</h2>{children}</div>;
-export function QuotationPreview({quotation}:{quotation?:QuotationState}){const q:any=quotation?{reference:quotation.quotationReference,date:quotation.quotationDate,validity:quotation.validity,client:[quotation.client.companyName,quotation.client.contactPerson,quotation.client.addressLine1,quotation.client.addressLine2,[quotation.client.city,quotation.client.state,quotation.client.pinCode].filter(Boolean).join(" – "),quotation.client.phone,quotation.client.email].filter(Boolean),subject:quotation.subject,service:serviceLabel(quotation),terms:fixed.terms,about:fixed.about,mission:fixed.mission,vision:fixed.vision,capabilities:fixed.capabilities,clients:fixed.clients,items:quotation.items.map((i,n)=>[String(n+1).padStart(2,"0"),i.description,i.unit,i.quantity,`₹ ${i.rate.toLocaleString("en-IN")}`,`₹ ${(i.quantity*i.rate).toLocaleString("en-IN")}`])}:{...fixed,service:"Borewell Construction"};const total=quotation?.items.reduce((a,i)=>a+i.quantity*i.rate,0);return <div className="quotation-stage"><div className="q-tools"><span>Template preview · 4 fixed A4 pages</span><button onClick={()=>window.print()}>Print preview</button></div><div className="q-document"><Page n={1} kicker="QUOTATION / COVER LETTER" title="Commercial Quotation"><div className="q-supporting">{q.service.toUpperCase()}</div><div className="q-meta"><div><label>REFERENCE</label><strong>{q.reference}</strong></div><div><label>DATE</label><strong>{q.date}</strong></div><div><label>VALIDITY</label><strong>{q.validity}</strong></div></div><div className="q-duo"><div><label>PREPARED FOR</label><strong>{q.client.map((x:string)=><span key={x}>{x}</span>)}</strong></div><div><label>PREPARED BY</label><strong>SAINI TUBEWELL BORING SERVICE<span>Rajesh Saini · Managing Director</span><span>9812003001 / 7988024114</span><span>stbs2025@gmail.com</span></strong></div></div><Section title="Subject"><p className="q-subject">{q.subject}</p></Section><div className="q-letter"><p>Dear Sir,</p><p>We are pleased to serve you and thanking you for giving us an opportunity to quote for above mentioned work.</p><p>Below mentioned Annexures are attached for your ready reference.</p><ul><li>Annexure-I · Terms and Conditions</li><li>Annexure-II · Company details & Customer list</li><li>Annexure-III · Price Offer for Subject Job</li></ul><p>Hope you will find all the above in line with your requirements. Once again thanking you and assuring you our best services.</p><p className="closing">Yours Truly,<br/><b>(For SAINI TUBEWELL BORING SERVICE)</b></p><p className="signature">Rajesh Saini<br/><span>Managing Director</span></p></div></Page><Page n={2} kicker="ANNEXURE I" title="Terms & Conditions"><div className="terms">{q.terms.map(([t,d]:string[],i:number)=><article key={t}><b>{String(i+1).padStart(2,"0")}</b><div><h3>{t}</h3><p>{d}</p></div></article>)}</div><div className="glance"><div className="glance-head"><span>AT A GLANCE</span><small>STBS / FIELD RECORD</small></div><div className="glance-grid"><div><b>30+</b><span>Years Experience</span></div><div><b>500+</b><span>Projects Delivered</span></div><div><b>100%</b><span>ISI Certified</span></div><div><b>24/7</b><span>Site Support</span></div></div></div></Page><Page n={3} kicker="ANNEXURE II" title="Company Profile"><Section title="About Us"><p>{q.about}</p></Section><div className="profile-grid"><Section title="Mission"><p>{q.mission}</p></Section><Section title="Vision"><p>{q.vision}</p></Section></div><Section title="Core Capabilities / Distinctive Qualities"><ul className="capabilities">{q.capabilities.map((x:string)=><li key={x}>{x}</li>)}</ul></Section><Section title="Our Esteemed Clients"><div className="clients">{q.clients.map((x:string)=><span key={x}>{x}</span>)}</div></Section></Page><Page n={4} kicker="ANNEXURE III" title="Price Offer"><div className="q-supporting">{q.service}</div><div className="price-intro">Commercial offer for the subject job · Reference {q.reference}</div><table><thead><tr><th>SR. NO.</th><th>DESCRIPTION</th><th>UNIT</th><th>QTY</th><th>RATE</th><th>AMOUNT</th></tr></thead><tbody>{q.items.map((row:string[])=> <tr key={row[0]}>{row.map((x,i)=><td key={i}>{x}</td>)}</tr>)}</tbody>{quotation&&<tfoot><tr><td colSpan={5}>FINAL TOTAL</td><td>₹ {total?.toLocaleString("en-IN")}</td></tr></tfoot>}</table></Page></div></div>}
+import { QuotationDocument } from "./QuotationDocument";
+import { type QuotationState } from "./quotation-model";
+
+/* ==========================================================================
+   QuotationPreview
+   Wraps QuotationDocument with toolbar (print, page count).
+   Used inside the editor's preview pane.
+   ========================================================================== */
+export function QuotationPreview({ quotation, onPage4Overflow }: {
+  quotation: QuotationState;
+  onPage4Overflow?: (isOverflow: boolean) => void;
+}) {
+  return (
+    <div className="quotation-stage">
+      <div className="q-tools">
+        <span>Template preview · 4 fixed A4 pages</span>
+        <button onClick={() => window.print()}>Print preview</button>
+      </div>
+      <QuotationDocument
+        quotation={quotation}
+        isEditorPreview={true}
+        onPage4Overflow={onPage4Overflow}
+      />
+    </div>
+  );
+}
