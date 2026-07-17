@@ -1,6 +1,6 @@
 export type QuotationItem = { id: string; description: string; unit: string; quantity: number; rate: number };
 export type ClientDetails = { companyName: string; contactPerson: string; addressLine1: string; addressLine2: string; city: string; state: string; pinCode: string; phone: string; email: string };
-export type QuotationState = { id?: string; quotationReference: string; quotationDate: string; validity: string; client: ClientDetails; serviceType: string; customServiceType: string; subject: string; items: QuotationItem[]; status?: "DRAFT" | "FINAL" };
+export type QuotationState = { id?: string; clientId?: string; saveClientForFuture?: boolean; quotationReference: string; quotationDate: string; validity: string; client: ClientDetails; serviceType: string; customServiceType: string; subject: string; items: QuotationItem[]; status?: "DRAFT" | "FINAL" };
 export const serviceOptions = ["Borewell Construction", "Rainwater Harvesting Borewell System", "Rainwater Harvesting", "Tubewell Boring", "Borewell Cleaning", "Borewell Material Supply", "Custom"];
 export const serviceLabel = (q: QuotationState) => q.serviceType === "Custom" ? q.customServiceType || "Custom Service" : q.serviceType;
 export const defaultSubject = (q: QuotationState) => `Price Offer for ${serviceLabel(q)}`;

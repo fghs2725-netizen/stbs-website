@@ -7,6 +7,7 @@ import { defaultSubject, initialQuotation, serviceOptions, type QuotationState, 
 import "./editor.css";
 import { saveDraftAction, finalizeAction } from "@/app/admin/quotations/actions";
 import { AdminBackLink } from "@/components/admin-back-link";
+import type { ReusableClient } from "@/lib/quotation-management";
 
 const today = () => { const d = new Date(); return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; };
 const emptyItem = (): QuotationItem => ({ id: crypto.randomUUID(), description: "", unit: "", quantity: 1, rate: 0 });
@@ -28,7 +29,7 @@ const TEST_ITEMS: QuotationItem[] = [
   { id: "t13", description: "Site supervision charges for complete project duration including daily progress reports", unit: "Month", quantity: 2, rate: 12000 },
 ];
 
-export function QuotationEditor({ initial, backHref, backLabel }: { initial?: QuotationState; backHref?: string; backLabel?: string }) {
+export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: { initial?: QuotationState; backHref?: string; backLabel?: string; clients?: ReusableClient[] }) {
   const [q, setQ] = useState<QuotationState>(initial ?? { ...initialQuotation, quotationDate: today() });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -79,6 +80,7 @@ export function QuotationEditor({ initial, backHref, backLabel }: { initial?: Qu
   const updateClient = (key: string, value: string) => { setDirty(true); setQ(x => ({ ...x, client: { ...x.client, [key]: value } })); };
   const setService = (serviceType: string) => setQ(x => ({ ...x, serviceType, subject: subjectEdited ? x.subject : defaultSubject({ ...x, serviceType }) }));
   const setCustomService = (customServiceType: string) => setQ(x => ({ ...x, customServiceType, subject: subjectEdited ? x.subject : defaultSubject({ ...x, customServiceType }) }));
+  const selectClient = (id: string) => { const client = clients.find(x => x.id === id); if (!client) return; setDirty(true); setQ(x => ({ ...x, clientId: client.id, saveClientForFuture: false, client: { companyName: client.companyName, contactPerson: client.contactPerson, addressLine1: client.addressLine1, addressLine2: client.addressLine2, city: client.city, state: client.state, pinCode: client.pinCode, phone: client.phone, email: client.email } })); };
   const setItem = (id: string, key: string, value: string | number) => setQ(x => ({ ...x, items: x.items.map(i => i.id === id ? { ...i, [key]: value } : i) }));
   const removeItem = (id: string) => setQ(x => ({ ...x, items: x.items.filter(i => i.id !== id) }));
 
@@ -161,9 +163,11 @@ export function QuotationEditor({ initial, backHref, backLabel }: { initial?: Qu
           </>)}
 
           {section("client", "Prepared for", <>
+            {clients.length > 0 && <label>Client source<select value={q.clientId || "new"} onChange={e => e.target.value === "new" ? update("clientId", undefined) : selectClient(e.target.value)}><option value="new">ENTER NEW CLIENT</option>{clients.map(client => <option key={client.id} value={client.id}>{client.companyName}</option>)}</select></label>}
             {Object.entries(q.client).map(([k, v]) => (
               <label key={k}>{k.replace(/([A-Z])/g, " $1")}<input value={v} onChange={e => updateClient(k, e.target.value)} /></label>
             ))}
+            <label className="flex items-center gap-2 normal-case"><input type="checkbox" checked={Boolean(q.saveClientForFuture && !q.clientId)} onChange={e => { setDirty(true); setQ(x => ({ ...x, saveClientForFuture: e.target.checked, clientId: e.target.checked ? undefined : x.clientId })); }} /> SAVE CLIENT FOR FUTURE QUOTATIONS</label>
           </>)}
 
           {section("service", "Service & subject", <>
