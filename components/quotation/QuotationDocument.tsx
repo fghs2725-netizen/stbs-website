@@ -148,14 +148,14 @@ export function QuotationDocument({ quotation, isEditorPreview = false, onPage4O
         <Section title="Subject"><p className="q-subject">{subject}</p></Section>
         <div className="q-letter">
           <p>Dear Sir,</p>
-          <p>We are pleased to serve you and thanking you for giving us an opportunity to quote for above mentioned work.</p>
-          <p>Below mentioned Annexures are attached for your ready reference.</p>
+          <p>We are pleased to have the opportunity to serve you and thank you for inviting us to submit our quotation for the above-mentioned work.</p>
+          <p>The following annexures are attached for your reference.</p>
           <ul>
             <li>Annexure-I · Terms and Conditions</li>
             <li>Annexure-II · Company details &amp; Customer list</li>
             <li>Annexure-III · Price Offer for Subject Job</li>
           </ul>
-          <p>Hope you will find all the above in line with your requirements. Once again thanking you and assuring you our best services.</p>
+          <p>We trust that the above proposal meets your requirements. We thank you for the opportunity and assure you of our best services at all times.</p>
           <p className="closing">Yours Truly,<br /><b>(For SAINI TUBEWELL BORING SERVICE)</b></p>
           <p className="signature">Rajesh Saini<br /><span>Managing Director</span></p>
         </div>

@@ -1,28 +1,14 @@
-import type { ClientDetails, QuotationItem } from "@/components/quotation/quotation-model";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import type { QuotationState } from "@/components/quotation/quotation-model";
 
-export type QuotationStatus = "Draft" | "Final";
-export type ManagedQuotation = {
-  id: string;
-  reference: string;
-  date: string;
-  validity: string;
-  status: QuotationStatus;
-  createdAt: string;
-  updatedAt: string;
-  client: ClientDetails;
-  serviceType: string;
-  customServiceType: string;
-  subject: string;
-  items: QuotationItem[];
-  finalTotal: number;
-};
-
-// Repository boundary for Phase 2. A database adapter can implement this later
-// without changing the builder, history, view, or duplicate screens.
-export type QuotationRepository = {
-  list(): Promise<ManagedQuotation[]>;
-  get(id: string): Promise<ManagedQuotation | null>;
-  save(quotation: ManagedQuotation): Promise<ManagedQuotation>;
-  duplicate(id: string): Promise<ManagedQuotation>;
-};
-
+export async function requireAdmin() { const session = await auth(); if (!session?.user) throw new Error("UNAUTHORIZED"); }
+function input(q: QuotationState) { return { date:q.quotationDate, validity:q.validity, serviceType:q.serviceType, customServiceType:q.customServiceType || null, subject:q.subject, clientCompanyName:q.client.companyName, clientContactPerson:q.client.contactPerson || null, clientAddressLine1:q.client.addressLine1 || null, clientAddressLine2:q.client.addressLine2 || null, clientCity:q.client.city || null, clientState:q.client.state || null, clientPinCode:q.client.pinCode || null, clientPhone:q.client.phone || null, clientEmail:q.client.email || null }; }
+function state(x: any): QuotationState { return { id:x.id, quotationReference:x.reference, quotationDate:x.date, validity:x.validity, status:x.status, serviceType:x.serviceType, customServiceType:x.customServiceType || "", subject:x.subject, client:{companyName:x.clientCompanyName,contactPerson:x.clientContactPerson||"",addressLine1:x.clientAddressLine1||"",addressLine2:x.clientAddressLine2||"",city:x.clientCity||"",state:x.clientState||"",pinCode:x.clientPinCode||"",phone:x.clientPhone||"",email:x.clientEmail||""}, items:x.items.map((i:any)=>({id:i.id,description:i.description,unit:i.unit,quantity:Number(i.quantity),rate:Number(i.rate)}))}; }
+async function reference(tx:any) { const year = new Date().getFullYear(); const c = await tx.quotationReferenceCounter.upsert({where:{year},create:{year,lastNumber:1},update:{lastNumber:{increment:1}}}); return `STBS/${year}/${String(c.lastNumber).padStart(3,"0")}`; }
+export async function saveQuotation(q: QuotationState) { await requireAdmin(); return prisma.$transaction(async tx => { const data=input(q); const items={create:q.items.map((i,n)=>({position:n,description:i.description,unit:i.unit,quantity:i.quantity,rate:i.rate}))}; if(q.id){ const old=await tx.quotation.findUnique({where:{id:q.id}}); if(!old) throw new Error("NOT_FOUND"); if(old.status !== "DRAFT") throw new Error("FINAL_READ_ONLY"); return state(await tx.quotation.update({where:{id:q.id},data:{...data,items:{deleteMany:{},...items}} ,include:{items:{orderBy:{position:"asc"}}}})); } const referenceValue=await reference(tx); return state(await tx.quotation.create({data:{...data,reference:referenceValue,items},include:{items:true}})); }); }
+export async function getQuotation(id:string){await requireAdmin(); const x=await prisma.quotation.findUnique({where:{id},include:{items:{orderBy:{position:"asc"}}}}); return x?state(x):null;}
+export async function listQuotations(search="", status="ALL"){await requireAdmin(); const rows=await prisma.quotation.findMany({where:{status:status==="ALL"?undefined:status as any,OR:search?[{reference:{contains:search,mode:"insensitive"}},{clientCompanyName:{contains:search,mode:"insensitive"}},{serviceType:{contains:search,mode:"insensitive"}}]:undefined},orderBy:{updatedAt:"desc"},include:{items:true}}); return rows.map(state);}
+export async function finalizeQuotation(id:string){await requireAdmin(); const q=await getQuotation(id); if(!q) throw new Error("NOT_FOUND"); if(!q.client.companyName||!q.subject||!q.serviceType||!q.items.some(i=>i.description&&i.unit&&i.quantity>0&&i.rate>=0)) throw new Error("INVALID"); await prisma.quotation.update({where:{id},data:{status:"FINAL",finalizedAt:new Date()}});}
+export async function duplicateQuotation(id:string){await requireAdmin(); return prisma.$transaction(async tx=>{const x=await tx.quotation.findUnique({where:{id},include:{items:true}}); if(!x) throw new Error("NOT_FOUND"); const ref=await reference(tx); return state(await tx.quotation.create({data:{reference:ref,status:"DRAFT",date:x.date,validity:x.validity,serviceType:x.serviceType,customServiceType:x.customServiceType,subject:x.subject,clientId:x.clientId,clientCompanyName:x.clientCompanyName,clientContactPerson:x.clientContactPerson,clientAddressLine1:x.clientAddressLine1,clientAddressLine2:x.clientAddressLine2,clientCity:x.clientCity,clientState:x.clientState,clientPinCode:x.clientPinCode,clientPhone:x.clientPhone,clientEmail:x.clientEmail,items:{create:x.items.map(i=>({position:i.position,description:i.description,unit:i.unit,quantity:i.quantity,rate:i.rate}))}},include:{items:true}}));});}
+export async function dashboardCounts(){await requireAdmin(); return prisma.quotation.groupBy({by:["status"],_count:true});}

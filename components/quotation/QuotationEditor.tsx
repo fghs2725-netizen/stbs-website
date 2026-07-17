@@ -1,9 +1,11 @@
 "use client";
 import { useCallback, useRef, useMemo, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { QuotationPreview } from "./QuotationPreview";
 import { QuotationDocument } from "./QuotationDocument";
 import { defaultSubject, initialQuotation, serviceOptions, type QuotationState, type QuotationItem, validateItem, isItemValid, calcAmount, formatINR, getValidItems, calcTotal } from "./quotation-model";
 import "./editor.css";
+import { saveDraftAction, finalizeAction } from "@/app/admin/quotations/actions";
 
 const today = () => { const d = new Date(); return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; };
 const emptyItem = (): QuotationItem => ({ id: crypto.randomUUID(), description: "", unit: "", quantity: 1, rate: 0 });
@@ -25,8 +27,12 @@ const TEST_ITEMS: QuotationItem[] = [
   { id: "t13", description: "Site supervision charges for complete project duration including daily progress reports", unit: "Month", quantity: 2, rate: 12000 },
 ];
 
-export function QuotationEditor() {
-  const [q, setQ] = useState<QuotationState>(initialQuotation);
+export function QuotationEditor({ initial }: { initial?: QuotationState }) {
+  const [q, setQ] = useState<QuotationState>(initial ?? { ...initialQuotation, quotationDate: today() });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [dirty, setDirty] = useState(false);
+  const router = useRouter();
   const [open, setOpen] = useState({ info: true, client: true, service: true, items: true });
   const [tab, setTab] = useState<"edit" | "preview">("edit");
   const [subjectEdited, setSubjectEdited] = useState(false);
@@ -68,8 +74,8 @@ export function QuotationEditor() {
   }, [fitPreviewToPanel, tab]);
 
   // --- Updaters ---
-  const update = (key: keyof QuotationState, value: unknown) => setQ(x => ({ ...x, [key]: value }));
-  const updateClient = (key: string, value: string) => setQ(x => ({ ...x, client: { ...x.client, [key]: value } }));
+  const update = (key: keyof QuotationState, value: unknown) => { setDirty(true); setQ(x => ({ ...x, [key]: value })); };
+  const updateClient = (key: string, value: string) => { setDirty(true); setQ(x => ({ ...x, client: { ...x.client, [key]: value } })); };
   const setService = (serviceType: string) => setQ(x => ({ ...x, serviceType, subject: subjectEdited ? x.subject : defaultSubject({ ...x, serviceType }) }));
   const setCustomService = (customServiceType: string) => setQ(x => ({ ...x, customServiceType, subject: subjectEdited ? x.subject : defaultSubject({ ...x, customServiceType }) }));
   const setItem = (id: string, key: string, value: string | number) => setQ(x => ({ ...x, items: x.items.map(i => i.id === id ? { ...i, [key]: value } : i) }));
@@ -93,6 +99,9 @@ export function QuotationEditor() {
   const handlePage4Overflow = useCallback((isOver: boolean) => {
     setPage4Overflow(isOver);
   }, []);
+  useEffect(() => { const fn=(e:BeforeUnloadEvent)=>{if(dirty)e.preventDefault();}; window.addEventListener("beforeunload",fn); return()=>window.removeEventListener("beforeunload",fn); },[dirty]);
+  const saveDraft = async () => { if(saving)return; setSaving(true); setMessage(""); try { const saved=await saveDraftAction(q); setQ(saved); setDirty(false); setMessage(`SAVED ${saved.quotationReference}`); if(!q.id) router.replace(`/admin/quotations/${saved.id}/edit`); } catch(e:any) { setMessage(e?.message === "FINAL_READ_ONLY" ? "Final quotations are read-only." : "Could not save draft."); } finally { setSaving(false); } };
+  const finalize = async () => { if(!q.id || saving)return; setSaving(true); try { await saveDraftAction(q); await finalizeAction(q.id); setQ(x=>({...x,status:"FINAL"})); setDirty(false); setMessage("FINALIZED"); } catch { setMessage("Could not finalize quotation."); } finally { setSaving(false); } };
 
   // --- Dev test helpers ---
   const loadTestItems = (count: number) => {
@@ -251,7 +260,9 @@ export function QuotationEditor() {
           <button onClick={() => setZoom(Math.min(100, zoom + 10))}>+</button>
           <button onClick={fitPreviewToPanel}>FIT WIDTH</button>
           <button className="generate-pdf" disabled={!canGenerateQuotation || page4Overflow} title={canGenerateQuotation && !page4Overflow ? "Open the browser save-as-PDF dialog" : "Complete the quotation and resolve Page 4 overflow first"} onClick={generatePdf}>GENERATE / SAVE PDF</button>
-          <small>4 Pages</small>
+          <button className="generate-pdf" onClick={saveDraft} disabled={saving || q.status === "FINAL"}>{saving ? "SAVING..." : "SAVE DRAFT"}</button>
+          <button className="generate-pdf" onClick={finalize} disabled={saving || !q.id || q.status === "FINAL"}>FINALIZE QUOTATION</button>
+          <small>{message || "4 Pages"}</small>
         </div>
         <div className="preview-zoom" style={{ "--preview-zoom": zoom / 60, transform: `scale(${zoom / 60})` } as React.CSSProperties}>
           <QuotationPreview quotation={q} onPage4Overflow={handlePage4Overflow} />

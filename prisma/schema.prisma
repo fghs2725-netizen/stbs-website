@@ -52,3 +52,70 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+enum QuotationStatus {
+  DRAFT
+  FINAL
+}
+
+model Client {
+  id             String       @id @default(cuid())
+  companyName    String
+  contactPerson  String?
+  addressLine1   String?
+  addressLine2   String?
+  city           String?
+  state          String?
+  pinCode        String?
+  phone          String?
+  email          String?
+  quotations     Quotation[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Quotation {
+  id                    String          @id @default(cuid())
+  reference             String          @unique
+  status                QuotationStatus @default(DRAFT)
+  date                  String
+  validity              String
+  serviceType           String
+  customServiceType     String?
+  subject               String
+  clientId              String?
+  client                Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  clientCompanyName     String
+  clientContactPerson   String?
+  clientAddressLine1    String?
+  clientAddressLine2    String?
+  clientCity            String?
+  clientState           String?
+  clientPinCode         String?
+  clientPhone           String?
+  clientEmail           String?
+  items                 QuotationItem[]
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  finalizedAt           DateTime?
+}
+
+model QuotationItem {
+  id          String    @id @default(cuid())
+  quotationId String
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  position    Int
+  description String
+  unit        String
+  quantity    Decimal   @db.Decimal(12, 3)
+  rate        Decimal   @db.Decimal(14, 2)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  @@index([quotationId, position])
+}
+
+model QuotationReferenceCounter {
+  year       Int      @id
+  lastNumber Int      @default(0)
+  updatedAt  DateTime @updatedAt
+}
