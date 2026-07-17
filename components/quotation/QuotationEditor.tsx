@@ -2,12 +2,12 @@
 import { useCallback, useRef, useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { QuotationPreview } from "./QuotationPreview";
-import { QuotationDocument } from "./QuotationDocument";
 import { defaultSubject, initialQuotation, serviceOptions, type QuotationState, type QuotationItem, validateItem, isItemValid, calcAmount, formatINR, getValidItems, calcTotal } from "./quotation-model";
 import "./editor.css";
 import { saveDraftAction, finalizeAction } from "@/app/admin/quotations/actions";
 import { AdminBackLink } from "@/components/admin-back-link";
 import type { ReusableClient } from "@/lib/quotation-management";
+import { QuotationPrintDocument } from "./QuotationPrintDocument";
 
 const today = () => { const d = new Date(); return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; };
 const emptyItem = (): QuotationItem => ({ id: crypto.randomUUID(), description: "", unit: "", quantity: 1, rate: 0 });
@@ -273,9 +273,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
           <QuotationPreview quotation={q} onPage4Overflow={handlePage4Overflow} />
         </div>
       </main>
-      <div className="quotation-print-document" aria-hidden="true">
-        <QuotationDocument quotation={q} isEditorPreview={false} />
-      </div>
+      <QuotationPrintDocument quotation={q} />
     </div>
   );
 }

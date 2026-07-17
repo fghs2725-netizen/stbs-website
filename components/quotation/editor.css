@@ -69,7 +69,7 @@
 .preview-controls .generate-pdf{border-color:#bf9141;color:#f0c66c}
 .preview-zoom{display:block;position:relative;visibility:visible;opacity:1;zoom:var(--preview-zoom);width:calc(100% / var(--preview-zoom));min-height:0}
 .mobile-tabs{display:none}
-.quotation-print-document{display:none}
+.quotation-print-document,.quotation-print-root{display:none}
 .editor-preview .quotation-stage{padding-top:18px}
 .editor-preview .q-tools{display:none}
 
@@ -98,7 +98,7 @@
 @media print{
   .quotation-editor{display:block;height:auto;overflow:visible;background:white!important}
   .editor-panel,.mobile-tabs,.editor-preview{display:none!important}
-  .quotation-print-document{display:block!important;visibility:visible!important;opacity:1!important;width:210mm;height:auto;overflow:visible}
-  .quotation-print-document .q-document{display:block!important;width:210mm}
-  .quotation-print-document .q-page{transform:none!important;zoom:1!important;visibility:visible!important;opacity:1!important}
+  .quotation-print-document,.quotation-print-root{display:block!important;visibility:visible!important;opacity:1!important;width:210mm;height:auto;overflow:visible}
+  .quotation-print-document .q-document,.quotation-print-root .q-document{display:block!important;width:210mm}
+  .quotation-print-document .q-page,.quotation-print-root .q-page{transform:none!important;zoom:1!important;visibility:visible!important;opacity:1!important}
 }
