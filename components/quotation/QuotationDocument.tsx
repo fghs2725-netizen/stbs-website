@@ -151,8 +151,8 @@ export function QuotationDocument({ quotation, isEditorPreview = false, onPage4O
           <p>We are pleased to have the opportunity to serve you and thank you for inviting us to submit our quotation for the above-mentioned work.</p>
           <p>The following annexures are attached for your reference.</p>
           <ul>
-            <li>Annexure-I · Terms and Conditions</li>
-            <li>Annexure-II · Company details &amp; Customer list</li>
+            <li>Annexure-I · Company Profile</li>
+            <li>Annexure-II · Terms and Conditions</li>
             <li>Annexure-III · Price Offer for Subject Job</li>
           </ul>
           <p>We trust that the above proposal meets your requirements. We thank you for the opportunity and assure you of our best services at all times.</p>
@@ -161,8 +161,23 @@ export function QuotationDocument({ quotation, isEditorPreview = false, onPage4O
         </div>
       </Page>
 
-      {/* ──── PAGE 2: Terms & Conditions ──── */}
-      <Page n={2} kicker="ANNEXURE I" title="Terms &amp; Conditions" onOverflow={handleOverflow}>
+      {/* ──── PAGE 2: Company Profile ──── */}
+      <Page n={2} kicker="ANNEXURE I" title="Company Profile" onOverflow={handleOverflow}>
+        <Section title="About Us"><p>{fixed.about}</p></Section>
+        <div className="profile-grid">
+          <Section title="Mission"><p>{fixed.mission}</p></Section>
+          <Section title="Vision"><p>{fixed.vision}</p></Section>
+        </div>
+        <Section title="Core Capabilities / Distinctive Qualities">
+          <ul className="capabilities">{fixed.capabilities.map((x: string, i: number) => <li key={`capability-${i}`}>{x}</li>)}</ul>
+        </Section>
+        <Section title="Our Esteemed Clients">
+          <div className="clients">{fixed.clients.map((x: string, i: number) => <span key={`client-${i}`}>{x}</span>)}</div>
+        </Section>
+      </Page>
+
+      {/* ──── PAGE 3: Terms & Conditions ──── */}
+      <Page n={3} kicker="ANNEXURE II" title="Terms &amp; Conditions" onOverflow={handleOverflow}>
         <div className="terms">
           {fixed.terms.map(([t, d]: readonly string[], i: number) => (
             <article key={`term-${i}-${t}`}>
@@ -180,21 +195,6 @@ export function QuotationDocument({ quotation, isEditorPreview = false, onPage4O
             <div><b>24/7</b><span>Site Support</span></div>
           </div>
         </div>
-      </Page>
-
-      {/* ──── PAGE 3: Company Profile ──── */}
-      <Page n={3} kicker="ANNEXURE II" title="Company Profile" onOverflow={handleOverflow}>
-        <Section title="About Us"><p>{fixed.about}</p></Section>
-        <div className="profile-grid">
-          <Section title="Mission"><p>{fixed.mission}</p></Section>
-          <Section title="Vision"><p>{fixed.vision}</p></Section>
-        </div>
-        <Section title="Core Capabilities / Distinctive Qualities">
-          <ul className="capabilities">{fixed.capabilities.map((x: string, i: number) => <li key={`capability-${i}`}>{x}</li>)}</ul>
-        </Section>
-        <Section title="Our Esteemed Clients">
-          <div className="clients">{fixed.clients.map((x: string, i: number) => <span key={`client-${i}`}>{x}</span>)}</div>
-        </Section>
       </Page>
 
       {/* ──── PAGE 4: Price Offer ──── */}

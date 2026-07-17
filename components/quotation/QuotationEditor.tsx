@@ -6,6 +6,7 @@ import { QuotationDocument } from "./QuotationDocument";
 import { defaultSubject, initialQuotation, serviceOptions, type QuotationState, type QuotationItem, validateItem, isItemValid, calcAmount, formatINR, getValidItems, calcTotal } from "./quotation-model";
 import "./editor.css";
 import { saveDraftAction, finalizeAction } from "@/app/admin/quotations/actions";
+import { AdminBackLink } from "@/components/admin-back-link";
 
 const today = () => { const d = new Date(); return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; };
 const emptyItem = (): QuotationItem => ({ id: crypto.randomUUID(), description: "", unit: "", quantity: 1, rate: 0 });
@@ -27,7 +28,7 @@ const TEST_ITEMS: QuotationItem[] = [
   { id: "t13", description: "Site supervision charges for complete project duration including daily progress reports", unit: "Month", quantity: 2, rate: 12000 },
 ];
 
-export function QuotationEditor({ initial }: { initial?: QuotationState }) {
+export function QuotationEditor({ initial, backHref, backLabel }: { initial?: QuotationState; backHref?: string; backLabel?: string }) {
   const [q, setQ] = useState<QuotationState>(initial ?? { ...initialQuotation, quotationDate: today() });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -141,7 +142,7 @@ export function QuotationEditor({ initial }: { initial?: QuotationState }) {
             <div className="editor-brand">STBS <span>QUOTATION BUILDER</span></div>
             <button className="new-quotation" onClick={reset}>NEW QUOTATION</button>
           </div>
-          <h2>Build quotation</h2>
+          <div className="flex items-center justify-between gap-3"><h2>Build quotation</h2>{backHref && <AdminBackLink href={backHref} label={backLabel || "Back"} dirty={dirty} />}</div>
         </div>
 
         {/* Scrollable content */}
