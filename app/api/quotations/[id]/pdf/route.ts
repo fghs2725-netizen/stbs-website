@@ -6,23 +6,32 @@ import { generateQuotationPdf } from "@/lib/quotation-pdf";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   const started = Date.now();
-  const session = await auth();
-  console.log("PDF_DIAG_AUTH", JSON.stringify({ authenticated: Boolean(session?.user), method: "GET" }));
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  let stage = "route-start";
-  const emit = (event: string, extra: Record<string, unknown> = {}) => console.log(`PDF_DIAG_${event}`, JSON.stringify({ stage, durationMs: Date.now() - started, ...extra }));
+  let stage = "ROUTE_ENTRY";
   try {
-    emit("ROUTE_START", { method: "GET" });
-    stage = "quotation-fetch-start";
+    console.log("PDF_DIAG_ROUTE_ENTRY", JSON.stringify({ method: "GET" }));
+    const emit = (event: string, extra: Record<string, unknown> = {}) => console.log(`PDF_DIAG_${event}`, JSON.stringify({ stage, durationMs: Date.now() - started, ...extra }));
+    stage = "AUTH";
+    const session = await auth();
+    console.log("PDF_DIAG_AUTH", JSON.stringify({ authenticated: Boolean(session?.user), method: "GET" }));
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    stage = "ROUTE_START";
+    console.log("PDF_DIAG_ROUTE_START", JSON.stringify({ stage, durationMs: Date.now() - started, method: "GET" }));
+    stage = "PARAMS";
+    emit("PARAMS_START");
+    const { id } = await context.params;
+    emit("PARAMS_SUCCESS", { idPresent: Boolean(id) });
+    if (!id) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    stage = "QUOTATION_FETCH";
     emit("QUOTATION_FETCH_START");
-    const quotation = await getQuotation((await params).id);
-    stage = "quotation-fetch-success";
+    const quotation = await getQuotation(id);
+    stage = "QUOTATION_FETCH_SUCCESS";
     emit("QUOTATION_FETCH_SUCCESS", { found: Boolean(quotation) });
     if (!quotation) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    stage = "PDF_GENERATION";
     const pdf = await generateQuotationPdf(quotation, new URL(request.url).origin, emit);
-    stage = "response-success";
+    stage = "RESPONSE_SUCCESS";
     emit("RESPONSE_SUCCESS", { pdfBytes: pdf.length });
     return new Response(pdf, { headers: { "Content-Type": "application/pdf", "Content-Disposition": `attachment; filename="${quotation.quotationReference.replace(/[^a-zA-Z0-9_-]/g, "_")}.pdf"`, "Cache-Control": "private, no-store" } });
   } catch (error) {
