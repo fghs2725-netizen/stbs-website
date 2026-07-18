@@ -52,7 +52,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
   const fitPreviewToPanel = useCallback(() => {
     const width = previewPanelRef.current?.clientWidth ?? 900;
     const a4WidthPx = 210 / 25.4 * 96;
-    setZoom(Math.round(Math.min(100, Math.max(50, ((width - 40) / a4WidthPx) * 100))));
+    setZoom(Math.round(Math.min(100, Math.max(30, ((width - 28) / a4WidthPx) * 60))));
   }, []);
 
   const generatePdf = useCallback(async () => {
@@ -64,6 +64,10 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
       image.addEventListener("error", () => resolve(), { once: true });
     })));
     await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    if (window.matchMedia("(max-width: 900px)").matches) {
+      setMessage("In the iPhone print preview, use Share to save the quotation as a PDF to Files.");
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    }
     window.print();
   }, [canGenerateQuotation, page4Overflow]);
 
@@ -264,7 +268,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
           <b>{zoom}%</b>
           <button onClick={() => setZoom(Math.min(100, zoom + 10))}>+</button>
           <button onClick={fitPreviewToPanel}>FIT WIDTH</button>
-          <button className="generate-pdf" disabled={!canGenerateQuotation || page4Overflow} title={canGenerateQuotation && !page4Overflow ? "Open the browser save-as-PDF dialog" : "Complete the quotation and resolve Page 4 overflow first"} onClick={generatePdf}>GENERATE / SAVE PDF</button>
+          <button className="generate-pdf save-to-pdf" disabled={!canGenerateQuotation || page4Overflow} title={canGenerateQuotation && !page4Overflow ? "Open the browser save-as-PDF dialog" : "Complete the quotation and resolve Page 4 overflow first"} onClick={generatePdf}>SAVE TO PDF</button>
           <button className="generate-pdf" onClick={saveDraft} disabled={saving || q.status === "FINAL"}>{saving ? "SAVING..." : "SAVE DRAFT"}</button>
           <button className="generate-pdf" onClick={finalize} disabled={saving || !q.id || q.status === "FINAL"}>FINALIZE QUOTATION</button>
           <small>{message || "4 Pages"}</small>

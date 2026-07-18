@@ -4,6 +4,7 @@ import { quotation as fixed } from "./quotation-data";
 import { serviceLabel, type QuotationState, getValidItems, calcAmount, calcTotal, formatINR } from "./quotation-model";
 import "./quotation.css";
 import "./quotation-refinement.css";
+import "./responsive-print.css";
 
 /* ---------- Side panel ---------- */
 function SidePanel() {

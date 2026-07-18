@@ -67,7 +67,7 @@
 .preview-controls small{margin-left:12px;color:#aaa}
 .preview-controls button:disabled{cursor:not-allowed;opacity:.4}
 .preview-controls .generate-pdf{border-color:#bf9141;color:#f0c66c}
-.preview-zoom{display:block;position:relative;visibility:visible;opacity:1;zoom:var(--preview-zoom);width:calc(100% / var(--preview-zoom));min-height:0}
+.preview-zoom{display:block;position:relative;visibility:visible;opacity:1;width:calc(100% / var(--preview-zoom));min-height:0;transform-origin:top center}
 .mobile-tabs{display:none}
 .quotation-print-document,.quotation-print-root{display:none}
 .editor-preview .quotation-stage{padding-top:18px}
@@ -89,7 +89,7 @@
   .show-preview .preview-controls{display:flex}
   .preview-controls{position:sticky;top:0;flex-wrap:wrap;height:auto;min-height:54px;padding:8px 12px;box-sizing:border-box;gap:7px}
   .preview-controls small{margin-left:0}
-  .preview-zoom{transform:none!important;zoom:1!important;width:100%!important;min-height:0!important}
+  .preview-zoom{width:calc(100% / var(--preview-zoom))!important;min-height:0!important}
   .editor-item{padding:12px}
   .item-grid{grid-template-columns:1fr 1fr}
   .item-grid label:last-child{grid-column:1/-1}
