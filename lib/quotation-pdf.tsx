@@ -7,17 +7,21 @@ import { renderToStaticMarkup } from "react-dom/server.edge";
 import { QuotationDocument } from "@/components/quotation/QuotationDocument";
 import type { QuotationState } from "@/components/quotation/quotation-model";
 
-type PdfStage = "start" | "auth" | "data" | "chromium-path" | "browser-launch" | "page-created" | "render-url" | "render-navigation" | "render-ready" | "pdf-generated" | "page-count" | "complete";
-type PdfContext = { started: number; stage: PdfStage; markers: Record<string, boolean> };
+export type PdfDiagnostic = (event: string, extra?: Record<string, unknown>) => void;
+type PdfContext = { started: number; stage: string; emit?: PdfDiagnostic };
 
 function diag(event: string, context: PdfContext, extra: Record<string, unknown> = {}) {
-  console.log(`PDF_DIAG_${event}`, JSON.stringify({ stage: context.stage, durationMs: Date.now() - context.started, ...context.markers, ...extra }));
+  context.emit?.(event, extra);
 }
 
-function fail(context: PdfContext, error: unknown, extra: Record<string, unknown> = {}): never {
+function fail(context: PdfContext, error: unknown): never {
   const value = error instanceof Error ? error : new Error("Unknown PDF error");
-  console.error("PDF_DIAG_ERROR", JSON.stringify({ stage: context.stage, errorName: value.name, safeMessage: value.message.slice(0, 180), durationMs: Date.now() - context.started, ...context.markers, ...extra }));
-  throw new Error("PDF_GENERATION_FAILED");
+  const safeMessage = value.message.slice(0, 180);
+  diag("FAILURE", context, { errorName: value.name, errorMessage: safeMessage, errorCode: safeMessage });
+  const failure = new Error("PDF_GENERATION_FAILED");
+  failure.cause = value;
+  (failure as Error & { stage?: string }).stage = context.stage;
+  throw failure;
 }
 
 async function stylesheet(name: string) { return fs.readFile(path.join(process.cwd(), "components", "quotation", name), "utf8"); }
@@ -41,24 +45,25 @@ function htmlDocument(css: string, markup: string, origin: string) {
 
 async function launch(context: PdfContext) {
   context.stage = "chromium-path";
+  diag("CHROMIUM_PATH_START", context);
   const pathValue = await executablePath();
-  context.markers.chromiumPathResolved = true;
-  diag("CHROMIUM_PATH", context, { vercel: Boolean(process.env.VERCEL), configuredPath: Boolean(process.env.PUPPETEER_EXECUTABLE_PATH) });
+  diag("CHROMIUM_PATH_SUCCESS", context, { vercel: Boolean(process.env.VERCEL), configuredPath: Boolean(process.env.PUPPETEER_EXECUTABLE_PATH) });
   context.stage = "browser-launch";
+  diag("BROWSER_LAUNCH_START", context);
   const browser = await puppeteer.launch({
     args: process.env.VERCEL ? await puppeteer.defaultArgs({ args: chromium.args, headless: "shell" }) : ["--no-sandbox", "--disable-setuid-sandbox"],
     executablePath: pathValue,
     headless: process.env.VERCEL ? "shell" : true,
     defaultViewport: { width: 794, height: 1123, deviceScaleFactor: 1 },
   });
-  context.markers.browserLaunched = true;
-  diag("BROWSER_LAUNCH", context);
+  diag("BROWSER_LAUNCH_SUCCESS", context);
   return browser;
 }
 
 async function waitReady(page: Page, context: PdfContext) {
   context.stage = "render-ready";
   await page.waitForFunction(() => document.documentElement.dataset.pdfReady === "true", { timeout: 15_000 });
+  diag("FONTS_READY", context);
   await page.evaluate(async () => {
     await document.fonts.ready;
     await Promise.all(Array.from(document.images).map(image => image.complete ? Promise.resolve() : new Promise<void>(resolve => {
@@ -66,37 +71,37 @@ async function waitReady(page: Page, context: PdfContext) {
       image.addEventListener("error", () => resolve(), { once: true });
     })));
   });
-  context.markers.renderReady = true;
-  diag("RENDER_READY", context);
+  diag("IMAGES_READY", context);
 }
 
 async function renderPdf(html: string, context: PdfContext) {
   let browser: Browser | undefined;
   try {
     browser = await launch(context);
-    context.stage = "page-created";
+    context.stage = "page-create-start";
+    diag("PAGE_CREATE_START", context);
     const page = await browser.newPage();
-    context.markers.pageCreated = true;
-    diag("PAGE_CREATED", context);
-    context.stage = "render-url";
-    diag("RENDER_URL", context, { directHtml: true });
-    context.stage = "render-navigation";
+    context.stage = "page-create-success";
+    diag("PAGE_CREATE_SUCCESS", context);
+    context.stage = "set-content-start";
+    diag("SET_CONTENT_START", context, { htmlLength: html.length });
     await page.setContent(html, { waitUntil: "load", timeout: 15_000 });
-    context.markers.renderNavigationComplete = true;
-    diag("RENDER_NAVIGATION", context);
+    context.stage = "set-content-success";
+    diag("SET_CONTENT_SUCCESS", context);
     await waitReady(page, context);
+    context.stage = "pdf-generation-start";
+    diag("PDF_GENERATION_START", context);
     const pdf = await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true, margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" } });
-    context.stage = "pdf-generated";
+    context.stage = "pdf-generation-success";
     const bytes = Buffer.from(pdf);
-    context.markers.pdfGenerated = true;
-    diag("PDF_GENERATED", context, { pdfBytes: bytes.length });
+    diag("PDF_GENERATION_SUCCESS", context);
+    diag("PDF_BYTES", context, { pdfBytes: bytes.length });
     if (bytes.length < 1000 || !bytes.subarray(0, 5).equals(Buffer.from("%PDF-"))) throw new Error("INVALID_PDF_BYTES");
-    context.stage = "page-count";
     const pageCount = (await PDFDocument.load(bytes)).getPageCount();
-    diag("PAGE_COUNT", context, { expectedPageCount: 4, actualPageCount: pageCount, pdfBytes: bytes.length });
-    if (pageCount !== 4) { const error = new Error("PDF_PAGE_COUNT_INVALID"); fail(context, error, { expectedPageCount: 4, actualPageCount: pageCount }); }
-    context.stage = "complete";
-    diag("COMPLETE", context, { pdfBytes: bytes.length, pageCount });
+    context.stage = "page-count";
+    diag("PAGE_COUNT", context, { expectedPageCount: 4, actualPageCount: pageCount });
+    if (pageCount !== 4) throw new Error("PDF_PAGE_COUNT_INVALID");
+    diag("VALIDATION_SUCCESS", context, { pageCount });
     return bytes;
   } catch (error) { fail(context, error); }
   finally { await browser?.close().catch(() => undefined); }
@@ -115,32 +120,33 @@ function pdfCss(quotationCss: string, refinementCss: string, responsiveCss: stri
     @font-face{font-family:Montserrat;src:url('/fonts/montserrat-latin-700.woff2') format('woff2');font-weight:700}`;
 }
 
-export async function generateQuotationPdf(quotation: QuotationState, origin: string) {
-  const context: PdfContext = { started: Date.now(), stage: "start", markers: {} };
-  diag("START", context);
+export async function generateQuotationPdf(quotation: QuotationState, origin: string, emit?: PdfDiagnostic) {
+  const context: PdfContext = { started: Date.now(), stage: "data-serialization-start", emit };
   try {
+    diag("DATA_SERIALIZATION_START", context);
+    JSON.stringify(quotation);
+    diag("DATA_SERIALIZATION_SUCCESS", context);
+    context.stage = "react-render-start";
+    diag("REACT_RENDER_START", context);
     const [quotationCss, refinementCss, responsiveCss] = await Promise.all([stylesheet("quotation.css"), stylesheet("quotation-refinement.css"), stylesheet("responsive-print.css")]);
     const markup = renderToStaticMarkup(<QuotationDocument quotation={quotation} />);
+    context.stage = "react-render-success";
+    diag("REACT_RENDER_SUCCESS", context);
     const html = htmlDocument(pdfCss(quotationCss, refinementCss, responsiveCss), markup, origin);
-    context.stage = "data";
-    context.markers.quotationRendered = true;
-    diag("DATA", context);
+    diag("HTML_LENGTH", context, { htmlLength: html.length });
     return await renderPdf(html, context);
   } catch (error) { fail(context, error); }
 }
 
 export async function runPdfSelfTest() {
-  const context: PdfContext = { started: Date.now(), stage: "start", markers: {} };
+  const context: PdfContext = { started: Date.now(), stage: "start" };
   let browser: Browser | undefined;
   try {
     const pathValue = await executablePath();
-    context.markers.chromiumPathResolved = true;
     browser = await launch(context);
     const page = await browser.newPage();
-    context.markers.pageCreated = true;
     await page.setContent(`<style>@page{size:A4;margin:0}html,body{margin:0}</style><body><div data-self-test>STBS PDF SELF TEST</div></body>`, { waitUntil: "load" });
     const pdf = Buffer.from(await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true, margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" } }));
-    context.markers.pdfGenerated = true;
     const pageCount = (await PDFDocument.load(pdf)).getPageCount();
     return { chromiumPath: Boolean(pathValue), browserLaunch: true, pageCreated: true, pdfGenerated: true, pdfBytes: pdf.length, pageCount };
   } finally { await browser?.close().catch(() => undefined); }
