@@ -273,8 +273,10 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
           <button className="generate-pdf" onClick={finalize} disabled={saving || !q.id || q.status === "FINAL"}>FINALIZE QUOTATION</button>
           <small>{message || "4 Pages"}</small>
         </div>
-        <div className="preview-zoom" style={{ "--preview-zoom": zoom / 60, transform: `scale(${zoom / 60})` } as React.CSSProperties}>
-          <QuotationPreview quotation={q} onPage4Overflow={handlePage4Overflow} />
+        <div className="preview-viewport">
+          <div className="preview-scale-container" style={{ "--preview-scale": zoom / 60, "--preview-height": `${(297 / 25.4 * 96 * 4 * zoom / 60) + 36}px` } as React.CSSProperties}>
+            <QuotationPreview quotation={q} onPage4Overflow={handlePage4Overflow} />
+          </div>
         </div>
       </main>
       <QuotationPrintDocument quotation={q} />

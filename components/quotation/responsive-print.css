@@ -1,5 +1,5 @@
-/* Screen preview scaling belongs to the outer wrapper, never to the A4 document. */
-.preview-zoom .q-page {
+/* Screen scaling belongs to the compensated wrapper, never to the A4 document. */
+.preview-scale-container .q-page {
   transform: none !important;
   scale: 1 !important;
   margin-bottom: 0 !important;
@@ -36,6 +36,12 @@
     background: #fff !important;
   }
 
+  .quotation-editor > :not(.quotation-print-root),
+  .quotation-print-root,
+  .quotation-print-root .q-document {
+    display: none !important;
+  }
+
   .quotation-print-root,
   .quotation-print-root .q-document {
     display: block !important;
@@ -49,8 +55,11 @@
 
   .quotation-print-root .q-page {
     display: block !important;
+    box-sizing: border-box !important;
     width: 210mm !important;
-    height: 297mm !important;
+    min-height: 0 !important;
+    max-height: 296.5mm !important;
+    height: 296.5mm !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
@@ -61,6 +70,8 @@
     page-break-inside: avoid !important;
     break-after: page !important;
     page-break-after: auto !important;
+    break-before: auto !important;
+    page-break-before: auto !important;
   }
 
   .quotation-print-root .q-page:last-child {
