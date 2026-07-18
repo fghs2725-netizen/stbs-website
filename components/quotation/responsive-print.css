@@ -37,7 +37,9 @@
     width: 210mm !important;
     margin: 0 !important;
     padding: 0 !important;
-    background: #fff !important;
+    background: transparent !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .quotation-editor > :not(.quotation-print-root),
@@ -55,6 +57,7 @@
     padding: 0 !important;
     overflow: visible !important;
     gap: 0 !important;
+    background: transparent !important;
   }
 
   .quotation-print-root .q-page {
@@ -62,10 +65,15 @@
     box-sizing: border-box !important;
     width: 210mm !important;
     min-height: 0 !important;
-    height: 297mm !important;
+    /* Safari can fragment a nominal 297mm box after CSS-unit rounding.
+       Keep the logical document A4 while reserving a fractional safety band
+       inside the physical sheet. The page background still owns the full box. */
+    height: 296mm !important;
+    max-height: 296mm !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
+    background: var(--quote-background, #f5f0e7) !important;
     transform: none !important;
     scale: 1 !important;
     zoom: 1 !important;
