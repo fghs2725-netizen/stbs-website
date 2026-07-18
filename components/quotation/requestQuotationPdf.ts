@@ -1,5 +1,11 @@
 import type { QuotationState } from "./quotation-model";
 
+export function pdfFailureMessage(error: unknown) {
+  return error instanceof Error && error.message.startsWith("PDF generation failed at stage:")
+    ? error.message
+    : "PDF generation failed. Please try again.";
+}
+
 export async function requestQuotationPdf(quotation: QuotationState) {
   const response = await fetch(quotation.id ? `/api/quotations/${encodeURIComponent(quotation.id)}/pdf` : "/api/quotations/new/pdf", {
     method: quotation.id ? "GET" : "POST",
@@ -7,8 +13,11 @@ export async function requestQuotationPdf(quotation: QuotationState) {
     body: quotation.id ? undefined : JSON.stringify(quotation),
   });
   if (!response.ok) {
-    const body = await response.json().catch(() => null);
-    throw new Error(body?.error || "Could not generate PDF.");
+    const body = await response.json().catch(() => null) as { error?: unknown; stage?: unknown } | null;
+    const safeError = typeof body?.error === "string" ? body.error.slice(0, 180) : "PDF generation failed. Please try again.";
+    const safeStage = typeof body?.stage === "string" ? body.stage.slice(0, 80) : undefined;
+    if (safeStage) console.error("PDF_REQUEST_FAILURE", { status: response.status, error: safeError, stage: safeStage });
+    throw new Error(safeError);
   }
   return response.blob();
 }

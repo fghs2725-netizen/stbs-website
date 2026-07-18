@@ -59,7 +59,9 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const generationStage = error instanceof Error ? (error as Error & { stage?: string }).stage : undefined;
     console.error("PDF_DIAG_FAILURE", { stage: generationStage || stage, errorName, errorMessage, errorCode, durationMs: Date.now() - started });
     const detailed = process.env.NODE_ENV !== "production" && process.env.VERCEL_ENV !== "production";
-    return NextResponse.json({ error: detailed ? `PDF generation failed at stage: ${generationStage || stage}` : "PDF generation failed. Please try again." }, { status: 500 });
+    return NextResponse.json(detailed
+      ? { error: `PDF generation failed at stage: ${generationStage || stage}`, stage: generationStage || stage }
+      : { error: "PDF generation failed. Please try again." }, { status: 500 });
   }
 }
 
