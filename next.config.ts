@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import path from "node:path";
 
 const nextConfig: NextConfig = {
+  outputFileTracingIncludes: { "/*": ["./node_modules/@sparticuz/chromium/bin/**"] },
   images: {
     remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }, { protocol: "https", hostname: "logo.clearbit.com" }],
   },

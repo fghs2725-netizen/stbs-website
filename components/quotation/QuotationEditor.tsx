@@ -8,6 +8,7 @@ import { saveDraftAction, finalizeAction } from "@/app/admin/quotations/actions"
 import { AdminBackLink } from "@/components/admin-back-link";
 import type { ReusableClient } from "@/lib/quotation-management";
 import { QuotationPrintDocument } from "./QuotationPrintDocument";
+import { openQuotationPdf } from "./requestQuotationPdf";
 
 const today = () => { const d = new Date(); return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; };
 const emptyItem = (): QuotationItem => ({ id: crypto.randomUUID(), description: "", unit: "", quantity: 1, rate: 0 });
@@ -57,18 +58,9 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
 
   const generatePdf = useCallback(async () => {
     if (!canGenerateQuotation || page4Overflow) return;
-    await document.fonts.ready;
-    const images = Array.from(document.querySelectorAll<HTMLImageElement>(".quotation-editor img"));
-    await Promise.all(images.map(image => image.complete ? Promise.resolve() : new Promise<void>(resolve => {
-      image.addEventListener("load", () => resolve(), { once: true });
-      image.addEventListener("error", () => resolve(), { once: true });
-    })));
-    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-    if (window.matchMedia("(max-width: 900px)").matches) {
-      setMessage("In the iPhone print preview, use Share to save the quotation as a PDF to Files.");
-      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-    }
-    window.print();
+    setMessage("Generating PDF...");
+    try { await openQuotationPdf(q); setMessage("PDF ready. Use Share to save it to Files."); }
+    catch (error) { setMessage(error instanceof Error ? error.message : "Could not generate PDF."); }
   }, [canGenerateQuotation, page4Overflow]);
 
   useEffect(() => {
