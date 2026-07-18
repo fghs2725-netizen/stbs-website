@@ -13,7 +13,18 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     console.log("PDF_DIAG_ROUTE_ENTRY", JSON.stringify({ method: "GET" }));
     const emit = (event: string, extra: Record<string, unknown> = {}) => console.log(`PDF_DIAG_${event}`, JSON.stringify({ stage, durationMs: Date.now() - started, ...extra }));
     stage = "AUTH";
-    const session = await auth();
+    console.log("PDF_DIAG_BEFORE_AUTH");
+    let session;
+    try {
+      session = await auth();
+      console.log("PDF_DIAG_AFTER_AUTH", { authenticated: Boolean(session?.user) });
+    } catch (error) {
+      console.error("PDF_DIAG_AUTH_FAILURE", {
+        errorName: error instanceof Error ? error.name : "UnknownError",
+        errorMessage: error instanceof Error ? error.message : String(error),
+      });
+      return Response.json({ error: "PDF authentication failed" }, { status: 500 });
+    }
     console.log("PDF_DIAG_AUTH", JSON.stringify({ authenticated: Boolean(session?.user), method: "GET" }));
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     stage = "ROUTE_START";
@@ -35,9 +46,18 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     emit("RESPONSE_SUCCESS", { pdfBytes: pdf.length });
     return new Response(pdf, { headers: { "Content-Type": "application/pdf", "Content-Disposition": `attachment; filename="${quotation.quotationReference.replace(/[^a-zA-Z0-9_-]/g, "_")}.pdf"`, "Cache-Control": "private, no-store" } });
   } catch (error) {
-    const value = error instanceof Error ? error : new Error("Unknown PDF error");
-    const generationStage = (value as Error & { stage?: string }).stage;
-    console.error("PDF_DIAG_FAILURE", JSON.stringify({ stage: generationStage || stage, errorName: value.name, errorMessage: value.message.slice(0, 180), errorCode: value.cause instanceof Error ? value.cause.message.slice(0, 80) : value.message.slice(0, 80), durationMs: Date.now() - started }));
+    let errorName = "UnknownError";
+    let errorMessage = "Unknown PDF error";
+    let errorCode = "UNKNOWN_ERROR";
+    if (error instanceof Error) {
+      try { errorName = String(error.name).slice(0, 80); } catch { /* keep safe default */ }
+      try { errorMessage = String(error.message).slice(0, 180); } catch { /* keep safe default */ }
+      try { errorCode = error.cause instanceof Error ? String(error.cause.message).slice(0, 80) : errorMessage.slice(0, 80); } catch { /* keep safe default */ }
+    } else {
+      try { errorMessage = String(error).slice(0, 180); errorCode = errorMessage.slice(0, 80); } catch { /* keep safe defaults */ }
+    }
+    const generationStage = error instanceof Error ? (error as Error & { stage?: string }).stage : undefined;
+    console.error("PDF_DIAG_FAILURE", { stage: generationStage || stage, errorName, errorMessage, errorCode, durationMs: Date.now() - started });
     const detailed = process.env.NODE_ENV !== "production" && process.env.VERCEL_ENV !== "production";
     return NextResponse.json({ error: detailed ? `PDF generation failed at stage: ${generationStage || stage}` : "PDF generation failed. Please try again." }, { status: 500 });
   }
