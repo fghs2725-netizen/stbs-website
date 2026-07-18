@@ -275,7 +275,9 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
         </div>
         <div className="preview-viewport">
           <div className="preview-scale-container" style={{ "--preview-scale": zoom / 60, "--preview-height": `${(297 / 25.4 * 96 * 4 * zoom / 60) + 36}px` } as React.CSSProperties}>
-            <QuotationPreview quotation={q} onPage4Overflow={handlePage4Overflow} />
+            <div className="preview-scale-content">
+              <QuotationPreview quotation={q} onPage4Overflow={handlePage4Overflow} />
+            </div>
           </div>
         </div>
       </main>
