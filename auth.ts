@@ -33,44 +33,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const configuredIdentifier = normalizeConfiguredValue(rawAdminEmail).toLowerCase();
         const passwordHash = normalizeConfiguredValue(rawAdminHash);
         const identifier = submittedEmail.trim().toLowerCase();
-        let bcryptCompareResult = false;
-        let bcryptError = false;
-        let authorizeReturnedUser = false;
-
-        const finishDiagnostics = () => {
-          console.log("AUTH_DIAG_RESULT", JSON.stringify({
-            submittedEmailPresent: Boolean(submittedEmail),
-            submittedPasswordPresent: Boolean(password),
-            adminEmailPresent: Boolean(rawAdminEmail),
-            adminHashPresent: Boolean(rawAdminHash),
-            adminEmailLength: rawAdminEmail?.length ?? 0,
-            adminHashLength: rawAdminHash?.length ?? 0,
-            adminHashValidPrefix: /^\$2[aby]\$/.test(passwordHash),
-            emailMatchAfterNormalization: Boolean(identifier && configuredIdentifier && identifier === configuredIdentifier),
-            bcryptCompareResult,
-            bcryptError,
-            authorizeReturnedUser,
-          }));
-        };
-
         if (!identifier || !password || !configuredIdentifier || !passwordHash || identifier !== configuredIdentifier) {
-          finishDiagnostics();
           return null;
         }
+        let bcryptCompareResult = false;
         try {
           bcryptCompareResult = await bcrypt.compare(password, passwordHash);
         } catch {
-          bcryptError = true;
-          finishDiagnostics();
           return null;
         }
-        if (!bcryptCompareResult) {
-          finishDiagnostics();
-          return null;
-        }
-        authorizeReturnedUser = true;
-        finishDiagnostics();
-        return { id: "admin", name: "STBS Administrator", email: configuredIdentifier };
+        return bcryptCompareResult ? { id: "admin", name: "STBS Administrator", email: configuredIdentifier } : null;
       },
     }),
   ],

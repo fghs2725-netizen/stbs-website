@@ -60,8 +60,8 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
     if (!canGenerateQuotation || page4Overflow) return;
     setMessage("Generating PDF...");
     try { await openQuotationPdf(q); setMessage("PDF ready. Use Share to save it to Files."); }
-    catch (error) { setMessage(error instanceof Error ? error.message : "Could not generate PDF."); }
-  }, [canGenerateQuotation, page4Overflow]);
+    catch { setMessage("PDF generation failed. Please try again."); }
+  }, [canGenerateQuotation, page4Overflow, q]);
 
   useEffect(() => {
     const panel = previewPanelRef.current;
@@ -260,7 +260,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
           <b>{zoom}%</b>
           <button onClick={() => setZoom(Math.min(100, zoom + 10))}>+</button>
           <button onClick={fitPreviewToPanel}>FIT WIDTH</button>
-          <button className="generate-pdf save-to-pdf" disabled={!canGenerateQuotation || page4Overflow} title={canGenerateQuotation && !page4Overflow ? "Open the browser save-as-PDF dialog" : "Complete the quotation and resolve Page 4 overflow first"} onClick={generatePdf}>SAVE TO PDF</button>
+          <button className="generate-pdf save-to-pdf" disabled={!canGenerateQuotation || page4Overflow || message === "Generating PDF..."} title={canGenerateQuotation && !page4Overflow ? "Generate the quotation PDF" : "Complete the quotation and resolve Page 4 overflow first"} onClick={generatePdf}> {message === "Generating PDF..." ? "GENERATING..." : "SAVE TO PDF"}</button>
           <button className="generate-pdf" onClick={saveDraft} disabled={saving || q.status === "FINAL"}>{saving ? "SAVING..." : "SAVE DRAFT"}</button>
           <button className="generate-pdf" onClick={finalize} disabled={saving || !q.id || q.status === "FINAL"}>FINALIZE QUOTATION</button>
           <small>{message || "4 Pages"}</small>

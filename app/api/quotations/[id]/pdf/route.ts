@@ -8,9 +8,11 @@ export const maxDuration = 60;
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
+  console.log("PDF_DIAG_AUTH", JSON.stringify({ authenticated: Boolean(session?.user), method: "GET" }));
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const quotation = await getQuotation((await params).id);
+    console.log("PDF_DIAG_DATA", JSON.stringify({ found: Boolean(quotation), method: "GET" }));
     if (!quotation) return NextResponse.json({ error: "Not found" }, { status: 404 });
     const pdf = await generateQuotationPdf(quotation, new URL(request.url).origin);
     return new Response(pdf, { headers: { "Content-Type": "application/pdf", "Content-Disposition": `attachment; filename="${quotation.quotationReference.replace(/[^a-zA-Z0-9_-]/g, "_")}.pdf"`, "Cache-Control": "private, no-store" } });
@@ -23,6 +25,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
 export async function POST(request: Request) {
   const session = await auth();
+  console.log("PDF_DIAG_AUTH", JSON.stringify({ authenticated: Boolean(session?.user), method: "POST" }));
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const quotation = await request.json();
