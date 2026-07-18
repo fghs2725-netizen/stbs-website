@@ -26,7 +26,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        console.info("AUTH_DIAG_START");
         const submittedEmail = String(credentials?.email ?? "");
         const password = String(credentials?.password ?? "");
         const rawAdminEmail = process.env.ADMIN_EMAIL;
@@ -35,21 +34,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const passwordHash = normalizeConfiguredValue(rawAdminHash);
         const identifier = submittedEmail.trim().toLowerCase();
         let bcryptCompareResult = false;
+        let bcryptError = false;
         let authorizeReturnedUser = false;
 
         const finishDiagnostics = () => {
-          console.info(`submittedEmailPresent: ${Boolean(submittedEmail)}`);
-          console.info(`submittedPasswordPresent: ${Boolean(password)}`);
-          console.info(`adminEmailPresent: ${Boolean(rawAdminEmail)}`);
-          console.info(`adminHashPresent: ${Boolean(rawAdminHash)}`);
-          console.info(`adminEmailLength: ${rawAdminEmail?.length ?? 0}`);
-          console.info(`adminHashLength: ${rawAdminHash?.length ?? 0}`);
-          console.info(`adminHashValidPrefix: ${/^\$2[aby]\$/.test(rawAdminHash ?? "")}`);
-          console.info(`adminHashStartsWithDollar: ${(rawAdminHash ?? "").startsWith("$")}`);
-          console.info(`emailMatchAfterNormalization: ${Boolean(identifier && configuredIdentifier && identifier === configuredIdentifier)}`);
-          console.info(`bcryptCompareResult: ${bcryptCompareResult}`);
-          console.info(`authorizeReturnedUser: ${authorizeReturnedUser}`);
-          console.info("AUTH_DIAG_END");
+          console.log("AUTH_DIAG_RESULT", JSON.stringify({
+            submittedEmailPresent: Boolean(submittedEmail),
+            submittedPasswordPresent: Boolean(password),
+            adminEmailPresent: Boolean(rawAdminEmail),
+            adminHashPresent: Boolean(rawAdminHash),
+            adminEmailLength: rawAdminEmail?.length ?? 0,
+            adminHashLength: rawAdminHash?.length ?? 0,
+            adminHashValidPrefix: /^\$2[aby]\$/.test(passwordHash),
+            emailMatchAfterNormalization: Boolean(identifier && configuredIdentifier && identifier === configuredIdentifier),
+            bcryptCompareResult,
+            bcryptError,
+            authorizeReturnedUser,
+          }));
         };
 
         if (!identifier || !password || !configuredIdentifier || !passwordHash || identifier !== configuredIdentifier) {
@@ -59,6 +60,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           bcryptCompareResult = await bcrypt.compare(password, passwordHash);
         } catch {
+          bcryptError = true;
           finishDiagnostics();
           return null;
         }
