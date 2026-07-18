@@ -1,5 +1,5 @@
 "use client";
-import { QuotationDocument } from "./QuotationDocument";
+import { QuotationDocumentClient as QuotationDocument } from "./QuotationDocumentClient";
 import { type QuotationState } from "./quotation-model";
 
 /* ==========================================================================

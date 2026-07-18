@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { QuotationDocument } from "./QuotationDocument";
+import { QuotationDocumentClient as QuotationDocument } from "./QuotationDocumentClient";
 import type { QuotationState } from "./quotation-model";
 
 export function QuotationPrintDocument({ quotation }: { quotation: QuotationState }) {

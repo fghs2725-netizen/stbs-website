@@ -120,16 +120,27 @@ function pdfCss(quotationCss: string, refinementCss: string, responsiveCss: stri
     @font-face{font-family:Montserrat;src:url('/fonts/montserrat-latin-700.woff2') format('woff2');font-weight:700}`;
 }
 
+export function renderQuotationMarkup(quotation: QuotationState) {
+  return renderToStaticMarkup(<QuotationDocument quotation={quotation} />);
+}
+
 export async function generateQuotationPdf(quotation: QuotationState, origin: string, emit?: PdfDiagnostic) {
   const context: PdfContext = { started: Date.now(), stage: "data-serialization-start", emit };
   try {
     diag("DATA_SERIALIZATION_START", context);
     JSON.stringify(quotation);
     diag("DATA_SERIALIZATION_SUCCESS", context);
+    const [quotationCss, refinementCss, responsiveCss] = await Promise.all([stylesheet("quotation.css"), stylesheet("quotation-refinement.css"), stylesheet("responsive-print.css")]);
     context.stage = "react-render-start";
     diag("REACT_RENDER_START", context);
-    const [quotationCss, refinementCss, responsiveCss] = await Promise.all([stylesheet("quotation.css"), stylesheet("quotation-refinement.css"), stylesheet("responsive-print.css")]);
-    const markup = renderToStaticMarkup(<QuotationDocument quotation={quotation} />);
+    let markup: string;
+    try {
+      markup = renderQuotationMarkup(quotation);
+    } catch (error) {
+      const value = error instanceof Error ? error : new Error(String(error));
+      console.error("PDF_REACT_RENDER_FAILURE", JSON.stringify({ errorName: value.name, safeMessage: value.message.slice(0, 240) }));
+      throw error;
+    }
     context.stage = "react-render-success";
     diag("REACT_RENDER_SUCCESS", context);
     const html = htmlDocument(pdfCss(quotationCss, refinementCss, responsiveCss), markup, origin);
