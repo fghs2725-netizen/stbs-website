@@ -48,16 +48,34 @@ async function launch(context: PdfContext) {
   diag("BROWSER_LAUNCH_SUCCESS", context); return browser;
 }
 
-async function waitReady(page: Page, context: PdfContext) {
-  context.stage = "render-ready";
-  await page.waitForFunction(() => document.documentElement.dataset.pdfReady === "true", { timeout: 15_000 });
-  diag("RENDER_READY", context);
-  await page.evaluate(async () => { await document.fonts.ready; });
-  diag("FONTS_READY", context);
-  await page.evaluate(async () => { await Promise.all(Array.from(document.images).map(image => image.complete ? Promise.resolve() : new Promise<void>(resolve => { image.addEventListener("load", () => resolve(), { once: true }); image.addEventListener("error", () => resolve(), { once: true }); }))); });
-  diag("IMAGES_READY", context);
-}
 
+async function waitReady(page: Page, context: PdfContext) {
+  // Verify the main document element exists
+  const documentRootFound = await page.$eval('#quotation-pdf-document', el => !!el);
+  diag('PDF_DIAG_RENDER_DOCUMENT_ROOT', context, { found: documentRootFound });
+
+  // Verify the readiness marker exists on the main element
+  const readyMarkerFound = await page.$eval('#quotation-pdf-document[data-pdf-ready="true"]', el => !!(el && el.getAttribute('data-pdf-ready') === 'true'));
+  diag('PDF_DIAG_RENDER_READY_MARKER', context, { found: readyMarkerFound });
+
+  // Wait for the readiness marker to be present
+  await page.waitForSelector('#quotation-pdf-document[data-pdf-ready="true"]', { timeout: 15_000 });
+  context.stage = 'ready';
+  diag('PDF_DIAG_RENDER_READY', context);
+
+  // Wait for fonts to be loaded
+  await page.evaluate(async () => { await document.fonts.ready; });
+  diag('PDF_DIAG_FONTS_READY', context);
+
+  // Wait for images to be fully loaded
+  await page.evaluate(async () => {
+    await Promise.all(Array.from(document.images).map(image => image.complete ? Promise.resolve() : new Promise<void>(resolve => {
+      image.addEventListener('load', () => resolve(), { once: true });
+      image.addEventListener('error', () => resolve(), { once: true });
+    })));
+  });
+  diag('PDF_DIAG_IMAGES_READY', context);
+}
 async function renderPdf(url: string, context: PdfContext) {
   let browser: Browser | undefined;
   try {
