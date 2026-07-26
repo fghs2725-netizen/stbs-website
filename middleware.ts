@@ -1,19 +1,26 @@
 import { NextResponse, type NextRequest } from "next/server";
-import NextAuth from "next-auth";
-import authConfig from "@/auth.config";
-import { verifyPortalToken } from "@/lib/portal-auth";
+import { getSession } from "@/lib/auth-edge";
+import { verifyPortalToken } from "@/lib/portal-auth-edge";
 
-const { auth } = NextAuth(authConfig);
+function getAuthSecret(): string {
+  const value = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+  if (!value) throw new Error("AUTH_SECRET is not configured.");
+  return value;
+}
 
-export default auth(async (request: NextRequest & { auth?: any }, _context?: any) => {
+export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const secret = getAuthSecret();
 
   // ── Admin routes ──
   if (pathname.startsWith("/admin")) {
     const isLogin = pathname === "/admin/login";
+    const session = await getSession(request.headers.get("cookie"), secret);
 
-    if (isLogin && request.auth) return NextResponse.redirect(new URL("/admin", request.url));
-    if (!isLogin && !request.auth) {
+    if (isLogin && session?.user) {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
+    if (!isLogin && !session?.user) {
       const login = new URL("/admin/login", request.url);
       login.searchParams.set("callbackUrl", `${pathname}${request.nextUrl.search}`);
       return NextResponse.redirect(login);
@@ -64,7 +71,7 @@ export default auth(async (request: NextRequest & { auth?: any }, _context?: any
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/admin/:path*", "/portal/:path*", "/api/portal/:path*", "/internal/:path*"],
