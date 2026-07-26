@@ -1,8 +1,11 @@
 /**
  * Portal authentication — HMAC token creation and verification.
  * Uses Web Crypto API (crypto.subtle) so it works in both Node.js and Edge Runtime.
+ *
+ * IMPORTANT: This file is imported by middleware.ts (Edge Runtime).
+ * Do NOT add static imports of Prisma, bcrypt, or other Node-only modules.
+ * Use dynamic import() inside functions that need them.
  */
-import { prisma } from '@/lib/prisma';
 
 const encoder = new TextEncoder();
 
@@ -91,6 +94,7 @@ export async function verifyPortalToken(token: string | null | undefined, now = 
  */
 export async function authenticatePortalClient(email: string, accessCode: string) {
   const bcrypt = await import('bcryptjs');
+  const { prisma } = await import('@/lib/prisma');
   const client = await prisma.client.findFirst({
     where: {
       email: { equals: email, mode: 'insensitive' },
@@ -117,6 +121,7 @@ export async function authenticatePortalClient(email: string, accessCode: string
  */
 export async function generateClientAccessCode(clientId: string): Promise<string> {
   const bcrypt = await import('bcryptjs');
+  const { prisma } = await import('@/lib/prisma');
   const code = `STBS-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
   const hash = await bcrypt.hash(code, 12);
   await prisma.client.update({
