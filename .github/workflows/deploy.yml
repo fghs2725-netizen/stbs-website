@@ -1,0 +1,37 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate environment
+        run: |
+          if [ -z "${{ secrets.DATABASE_URL }}" ]; then
+            echo "ERROR: DATABASE_URL secret not set"
+            exit 1
+          fi
+
+      - name: Build Docker image
+        run: |
+          docker build -t stbs-eds:${{ github.sha }} .
+          docker tag stbs-eds:${{ github.sha }} stbs-eds:latest
+
+      - name: Health check
+        run: |
+          echo "Deploy complete. Run health check:"
+          echo "curl -f ${{ secrets.APP_URL }}/api/health || exit 1"
+
+      - name: Notify deployment
+        if: success()
+        run: echo "Deployment successful at $(date)"

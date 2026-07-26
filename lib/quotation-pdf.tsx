@@ -39,8 +39,29 @@ async function launch(context: PdfContext) {
   const pathValue = await executablePath();
   diag("CHROMIUM_PATH_SUCCESS", context, { vercel: Boolean(process.env.VERCEL), configuredPath: Boolean(process.env.PUPPETEER_EXECUTABLE_PATH) });
   context.stage = "browser-launch"; diag("BROWSER_LAUNCH_START", context);
+
+  const useSandbox = process.env.PUPPETEER_SANDBOX === "true";
+
+  const baseArgs = process.env.VERCEL
+    ? await puppeteer.defaultArgs({ args: chromium.args, headless: "shell" })
+    : [
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--no-zygote",
+        "--disable-setuid-sandbox",
+        "--disable-background-networking",
+        "--disable-default-apps",
+        "--disable-extensions",
+        "--disable-sync",
+        "--no-first-run",
+      ];
+
+  if (!useSandbox) {
+    baseArgs.push("--no-sandbox");
+  }
+
   const browser = await puppeteer.launch({
-    args: process.env.VERCEL ? await puppeteer.defaultArgs({ args: chromium.args, headless: "shell" }) : ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: baseArgs,
     executablePath: pathValue,
     headless: process.env.VERCEL ? "shell" : true,
     defaultViewport: { width: 794, height: 1123, deviceScaleFactor: 1 },

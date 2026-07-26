@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { QuotationPreview } from "./QuotationPreview";
 import { defaultSubject, initialQuotation, serviceOptions, type QuotationState, type QuotationItem, validateItem, isItemValid, calcAmount, formatINR, getValidItems, calcTotal } from "./quotation-model";
 import "./editor.css";
-import { saveDraftAction, finalizeAction } from "@/app/admin/quotations/actions";
+import { saveDraftAction, finalizeAction } from "@/app/admin/(dashboard)/quotations/actions";
 import { AdminBackLink } from "@/components/admin-back-link";
 import type { ReusableClient } from "@/lib/quotation-management";
 import { QuotationPrintDocument } from "./QuotationPrintDocument";

@@ -3,19 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-}
+// ─── NextAuth Required Models ────────────────────────────────────────────────
 
 model Account {
   id                String  @id @default(cuid())
@@ -23,15 +16,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String? @db.Text
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -41,8 +33,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -53,69 +44,678 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// ─── Core Entities ──────────────────────────────────────────────────────────
+
+model Company {
+  id            String    @id @default(cuid())
+  name          String    @default("Saini Tubewell Boring Service")
+  shortName     String    @default("STBS")
+  tagline       String    @default("Drilling deep. Building trust.")
+  description   String?
+  logoUrl       String?
+  bannerUrl     String?
+  phone1        String?
+  phone2        String?
+  email         String?
+  website       String?
+  addressLine1  String?
+  addressLine2  String?
+  city          String?
+  state         String?
+  pinCode       String?
+  country       String    @default("India")
+  gstNumber     String?
+  panNumber     String?
+  cinNumber     String?
+  bankName      String?
+  bankAccountNo String?
+  bankIfsc      String?
+  bankBranch    String?
+  primaryColor  String    @default("#1e3a5f")
+  accentColor   String    @default("#f7c600")
+  fontFamily    String    @default("Manrope")
+  directorName  String?
+  directorTitle String?
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  clients       Client[]
+  users         User[]
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  roleId        String?
+  role          Role?     @relation(fields: [roleId], references: [id])
+  companyId     String?
+  company       Company?  @relation(fields: [companyId], references: [id])
+  createdDocuments Document[]
+  auditLogs        AuditLog[]
+  notifications    Notification[]
+  sessions         Session[]
+  accounts         Account[]
+  createdAt        DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  lastLoginAt   DateTime?
+}
+
+model Role {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  hierarchy     Int       @default(0)
+  users         User[]
+  permissions   Permission[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+}
+
+model Permission {
+  id            String    @id @default(cuid())
+  resource      String
+  action        String[]
+  roleId        String
+  role          Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+}
+
+// ─── Client & Project ───────────────────────────────────────────────────────
+
+model Client {
+  id            String    @id @default(cuid())
+  companyId     String?
+  company       Company?  @relation(fields: [companyId], references: [id])
+  companyName   String
+  contactPerson String?
+  addressLine1  String?
+  addressLine2  String?
+  city          String?
+  state         String?
+  pinCode       String?
+  phone         String?
+  email         String?
+  accessCodeHash String?
+  gstNumber     String?
+  panNumber     String?
+  siteAddress   String?
+  projects      Project[]
+  quotations    Quotation[]
+  documents     Document[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  @@index([email])
+  @@index([companyName])
+}
+
+model Project {
+  id            String         @id @default(cuid())
+  name          String
+  clientId      String
+  client        Client         @relation(fields: [clientId], references: [id])
+  status        ProjectStatus  @default(ACTIVE)
+  description   String?
+  phases        ProjectPhase[]
+  documents     Document[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+}
+
+model ProjectPhase {
+  id            String    @id @default(cuid())
+  name          String
+  description   String?
+  startDate     DateTime?
+  endDate       DateTime?
+  approved      Boolean   @default(false)
+  phaseNum      Int
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+}
+
+// ─── Document System ────────────────────────────────────────────────────────
+
+model Document {
+  id            String            @id @default(cuid())
+  reference     String            @unique
+  type          DocumentType
+  title         String
+  status        DocumentStatus    @default(DRAFT)
+  subject       String?
+  notes         String?
+  terms         String?
+  pdfUrl        String?
+  totalAmount   Decimal           @default(0) @db.Decimal(12, 2)
+  clientName    String?
+  clientEmail   String?
+  clientCompany String?
+  templateId    String?
+  template      DocumentTemplate? @relation(fields: [templateId], references: [id])
+  projectId     String?
+  project       Project?          @relation(fields: [projectId], references: [id])
+  clientId      String?
+  client        Client?           @relation(fields: [clientId], references: [id])
+  createdById   String?
+  creator       User?             @relation(fields: [createdById], references: [id])
+  items         DocumentItem[]
+  sections      DocumentSection[]
+  versions      DocumentVersion[]
+  auditLogs     AuditLog[]
+  qrVerifications QRVerification[]
+  approvalRequests ApprovalRequest[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  deletedAt     DateTime?
+
+  @@index([type, status])
+  @@index([clientId])
+  @@index([createdById])
+  @@index([createdAt])
+}
+
+model DocumentTemplate {
+  id            String    @id @default(cuid())
+  name          String
+  type          DocumentType
+  version       Int       @default(1)
+  description   String?
+  content       Json
+  isDefault     Boolean   @default(false)
+  themeColor    String    @default("#1e3a5f")
+  accentColor   String    @default("#f7c600")
+  fontFamily    String    @default("Manrope")
+  watermarkText String?
+  watermarkOpacity Float  @default(0.1)
+  documents     Document[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+}
+
+model DocumentVersion {
+  id            String    @id @default(cuid())
+  documentId    String
+  document      Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  versionNumber Int
+  label         String?
+  snapshot      Json?
+  changeNote    String?
+  pdfUrl        String?
+  createdBy     String?
+  createdAt     DateTime  @default(now())
+  deletedAt     DateTime?
+
+  @@unique([documentId, versionNumber])
+}
+
+model DocumentItem {
+  id            String    @id @default(cuid())
+  documentId    String
+  document      Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  position      Int       @default(0)
+  itemCode      String?
+  description   String
+  unit          String?
+  quantity      Decimal   @default(0) @db.Decimal(10, 2)
+  rate          Decimal   @default(0) @db.Decimal(12, 2)
+  amount        Decimal   @default(0) @db.Decimal(12, 2)
+  gstPercent    Decimal   @default(18) @db.Decimal(5, 2)
+  gstAmount     Decimal   @default(0) @db.Decimal(12, 2)
+  hsnCode       String?
+  category      String?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model DocumentSection {
+  id            String    @id @default(cuid())
+  documentId    String
+  document      Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  type          String
+  position      Int       @default(0)
+  title         String?
+  content       Json      @default("{}")
+  visible       Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ─── Quotation System ───────────────────────────────────────────────────────
+
+model Quotation {
+  id                String               @id @default(cuid())
+  reference         String               @unique
+  date              String
+  validity          String               @default("15 days from date of submission")
+  status            QuotationStatus      @default(DRAFT)
+  serviceType       String
+  customServiceType String?
+  subject           String
+  clientId          String?
+  client            Client?              @relation(fields: [clientId], references: [id])
+  clientCompanyName String
+  clientContactPerson String?
+  clientAddressLine1  String?
+  clientAddressLine2  String?
+  clientCity        String?
+  clientState       String?
+  clientPinCode     String?
+  clientPhone       String?
+  clientEmail       String?
+  items             QuotationItem[]
+  finalizedAt       DateTime?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  deletedAt         DateTime?
+
+  @@index([status])
+  @@index([clientId])
+}
+
+model QuotationItem {
+  id            String    @id @default(cuid())
+  quotationId   String
+  quotation     Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  position      Int       @default(0)
+  description   String
+  unit          String
+  quantity      Decimal   @db.Decimal(10, 2)
+  rate          Decimal   @db.Decimal(12, 2)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model QuotationReferenceCounter {
+  year        Int @id
+  lastNumber  Int @default(0)
+}
+
+// ─── Document Reference Counter (Atomic) ─────────────────────────────────────
+
+model DocumentReferenceCounter {
+  year        Int @id
+  lastNumber  Int @default(0)
+}
+
+// ─── Approval Workflow ───────────────────────────────────────────────────────
+
+model ApprovalRule {
+  id            String    @id @default(cuid())
+  name          String
+  documentType  DocumentType
+  minApprovers  Int       @default(1)
+  roleRequired  String?
+  isActive      Boolean   @default(true)
+  steps         ApprovalStep[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  @@unique([documentType, name])
+}
+
+model ApprovalStep {
+  id            String    @id @default(cuid())
+  ruleId        String
+  rule          ApprovalRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  stepOrder     Int
+  name          String
+  requiredRole  String?
+  requiredUserId String?
+  isAutoApprove Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model ApprovalRequest {
+  id            String    @id @default(cuid())
+  documentId    String
+  document      Document  @relation(fields: [documentId], references: [id])
+  ruleId        String?
+  status        ApprovalStatus @default(PENDING)
+  requestedBy   String?
+  requesterNote String?
+  decidedBy     String?
+  decidedAt     DateTime?
+  decisionNote  String?
+  expiresAt     DateTime?
+  history       ApprovalHistoryEntry[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([documentId])
+  @@index([status])
+}
+
+model ApprovalHistoryEntry {
+  id              String    @id @default(cuid())
+  approvalRequestId String
+  approvalRequest ApprovalRequest @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
+  action          ApprovalAction
+  performedBy     String?
+  comment         String?
+  previousStatus  DocumentStatus?
+  newStatus       DocumentStatus?
+  createdAt       DateTime  @default(now())
+
+  @@index([approvalRequestId])
+}
+
+// ─── QR Verification ────────────────────────────────────────────────────────
+
+model QRVerification {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  documentId    String
+  document      Document  @relation(fields: [documentId], references: [id])
+  verificationUrl String?
+  qrDataUrl     String?
+  scannedCount  Int       @default(0)
+  lastScannedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ─── Audit Logging ──────────────────────────────────────────────────────────
+
+model AuditLog {
+  id            String    @id @default(cuid())
+  action        String
+  entityType    String
+  entityId      String
+  description   String?
+  userId        String?
+  user          User?     @relation(fields: [userId], references: [id])
+  clientId      String?
+  projectId     String?
+  documentId    String?
+  document      Document? @relation(fields: [documentId], references: [id])
+  metadata      Json?
+  ipAddress     String?
+  createdAt     DateTime  @default(now())
+  deletedAt     DateTime?
+
+  @@index([entityType, entityId])
+  @@index([documentId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ─── In-App Notifications ────────────────────────────────────────────────────
+
+model Notification {
+  id            String    @id @default(cuid())
+  type          String
+  title         String
+  message       String
+  entityType    String?
+  entityId      String?
+  userId        String?
+  user          User?     @relation(fields: [userId], references: [id])
+  isRead        Boolean   @default(false)
+  actionUrl     String?
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+// ─── Enterprise Storage ──────────────────────────────────────────────────────
+
+model StorageFile {
+  id            String    @id @default(cuid())
+  key           String    @unique
+  originalName  String
+  mimeType      String
+  size          Int
+  bucket        String
+  region        String?
+  etag          String?
+  versionId     String?
+  isVersioned   Boolean   @default(false)
+  entityType    String?
+  entityId      String?
+  uploadedById  String?
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  @@index([entityType, entityId])
+  @@index([bucket])
+  @@index([mimeType])
+  @@index([createdAt])
+}
+
+model StorageQuota {
+  id            String    @id @default(cuid())
+  entityType    String    @unique
+  entityId      String    @unique
+  maxBytes      BigInt    @default(10737418240) // 10GB default
+  usedBytes     BigInt    @default(0)
+  fileCount     Int       @default(0)
+  updatedAt     DateTime  @updatedAt
+}
+
+// ─── Background Jobs ─────────────────────────────────────────────────────────
+
+model BackgroundJob {
+  id            String    @id @default(cuid())
+  queue         String
+  type          String
+  payload       Json?
+  status        JobStatus @default(PENDING)
+  priority      Int       @default(0)
+  attempts      Int       @default(0)
+  maxAttempts   Int       @default(3)
+  result        Json?
+  error         String?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([queue, status])
+  @@index([status, priority])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ─── Email System ────────────────────────────────────────────────────────────
+
+model EmailLog {
+  id            String    @id @default(cuid())
+  to            String[]
+  cc            String[]
+  bcc           String[]
+  subject       String
+  templateId    String?
+  body          String    @db.Text
+  attachments   Json?
+  status        EmailStatus @default(PENDING)
+  provider      String?
+  providerId    String?
+  error         String?
+  sentAt        DateTime?
+  openedAt      DateTime?
+  clickedAt     DateTime?
+  jobId         String?
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+
+  @@index([status])
+  @@index([templateId])
+  @@index([createdAt])
+}
+
+model EmailTemplate {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  subject       String
+  htmlBody      String    @db.Text
+  textBody      String?   @db.Text
+  variables     String[]
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ─── Search Index ────────────────────────────────────────────────────────────
+
+model SearchIndex {
+  id            String    @id @default(cuid())
+  entityType    String
+  entityId      String
+  title         String
+  content       String    @db.Text
+  metadata      Json?
+  rank          Float     @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([entityType, entityId])
+  @@index([entityType])
+  @@index([rank])
+}
+
+model SavedSearch {
+  id            String    @id @default(cuid())
+  name          String
+  query         String
+  filters       Json?
+  userId        String?
+  createdAt     DateTime  @default(now())
+}
+
+// ─── Analytics ───────────────────────────────────────────────────────────────
+
+model AnalyticsSnapshot {
+  id            String    @id @default(cuid())
+  date          DateTime  @db.Date
+  metric        String
+  value         Json
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+
+  @@unique([date, metric])
+  @@index([metric])
+  @@index([date])
+}
+
+// ─── System Health ───────────────────────────────────────────────────────────
+
+model HealthCheck {
+  id            String    @id @default(cuid())
+  service       String
+  status        String
+  latencyMs     Int?
+  error         String?
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+
+  @@index([service, createdAt])
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────────
+
+enum ProjectStatus {
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum DocumentStatus {
+  DRAFT
+  PENDING_REVIEW
+  UNDER_REVIEW
+  REVISION
+  APPROVED
+  REJECTED
+  ISSUED
+  VIEWED
+  ACCEPTED
+  COMPLETED
+  ARCHIVED
+  CANCELLED
+  FINALIZED
+  EXPIRED
+}
+
+enum DocumentType {
+  QUOTATION
+  TAX_INVOICE
+  PROFORMA_INVOICE
+  PURCHASE_ORDER
+  WORK_ORDER
+  SITE_VISIT_REPORT
+  BOREWELL_COMPLETION_REPORT
+  RWH_REPORT
+  HYDROGEO_SURVEY
+  TECHNICAL_PROPOSAL
+  COMMERCIAL_PROPOSAL
+  PROJECT_ESTIMATE
+  COST_BREAKDOWN
+  COMPLETION_CERTIFICATE
+  PAYMENT_RECEIPT
+  DELIVERY_CHALLAN
+  WARRANTY_CERTIFICATE
+  AMC_AGREEMENT
+  SERVICE_REPORT
+  INTERNAL_DOCUMENT
+}
+
 enum QuotationStatus {
   DRAFT
   FINAL
 }
 
-model Client {
-  id             String       @id @default(cuid())
-  companyName    String
-  contactPerson  String?
-  addressLine1   String?
-  addressLine2   String?
-  city           String?
-  state          String?
-  pinCode        String?
-  phone          String?
-  email          String?
-  quotations     Quotation[]
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  EXPIRED
 }
 
-model Quotation {
-  id                    String          @id @default(cuid())
-  reference             String          @unique
-  status                QuotationStatus @default(DRAFT)
-  date                  String
-  validity              String
-  serviceType           String
-  customServiceType     String?
-  subject               String
-  clientId              String?
-  client                Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  clientCompanyName     String
-  clientContactPerson   String?
-  clientAddressLine1    String?
-  clientAddressLine2    String?
-  clientCity            String?
-  clientState           String?
-  clientPinCode         String?
-  clientPhone           String?
-  clientEmail           String?
-  items                 QuotationItem[]
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-  finalizedAt           DateTime?
+enum ApprovalAction {
+  SUBMITTED
+  APPROVED
+  REJECTED
+  REVISION_REQUESTED
+  CANCELLED
+  EXPIRED
+  RESTARTED
 }
 
-model QuotationItem {
-  id          String    @id @default(cuid())
-  quotationId String
-  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
-  position    Int
-  description String
-  unit        String
-  quantity    Decimal   @db.Decimal(12, 3)
-  rate        Decimal   @db.Decimal(14, 2)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  @@index([quotationId, position])
+enum JobStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  FAILED
+  DELAYED
+  DEAD_LETTER
 }
 
-model QuotationReferenceCounter {
-  year       Int      @id
-  lastNumber Int      @default(0)
-  updatedAt  DateTime @updatedAt
+enum EmailStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  BOUNCED
 }

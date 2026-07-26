@@ -1,0 +1,165 @@
+/* Professional PDF Document CSS - ERP Style */
+:root {
+  --doc-primary: #1e3a5f;
+  --doc-accent: #f7c600;
+  --doc-text: #1a1a2e;
+  --doc-surface: #ffffff;
+  --doc-border: #e2e8f0;
+  --doc-muted: #64748b;
+}
+
+.document-page-wrapper {
+  background-color: white;
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 15mm 20mm;
+  position: relative;
+  box-sizing: border-box;
+  color: var(--doc-text);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  margin-bottom: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+@media print {
+  .document-page-wrapper {
+    margin: 0;
+    box-shadow: none;
+    page-break-after: always;
+    break-after: page;
+  }
+  
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  
+  body {
+    background-color: white;
+  }
+}
+
+.doc-section-break {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+/* BOQ Table Styles */
+.boq-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 9pt;
+}
+
+.boq-table th {
+  background-color: var(--doc-primary);
+  color: white;
+  text-align: left;
+  padding: 8px;
+  font-weight: 600;
+  border: 1px solid var(--doc-primary);
+}
+
+.boq-table td {
+  padding: 8px;
+  border: 1px solid var(--doc-border);
+  vertical-align: top;
+}
+
+.boq-table tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+.boq-table .total-row {
+  font-weight: bold;
+  background-color: #f1f5f9;
+}
+
+.boq-table .grand-total-row {
+  font-weight: bold;
+  background-color: #e2e8f0;
+  font-size: 10pt;
+}
+
+/* Cover Page */
+.cover-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.cover-header {
+  border-bottom: 4px solid var(--doc-accent);
+  padding-bottom: 20px;
+  margin-bottom: 40px;
+}
+
+/* Timeline */
+.timeline-container {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline-line {
+  position: absolute;
+  left: 11px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background-color: var(--doc-border);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -30px;
+  top: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: white;
+  border: 2px solid var(--doc-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.timeline-dot.completed {
+  background-color: #22c55e;
+  border-color: #22c55e;
+  color: white;
+}
+
+.timeline-dot.in_progress {
+  background-color: var(--doc-accent);
+  border-color: var(--doc-accent);
+  color: var(--doc-primary);
+}
+
+/* Signatures */
+.signature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.signature-block {
+  text-align: center;
+}
+
+.signature-line {
+  border-bottom: 1px solid var(--doc-text);
+  margin: 40px 0 10px 0;
+  height: 60px;
+}
