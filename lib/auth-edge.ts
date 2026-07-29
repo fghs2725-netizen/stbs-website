@@ -153,7 +153,18 @@ export async function getSession(
     console.log("[Auth Edge Debug] decoded id present: " + (!!(p as any)?.sub));
     console.log("[Auth Edge Debug] decoded email present: " + (!!(p as any)?.email));
     console.log("[Auth Edge Debug] decoded role: " + ((p as any)?.role || "NONE"));
-    return payload as Session;
+    const session: Session = {
+      user: {
+        id: String(p.sub ?? p.id ?? ""),
+        name: (p.name as string) ?? null,
+        email: String(p.email ?? ""),
+        image: (p.picture as string) ?? null,
+        role: String(p.role ?? ""),
+      },
+      expires: (p.exp as string) ?? undefined,
+    };
+    console.log("[Auth Edge Debug] getSession returning: SESSION");
+    return session;
   } catch (e) {
     console.log("[Auth Edge Debug] jwtDecrypt: FAILED");
     console.log("[Auth Edge Debug] exception name: " + ((e as Error).name || "unknown"));
