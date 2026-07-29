@@ -1,10 +1,10 @@
 import fs from "node:fs/promises";
-import path from "node:path";
 import chromium from "@sparticuz/chromium";
 import puppeteer, { type Browser, type Page } from "puppeteer-core";
 import { PDFDocument } from "pdf-lib";
 import type { QuotationState } from "@/components/quotation/quotation-model";
 import { createQuotationRenderToken } from "@/lib/quotation-render-auth";
+import { trustedPdfOrigin, assertPdfRenderPathname } from "@/lib/pdf-origin";
 
 export type PdfDiagnostic = (event: string, extra?: Record<string, unknown>) => void;
 type PdfContext = { stage: string; emit?: PdfDiagnostic };
@@ -24,14 +24,6 @@ async function executablePath() {
     try { await fs.access(candidate); return candidate; } catch { /* continue */ }
   }
   throw new Error("LOCAL_CHROMIUM_NOT_FOUND");
-}
-
-function trustedOrigin(requestOrigin: string) {
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  const configured = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL;
-  if (configured) return configured.replace(/\/$/, "");
-  if (process.env.VERCEL) throw new Error("PDF_TRUSTED_ORIGIN_MISSING");
-  return requestOrigin;
 }
 
 async function launch(context: PdfContext) {
@@ -125,6 +117,7 @@ async function renderPdf(url: string, context: PdfContext) {
     diag("RENDER_NAVIGATION_HTTP_STATUS", context, { status });
     if (!response || !response.ok()) throw new Error(`PDF_RENDER_HTTP_${status}`);
     diag("RENDER_NAVIGATION_SUCCESS", context);
+    assertPdfRenderPathname(page.url());
     await waitReady(page, context);
     context.stage = "pdf-generation"; diag("PDF_GENERATION_START", context);
     const pdf = await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true, margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" } });
@@ -141,7 +134,7 @@ export async function generateQuotationPdf(quotation: QuotationState, requestOri
   const context: PdfContext = { stage: "render-url", emit };
   try {
     if (!quotation.id) throw new Error("PDF_RENDER_QUOTATION_ID_MISSING");
-    const origin = trustedOrigin(requestOrigin);
+    const origin = trustedPdfOrigin(requestOrigin);
     const token = createQuotationRenderToken(quotation.id);
     diag("RENDER_URL_CREATED", context, { originHost: new URL(origin).host });
     return await renderPdf(`${origin}/internal/quotation-pdf/${encodeURIComponent(quotation.id)}?token=${encodeURIComponent(token)}`, context);

@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import chromium from "@sparticuz/chromium";
 import puppeteer, { type Browser } from "puppeteer-core";
 import { createDocumentRenderToken } from "@/lib/document-render-auth";
+import { trustedPdfOrigin, assertPdfRenderPathname } from "@/lib/pdf-origin";
 
 type PdfContext = { stage: string; emit?: (event: string, extra?: Record<string, unknown>) => void };
 
@@ -19,13 +20,6 @@ async function executablePath() {
     try { await fs.access(candidate); return candidate; } catch { /* continue */ }
   }
   throw new Error("LOCAL_CHROMIUM_NOT_FOUND");
-}
-
-function trustedOrigin(requestOrigin: string) {
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  const configured = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL;
-  if (configured) return configured.replace(/\/$/, "");
-  return requestOrigin;
 }
 
 async function launch(context: PdfContext) {
@@ -63,7 +57,7 @@ export async function generateDocumentPdf(documentId: string, requestOrigin: str
   const context: PdfContext = { stage: "init", emit };
   let browser: Browser | undefined;
   try {
-    const origin = trustedOrigin(requestOrigin);
+    const origin = trustedPdfOrigin(requestOrigin);
     const token = createDocumentRenderToken(documentId);
     const url = `${origin}/internal/document-pdf/${encodeURIComponent(documentId)}?token=${encodeURIComponent(token)}`;
 
@@ -72,6 +66,7 @@ export async function generateDocumentPdf(documentId: string, requestOrigin: str
 
     const response = await page.goto(url, { waitUntil: "load", timeout: 20_000 });
     if (!response || !response.ok()) throw new Error(`PDF_RENDER_HTTP_${response?.status() ?? 0}`);
+    assertPdfRenderPathname(page.url());
 
     await page.waitForSelector('#document-pdf-render[data-pdf-ready="true"]', { timeout: 15_000 });
     await page.evaluate(async () => { await document.fonts.ready; });
