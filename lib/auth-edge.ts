@@ -83,46 +83,15 @@ export async function getSession(
   cookieHeader: string | null,
   secret: string,
 ): Promise<Session | null> {
-  console.log("[Auth Edge Debug] getSession called");
-  console.log("[Auth Edge Debug] Cookie header present: " + (cookieHeader !== null && cookieHeader !== ""));
-
   const cookies = parseCookies(cookieHeader);
-  const hasSecret = !!secret;
-  console.log("[Auth Edge Debug] AUTH_SECRET present: " + hasSecret);
-  if (hasSecret) console.log("[Auth Edge Debug] AUTH_SECRET length: " + secret.length);
 
-  // List all cookie names (safe — just names, no values)
-  const allNames = Object.keys(cookies);
-  const sessionLikeCookies = allNames.filter((n) => n.includes("authjs.session"));
-  console.log("[Auth Edge Debug] Total cookies: " + allNames.length);
-  console.log("[Auth Edge Debug] authjs.session* cookies found: " + sessionLikeCookies.length);
-  if (sessionLikeCookies.length > 0) {
-    console.log("[Auth Edge Debug] authjs.session* cookie names: " + JSON.stringify(sessionLikeCookies));
-  }
-
-  // Try secure cookie first (production HTTPS), fall back to non-secure
   const secureResult = findSessionToken(cookies, true);
   const nonSecureResult = secureResult.token ? null : findSessionToken(cookies, false);
   const result = secureResult.token ? secureResult : nonSecureResult;
 
-  console.log("[Auth Edge Debug] __Secure-authjs.session-token (base or chunked) present: " + (!!secureResult.token));
-  console.log("[Auth Edge Debug] authjs.session-token (base or chunked) present: " + (!!(nonSecureResult?.token)));
+  if (!result || !result.token) return null;
 
-  if (!result || !result.token) {
-    console.log("[Auth Edge Debug] Selected cookie name: NONE");
-    console.log("[Auth Edge Debug] Token present: false");
-    console.log("[Auth Edge Debug] jwtDecrypt: SKIPPED — no token");
-    return null;
-  }
-
-  const cookieName = result.cookieName!;
-  console.log("[Auth Edge Debug] Selected cookie name: " + cookieName);
-  console.log("[Auth Edge Debug] Token present: true");
-  console.log("[Auth Edge Debug] Token length (chars): " + result.token.length);
-  console.log("[Auth Edge Debug] Cookie chunked: " + (result.token.length > 0 && !cookies[cookieName] ? "YES" : "NO"));
-
-  const salt = cookieName;
-  console.log("[Auth Edge Debug] Salt used: " + salt);
+  const salt = result.cookieName!;
 
   const secrets = [secret];
 
@@ -148,11 +117,7 @@ export async function getSession(
       },
     );
 
-    console.log("[Auth Edge Debug] jwtDecrypt: SUCCESS");
     const p = payload as Record<string, unknown>;
-    console.log("[Auth Edge Debug] decoded id present: " + (!!(p as any)?.sub));
-    console.log("[Auth Edge Debug] decoded email present: " + (!!(p as any)?.email));
-    console.log("[Auth Edge Debug] decoded role: " + ((p as any)?.role || "NONE"));
     const session: Session = {
       user: {
         id: String(p.sub ?? p.id ?? ""),
@@ -163,12 +128,8 @@ export async function getSession(
       },
       expires: (p.exp as string) ?? undefined,
     };
-    console.log("[Auth Edge Debug] getSession returning: SESSION");
     return session;
-  } catch (e) {
-    console.log("[Auth Edge Debug] jwtDecrypt: FAILED");
-    console.log("[Auth Edge Debug] exception name: " + ((e as Error).name || "unknown"));
-    console.log("[Auth Edge Debug] exception message: " + ((e as Error).message || "no message"));
+  } catch {
     return null;
   }
 }

@@ -17,9 +17,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, request) {
-        console.log("[Auth Debug] authorize called");
-        console.log("[Auth Debug] Email provided: " + (!!credentials?.email));
-
         const ip = request instanceof Request
           ? (request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown")
           : "unknown";
@@ -42,25 +39,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        let user;
-        try {
-          user = await prisma.user.findFirst({
-            where: { email, deletedAt: null },
-            include: { role: true },
-          });
-        } catch (e) {
-          console.log("[Auth Debug] authorize exception: " + ((e as Error)?.message || "db error"));
-          return null;
-        }
-
-        console.log("[Auth Debug] Config/admin user found: " + (!!user));
+        const user = await prisma.user.findFirst({
+          where: { email, deletedAt: null },
+          include: { role: true },
+        });
 
         if (!user) {
           console.warn(`[Auth] No active user found for email: ${email}`);
           return null;
         }
-
-        console.log("[Auth Debug] Password hash exists: " + (!!user.password));
 
         if (!user.password) {
           console.warn(`[Auth] User ${email} has no password hash stored`);
@@ -75,16 +62,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        console.log("[Auth Debug] bcrypt.compare result: " + valid);
-
         if (!valid) {
           console.warn(`[Auth] Invalid password for: ${email}`);
           return null;
         }
 
         const roleName = user.role?.name;
-        console.log("[Auth Debug] Role: " + (roleName || "NONE"));
-
         if (roleName !== "SUPER_ADMIN") {
           console.warn(
             `[Auth] User ${email} has role "${roleName}" — only SUPER_ADMIN is permitted. Denying login.`
@@ -98,7 +81,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
 
         console.log(`[Auth] Successful login: ${email} (role: ${roleName})`);
-        console.log("[Auth Debug] authorize result: USER");
 
         return {
           id: user.id,

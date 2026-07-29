@@ -15,23 +15,16 @@ export default async function middleware(request: NextRequest) {
   // ── Admin routes ──
   if (pathname.startsWith("/admin")) {
     const isLogin = pathname === "/admin/login";
-    console.log("[Middleware Debug] Path: " + pathname);
-    console.log("[Middleware Debug] Admin login page: " + isLogin);
     const session = await getSession(request.headers.get("cookie"), secret);
-    console.log("[Middleware Debug] Session found: " + (!!session?.user));
-    console.log("[Middleware Debug] Session role: " + (session?.user?.role || "NONE"));
 
     if (isLogin && session?.user) {
-      console.log("[Middleware Debug] Decision: REDIRECT_ADMIN");
       return NextResponse.redirect(new URL("/admin", request.url));
     }
     if (!isLogin && !session?.user) {
-      console.log("[Middleware Debug] Decision: REDIRECT_LOGIN");
       const login = new URL("/admin/login", request.url);
       login.searchParams.set("callbackUrl", `${pathname}${request.nextUrl.search}`);
       return NextResponse.redirect(login);
     }
-    console.log("[Middleware Debug] Decision: ALLOW");
     const response = NextResponse.next();
     response.headers.set("Cache-Control", "no-store, max-age=0");
     return response;
