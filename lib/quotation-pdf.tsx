@@ -71,16 +71,31 @@ async function launch(context: PdfContext) {
 
 
 async function waitReady(page: Page, context: PdfContext) {
+  // Diagnose what page Puppeteer actually received
+  const pageTitle = await page.title();
+  const bodyPreview = await page.evaluate(() => document.body?.innerText?.slice(0, 300) || "(no body)");
+  const bodyChildCount = await page.evaluate(() => document.body?.childElementCount ?? -1);
+  const hasExpectedId = await page.evaluate(() => !!document.getElementById("quotation-pdf-document"));
+  const pathname = await page.evaluate(() => window.location.pathname);
+  const hasNextError = await page.evaluate(() => !!document.querySelector("[data-next-error]") || document.title.includes("404") || document.title.includes("Error") || !!(document.body?.innerText?.includes("This page could not be found")));
+  diag("PAGE_DIAG", context, { pathname, pageTitle, bodyChildCount, hasExpectedId, hasNextError, bodyPreview: bodyPreview.replace(/[<>]/g, "") });
+
   // Verify the main document element exists
-  const documentRootFound = await page.$eval('#quotation-pdf-document', el => !!el);
+  const documentRootFound = await page.$eval('#quotation-pdf-document', el => !!el).catch(() => false);
   diag('PDF_DIAG_RENDER_DOCUMENT_ROOT', context, { found: documentRootFound });
+
+  if (!documentRootFound) {
+    diag("PAGE_NO_SELECTOR", context, { pathname, pageTitle, hasNextError });
+    await page.screenshot({ path: "/tmp/pdf-debug.png", fullPage: true }).catch(() => undefined);
+    throw new Error("PDF_SELECTOR_NOT_FOUND");
+  }
 
   // Verify the readiness marker exists on the main element
   const readyMarkerFound = await page.$eval('#quotation-pdf-document[data-pdf-ready="true"]', el => !!(el && el.getAttribute('data-pdf-ready') === 'true'));
   diag('PDF_DIAG_RENDER_READY_MARKER', context, { found: readyMarkerFound });
 
   // Wait for the readiness marker to be present
-  await page.waitForSelector('#quotation-pdf-document[data-pdf-ready="true"]', { timeout: 15_000 });
+  if (!readyMarkerFound) await page.waitForSelector('#quotation-pdf-document[data-pdf-ready="true"]', { timeout: 15_000 });
   context.stage = 'ready';
   diag('PDF_DIAG_RENDER_READY', context);
 
