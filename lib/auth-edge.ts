@@ -5,7 +5,7 @@
  * `jose/jwt/decrypt` and `@panva/hkdf` — avoids pulling in the
  * full @auth/core / preact / oauth4webapi dependency tree.
  */
-import { jwtDecrypt } from "jose/jwt/decrypt";
+import { jwtDecrypt, calculateJwkThumbprint, base64url } from "jose";
 import { hkdf } from "@panva/hkdf";
 
 const ALG = "dir";
@@ -50,22 +50,40 @@ export async function getSession(
   secret: string,
 ): Promise<Session | null> {
   const cookies = parseCookies(cookieHeader);
-  const token =
-    cookies[SECURE_SESSION_COOKIE] ?? cookies[SESSION_COOKIE];
-  if (!token) return null;
+
+  console.log("[Auth Edge Debug] getSession called");
+
+  const secureToken = cookies[SECURE_SESSION_COOKIE];
+  const nonSecureToken = cookies[SESSION_COOKIE];
+  const token = secureToken ?? nonSecureToken;
+
+  console.log("[Auth Edge Debug] Cookie header present: " + (cookieHeader !== null && cookieHeader !== ""));
+  console.log("[Auth Edge Debug] authjs.session-token present: " + (nonSecureToken !== undefined));
+  console.log("[Auth Edge Debug] __Secure-authjs.session-token present: " + (secureToken !== undefined));
+
+  if (!token) {
+    console.log("[Auth Edge Debug] Selected cookie name: NONE — no session token found");
+    return null;
+  }
+
+  const actualCookieName = secureToken !== undefined ? SECURE_SESSION_COOKIE : SESSION_COOKIE;
+  console.log("[Auth Edge Debug] Selected cookie name: " + actualCookieName);
+  console.log("[Auth Edge Debug] Session token present: true");
 
   const secrets = [secret];
 
   try {
     const { payload } = await jwtDecrypt(
       token,
-      async ({ kid }) => {
+      async ({ kid, enc }) => {
         for (const s of secrets) {
-          const key = await deriveKey(s, SESSION_COOKIE);
+          const key = await deriveKey(s, actualCookieName);
           if (kid === undefined) return key;
-          // If kid is set, we still return the derived key since Auth.js
-          // doesn't always set kid in the header for middleware tokens
-          return key;
+          const thumbprint = await calculateJwkThumbprint(
+            { kty: "oct", k: base64url.encode(key) },
+            `sha${key.byteLength << 3}` as "sha256" | "sha384" | "sha512",
+          );
+          if (kid === thumbprint) return key;
         }
         throw new Error("no matching decryption secret");
       },
@@ -76,8 +94,12 @@ export async function getSession(
       },
     );
 
+    console.log("[Auth Edge Debug] JWE decrypt: SUCCESS");
     return payload as Session;
-  } catch {
+  } catch (e) {
+    console.log("[Auth Edge Debug] JWE decrypt: FAILED");
+    console.log("[Auth Edge Debug] Decrypt exception name: " + ((e as Error).name || "unknown"));
+    console.log("[Auth Edge Debug] Decrypt exception message: " + ((e as Error).message || "no message"));
     return null;
   }
 }
