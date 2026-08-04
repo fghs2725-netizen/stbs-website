@@ -62,11 +62,6 @@ export default async function middleware(request: NextRequest) {
 
   // ── Internal routes (block external access) ──
   if (pathname.startsWith("/internal")) {
-    const host = request.headers.get("host") || "";
-    const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1");
-    if (!isLocalhost && !process.env.VERCEL) {
-      return NextResponse.json({ error: "Not Found" }, { status: 404 });
-    }
     return NextResponse.next();
   }
 
