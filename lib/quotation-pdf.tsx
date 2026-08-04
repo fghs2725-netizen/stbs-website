@@ -112,9 +112,15 @@ async function renderPdf(url: string, context: PdfContext) {
     const page = await browser.newPage();
     diag("PAGE_CREATE_SUCCESS", context);
     context.stage = "render-navigation"; diag("RENDER_NAVIGATION_START", context);
+    const redactedUrl = url.replace(/token=[^&]+/, "token=[REDACTED]");
+    diag("RENDER_URL_BEFORE_GOTO", context, { renderUrl: redactedUrl });
     const response = await page.goto(url, { waitUntil: "load", timeout: 15_000 });
     const status = response?.status() ?? 0;
-    diag("RENDER_NAVIGATION_HTTP_STATUS", context, { status });
+    const finalUrl = response?.url() ?? "none";
+    let finalPathname = "unknown";
+    try { finalPathname = new URL(finalUrl).pathname; } catch { /* ignore */ }
+    const redactedFinal = finalUrl.replace(/token=[^&]+/, "token=[REDACTED]");
+    diag("RENDER_URL_AFTER_GOTO", context, { finalUrl: redactedFinal, finalPathname, status });
     if (!response || !response.ok()) throw new Error(`PDF_RENDER_HTTP_${status}`);
     diag("RENDER_NAVIGATION_SUCCESS", context);
     assertPdfRenderPathname(page.url());
