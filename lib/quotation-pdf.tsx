@@ -121,7 +121,12 @@ async function renderPdf(url: string, context: PdfContext) {
     try { finalPathname = new URL(finalUrl).pathname; } catch { /* ignore */ }
     const redactedFinal = finalUrl.replace(/token=[^&]+/, "token=[REDACTED]");
     diag("RENDER_URL_AFTER_GOTO", context, { finalUrl: redactedFinal, finalPathname, status });
-    if (!response || !response.ok()) throw new Error(`PDF_RENDER_HTTP_${status}`);
+    if (!response || !response.ok()) {
+      const errorPageTitle = await page.title().catch(() => "unknown");
+      const errorBodyPreview = await page.evaluate(() => document.body?.innerText?.slice(0, 200) || "(empty body)").catch(() => "(evaluate failed)");
+      diag("RENDER_HTTP_ERROR_BODY", context, { status, errorPageTitle, errorBodyPreview: errorBodyPreview.replace(/[<>]/g, "") });
+      throw new Error(`PDF_RENDER_HTTP_${status}`);
+    }
     diag("RENDER_NAVIGATION_SUCCESS", context);
     assertPdfRenderPathname(page.url());
     await waitReady(page, context);
