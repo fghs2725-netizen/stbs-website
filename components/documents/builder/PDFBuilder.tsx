@@ -8,7 +8,7 @@ import { RightSidebar } from './RightSidebar';
 import { LivePreview } from './LivePreview';
 import { VersionHistoryPanel } from '@/components/documents/versions/VersionHistoryPanel';
 import { VersionCompareView } from '@/components/documents/versions/VersionCompareView';
-import { GitCompare, History } from 'lucide-react';
+import { Eye, GitCompare, History, Pencil } from 'lucide-react';
 
 interface BuilderDocumentItem {
   id: string;
@@ -109,6 +109,9 @@ export default function PDFBuilder({ initialDocument, documentType = 'INTERNAL_D
   const [versionRefreshKey, setVersionRefreshKey] = useState(0);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfNotice, setPdfNotice] = useState<string | null>(null);
+  // On small screens the structure/property panels and the preview cannot
+  // share the viewport, so a segmented switch picks which pane is shown.
+  const [mobileView, setMobileView] = useState<'edit' | 'preview'>('edit');
 
   // Unsaved documents get a client-side "doc-*" id; they must be saved before
   // a PDF can be generated server-side.
@@ -263,39 +266,62 @@ export default function PDFBuilder({ initialDocument, documentType = 'INTERNAL_D
 
   return (
     <div className="pdf-builder">
-      <ToolBar
-        title={document.title}
-        zoom={zoom}
-        onZoomChange={setZoom}
-        onSave={handleSave}
-        onTitleChange={(title) => updateField('title', title)}
-        onGeneratePdf={handleGeneratePdf}
-        generatingPdf={isGeneratingPdf}
-        canGeneratePdf={isPersisted && document.status !== 'CANCELLED'}
-        status={saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : saveStatus === 'error' ? 'Save failed' : document.status}
-        actions={
-          <>
-            <button
-              onClick={() => setShowCompare(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-              title="Compare versions"
-            >
-              <GitCompare className="w-3.5 h-3.5" />
-              Compare
-            </button>
-            <button
-              onClick={() => setShowVersionHistory(!showVersionHistory)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg transition-colors ${
-                showVersionHistory ? 'text-gold bg-gold/10' : 'text-gray-400 hover:text-white hover:bg-white/10'
-              }`}
-              title="Version history"
-            >
-              <History className="w-3.5 h-3.5" />
-              History
-            </button>
-          </>
-        }
-      />
+      <div className="pdf-builder-top">
+        <ToolBar
+          title={document.title}
+          zoom={zoom}
+          onZoomChange={setZoom}
+          onSave={handleSave}
+          onTitleChange={(title) => updateField('title', title)}
+          onGeneratePdf={handleGeneratePdf}
+          generatingPdf={isGeneratingPdf}
+          canGeneratePdf={isPersisted && document.status !== 'CANCELLED'}
+          status={saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : saveStatus === 'error' ? 'Save failed' : document.status}
+          actions={
+            <>
+              <button
+                onClick={() => setShowCompare(true)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                title="Compare versions"
+              >
+                <GitCompare className="w-3.5 h-3.5" />
+                Compare
+              </button>
+              <button
+                onClick={() => setShowVersionHistory(!showVersionHistory)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg transition-colors ${
+                  showVersionHistory ? 'text-gold bg-gold/10' : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+                title="Version history"
+              >
+                <History className="w-3.5 h-3.5" />
+                History
+              </button>
+            </>
+          }
+        />
+
+        <div className="builder-mobile-tabs" aria-label="Switch between editing panels and preview">
+          <button
+            type="button"
+            aria-pressed={mobileView === 'edit'}
+            className={mobileView === 'edit' ? 'active' : ''}
+            onClick={() => setMobileView('edit')}
+          >
+            <Pencil className="w-4 h-4" />
+            Edit
+          </button>
+          <button
+            type="button"
+            aria-pressed={mobileView === 'preview'}
+            className={mobileView === 'preview' ? 'active' : ''}
+            onClick={() => setMobileView('preview')}
+          >
+            <Eye className="w-4 h-4" />
+            Preview
+          </button>
+        </div>
+      </div>
       
       {pdfNotice && (
         <div className="px-4 py-2 bg-red-500/15 border-b border-red-500/30 text-red-200 text-sm" role="status">
@@ -303,7 +329,7 @@ export default function PDFBuilder({ initialDocument, documentType = 'INTERNAL_D
         </div>
       )}
 
-      <div className="pdf-builder-content">
+      <div className="pdf-builder-content" data-mobile-view={mobileView}>
         <div className={`flex-shrink-0 transition-all duration-300 ${showVersionHistory ? 'w-72' : 'w-0'} overflow-hidden`}>
           {showVersionHistory && (
             <div className="w-72 h-full p-2 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">

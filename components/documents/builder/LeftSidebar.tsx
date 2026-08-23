@@ -48,7 +48,7 @@ export function LeftSidebar({ sections, activeSectionId, onSectionClick, onSecti
                   <span className="text-sm font-medium truncate">{section.title || section.type}</span>
                 </div>
                 <div
-                  className="cursor-pointer flex-shrink-0 p-1"
+                  className="cursor-pointer flex-shrink-0 p-2.5"
                   role="switch"
                   aria-checked={section.visible}
                   aria-label={`${section.visible ? 'Hide' : 'Show'} ${section.title || section.type}`}

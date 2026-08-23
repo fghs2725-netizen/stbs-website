@@ -9,7 +9,10 @@
   
   display: flex;
   flex-direction: column;
+  /* dvh keeps the shell within the visible viewport when mobile browser
+     chrome collapses; 100vh is the fallback for older browsers. */
   height: 100vh;
+  height: 100dvh;
   width: 100%;
   background-color: var(--builder-bg);
   color: var(--builder-text);
@@ -28,6 +31,18 @@
   background: var(--builder-panel-bg);
   backdrop-filter: blur(12px);
   z-index: 20;
+}
+
+/* Wraps the toolbar and (mobile-only) view tabs so both can stick together
+   while long forms scroll underneath. Static on desktop. */
+.pdf-builder-top {
+  position: relative;
+  z-index: 30;
+}
+
+/* Segmented EDIT | PREVIEW switch — mobile only. */
+.builder-mobile-tabs {
+  display: none;
 }
 
 .pdf-builder-content {
@@ -184,6 +199,12 @@
   overflow: hidden;
 }
 
+/* Screen-only separator between stacked A4 sheets in the live preview.
+   Print styling is owned by the internal document-pdf page stylesheet. */
+.page-container .doc-page + .doc-page {
+  border-top: 1px dashed #cbd5e1;
+}
+
 .section-item {
   display: flex;
   align-items: center;
@@ -216,15 +237,59 @@
   .pdf-builder {
     height: auto;
     min-height: 100vh;
+    min-height: 100dvh;
     overflow: visible;
   }
   .pdf-toolbar {
     flex-wrap: wrap;
     padding: 8px 12px;
   }
+
+  /* Sticky action bar: toolbar + view tabs stay reachable while long
+     edit forms scroll underneath. */
+  .pdf-builder-top {
+    position: sticky;
+    top: 0;
+    background: var(--builder-bg);
+  }
+
+  /* Segmented EDIT | PREVIEW switch replaces the old stacked-everything
+     layout; only the chosen pane is rendered in the flow. */
+  .builder-mobile-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--builder-border);
+  }
+  .builder-mobile-tabs button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--builder-text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  .builder-mobile-tabs button.active {
+    color: #000000;
+    background: var(--builder-accent);
+  }
+
   .pdf-builder-content {
     flex-direction: column;
     overflow: visible;
+  }
+  .pdf-builder-content[data-mobile-view='preview'] .pdf-left-sidebar,
+  .pdf-builder-content[data-mobile-view='preview'] .pdf-right-sidebar,
+  .pdf-builder-content[data-mobile-view='edit'] .pdf-live-preview {
+    display: none;
   }
   .pdf-left-sidebar,
   .pdf-right-sidebar {
@@ -235,12 +300,26 @@
     backdrop-filter: none;
     background: var(--builder-bg);
   }
-  /* Preview first on mobile, panels stack beneath it */
+  /* Preview fills the space below toolbar + tabs instead of a fixed 70vh. */
   .pdf-live-preview {
-    order: -1;
-    min-height: 70vh;
+    min-height: calc(100dvh - 160px);
   }
   .page-container {
     margin: 20px auto;
+  }
+
+  /* Prevent iOS Safari from zooming into focused inputs (needs >=16px). */
+  .builder-input,
+  .pdf-toolbar input[type='text'] {
+    font-size: 16px;
+  }
+
+  /* Comfortable touch targets for icon-only controls. */
+  .builder-btn-icon {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  .accordion-header {
+    min-height: 48px;
   }
 }

@@ -75,7 +75,7 @@ export function RightSidebar({ activeSection, documentData, updateField, items, 
                 <div key={item.id} className="p-3 bg-white/5 rounded-lg border border-white/10 relative group">
                   <button
                     onClick={() => removeItem(item.id)}
-                    className="absolute top-2 right-2 p-1.5 text-white/40 hover:text-red-400 transition-colors"
+                    className="absolute top-2 right-2 p-3 text-white/40 hover:text-red-400 transition-colors"
                     aria-label={`Delete item ${item.description || index + 1}`}
                   >
                     <Trash2 className="w-4 h-4" />
@@ -83,7 +83,7 @@ export function RightSidebar({ activeSection, documentData, updateField, items, 
                   <div className="space-y-2">
                     <input 
                       type="text" 
-                      className="builder-input bg-black/20 border-transparent text-sm w-full" 
+                      className="builder-input bg-black/20 border-transparent text-sm w-full pr-12"
                       placeholder="Item Description" 
                       value={item.description}
                       onChange={e => updateItem(item.id, 'description', e.target.value)}
