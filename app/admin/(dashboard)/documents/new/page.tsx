@@ -1,14 +1,27 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { FileText, Briefcase, FileSignature, Receipt, ChevronRight, Check } from 'lucide-react';
 import { DOCUMENT_TYPE_CONFIGS } from '@/lib/documents/template-registry';
 
 export default function NewDocumentPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewDocumentForm />
+    </Suspense>
+  );
+}
+
+function NewDocumentForm() {
   const router = useRouter();
-  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  // QuickActions and the quotations cross-link arrive with ?type=…; honour
+  // it so staff land one tap away from Continue.
+  const preselect = searchParams.get('type') || '';
+  const validPreselect = preselect in DOCUMENT_TYPE_CONFIGS ? preselect : null;
+  const [selectedType, setSelectedType] = useState<string | null>(validPreselect);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCreate = async () => {

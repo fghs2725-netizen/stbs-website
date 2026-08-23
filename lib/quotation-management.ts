@@ -9,7 +9,40 @@ async function reference(tx:any) { const year = new Date().getFullYear(); const 
 export async function saveQuotation(q: QuotationState) { await requireAdmin(); return prisma.$transaction(async tx => { const data=input(q); const items={create:q.items.map((i,n)=>({position:n,description:i.description,unit:i.unit,quantity:i.quantity,rate:i.rate}))}; let clientId=q.clientId; if(q.saveClientForFuture && !clientId){ const existing=await tx.client.findFirst({where:{companyName:data.clientCompanyName,phone:data.clientPhone||undefined,email:data.clientEmail||undefined}}); const client=existing || await tx.client.create({data:{companyName:data.clientCompanyName,contactPerson:data.clientContactPerson,addressLine1:data.clientAddressLine1,addressLine2:data.clientAddressLine2,city:data.clientCity,state:data.clientState,pinCode:data.clientPinCode,phone:data.clientPhone,email:data.clientEmail}}); clientId=client.id; } if(q.id){ const old=await tx.quotation.findUnique({where:{id:q.id}}); if(!old) throw new Error("NOT_FOUND"); if(old.status !== "DRAFT") throw new Error("FINAL_READ_ONLY"); return state(await tx.quotation.update({where:{id:q.id},data:{...data,clientId,items:{deleteMany:{},...items}} ,include:{items:{orderBy:{position:"asc"}}}})); } const referenceValue=await reference(tx); return state(await tx.quotation.create({data:{...data,clientId,reference:referenceValue,items},include:{items:true}})); }); }
 export async function getQuotation(id:string){await requireAdmin(); const x=await prisma.quotation.findUnique({where:{id},include:{items:{orderBy:{position:"asc"}}}}); return x?state(x):null;}
 export async function getQuotationForPdfRender(id:string){const x=await prisma.quotation.findUnique({where:{id},include:{items:{orderBy:{position:"asc"}}}}); return x?state(x):null;}
-export async function listQuotations(search="", status="ALL"){await requireAdmin(); const rows=await prisma.quotation.findMany({where:{status:status==="ALL"?undefined:status as any,OR:search?[{reference:{contains:search,mode:"insensitive"}},{clientCompanyName:{contains:search,mode:"insensitive"}},{serviceType:{contains:search,mode:"insensitive"}}]:undefined},orderBy:{updatedAt:"desc"},include:{items:true}}); return rows.map(state);}
+export async function listQuotations(search = "", status = "ALL", page = 1, pageSize = 20) {
+  await requireAdmin();
+  const where: any = { deletedAt: null };
+  if (status !== "ALL") where.status = status;
+  if (search) {
+    where.OR = [
+      { reference: { contains: search, mode: "insensitive" } },
+      { clientCompanyName: { contains: search, mode: "insensitive" } },
+      { serviceType: { contains: search, mode: "insensitive" } },
+    ];
+  }
+  // Offset pagination: staff navigate by page number and filtered views must
+  // stay shareable URLs; datasets here are small enough that skip/take is
+  // simpler and sufficient. id tiebreaker keeps ordering deterministic.
+  const [rows, total] = await Promise.all([
+    prisma.quotation.findMany({
+      where,
+      orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+      take: pageSize,
+      skip: (page - 1) * pageSize,
+      include: { _count: { select: { items: true } } },
+    }),
+    prisma.quotation.count({ where }),
+  ]);
+  return {
+    rows: rows.map((x: any) => ({
+      ...state({ ...x, items: [] }),
+      itemCount: x._count?.items ?? 0,
+    })),
+    total,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    page,
+  };
+}
 export async function finalizeQuotation(id:string){await requireAdmin(); const q=await getQuotation(id); if(!q) throw new Error("NOT_FOUND"); if(q.status==="FINAL") throw new Error("ALREADY_FINALIZED"); if(!q.client.companyName||!q.subject||!q.serviceType||!q.items.some(i=>i.description&&i.unit&&i.quantity>0&&i.rate>=0)) throw new Error("INVALID"); await prisma.quotation.update({where:{id},data:{status:"FINAL",finalizedAt:new Date()}});}
 export async function duplicateQuotation(id:string){await requireAdmin(); return prisma.$transaction(async tx=>{const x=await tx.quotation.findUnique({where:{id},include:{items:true}}); if(!x) throw new Error("NOT_FOUND"); const ref=await reference(tx); return state(await tx.quotation.create({data:{reference:ref,status:"DRAFT",date:x.date,validity:x.validity,serviceType:x.serviceType,customServiceType:x.customServiceType,subject:x.subject,clientId:x.clientId,clientCompanyName:x.clientCompanyName,clientContactPerson:x.clientContactPerson,clientAddressLine1:x.clientAddressLine1,clientAddressLine2:x.clientAddressLine2,clientCity:x.clientCity,clientState:x.clientState,clientPinCode:x.clientPinCode,clientPhone:x.clientPhone,clientEmail:x.clientEmail,items:{create:x.items.map(i=>({position:i.position,description:i.description,unit:i.unit,quantity:i.quantity,rate:i.rate}))}},include:{items:true}}));});}
 export async function dashboardCounts(){await requireAdmin(); return prisma.quotation.groupBy({by:["status"],_count:true});}
