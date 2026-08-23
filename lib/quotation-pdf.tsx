@@ -5,14 +5,15 @@ import { PDFDocument } from "pdf-lib";
 import type { QuotationState } from "@/components/quotation/quotation-model";
 import { createQuotationRenderToken } from "@/lib/quotation-render-auth";
 import { trustedPdfOrigin, assertPdfRenderPathname } from "@/lib/pdf-origin";
+import { deploymentContext } from "@/lib/deployment-info";
 
 export type PdfDiagnostic = (event: string, extra?: Record<string, unknown>) => void;
-type PdfContext = { stage: string; emit?: PdfDiagnostic };
+type PdfContext = { stage: string; startedAt: number; emit?: PdfDiagnostic };
 
 function diag(event: string, context: PdfContext, extra: Record<string, unknown> = {}) { context.emit?.(event, extra); }
 function fail(context: PdfContext, error: unknown): never {
   const value = error instanceof Error ? error : new Error("Unknown PDF error");
-  diag("FAILURE", context, { errorName: value.name, errorMessage: value.message.slice(0, 180), errorCode: value.message.slice(0, 80) });
+  diag("FAILURE", context, { stage: context.stage, errorName: value.name, safeErrorCode: value.message.slice(0, 80), durationMs: Date.now() - context.startedAt, ...deploymentContext() });
   const failure = new Error("PDF_GENERATION_FAILED"); failure.cause = value; (failure as Error & { stage?: string }).stage = context.stage; throw failure;
 }
 
@@ -63,37 +64,23 @@ async function launch(context: PdfContext) {
 
 
 async function waitReady(page: Page, context: PdfContext) {
-  // Diagnose what page Puppeteer actually received
-  const pageTitle = await page.title();
-  const bodyPreview = await page.evaluate(() => document.body?.innerText?.slice(0, 300) || "(no body)");
-  const bodyChildCount = await page.evaluate(() => document.body?.childElementCount ?? -1);
-  const hasExpectedId = await page.evaluate(() => !!document.getElementById("quotation-pdf-document"));
-  const pathname = await page.evaluate(() => window.location.pathname);
-  const hasNextError = await page.evaluate(() => !!document.querySelector("[data-next-error]") || document.title.includes("404") || document.title.includes("Error") || !!(document.body?.innerText?.includes("This page could not be found")));
-  diag("PAGE_DIAG", context, { pathname, pageTitle, bodyChildCount, hasExpectedId, hasNextError, bodyPreview: bodyPreview.replace(/[<>]/g, "") });
-
-  // Verify the main document element exists
   const documentRootFound = await page.$eval('#quotation-pdf-document', el => !!el).catch(() => false);
-  diag('PDF_DIAG_RENDER_DOCUMENT_ROOT', context, { found: documentRootFound });
-
   if (!documentRootFound) {
-    diag("PAGE_NO_SELECTOR", context, { pathname, pageTitle, hasNextError });
-    await page.screenshot({ path: "/tmp/pdf-debug.png", fullPage: true }).catch(() => undefined);
+    const pageTitle = await page.title().then(t => t.replace(/token=[^&\s]+/g, "token=[REDACTED]")).catch(() => "unavailable");
+    const pathname = await page.evaluate(() => window.location.pathname).catch(() => "unavailable");
+    diag("PAGE_NOT_READY", context, { pathname, pageTitle });
     throw new Error("PDF_SELECTOR_NOT_FOUND");
   }
 
-  // Verify the readiness marker exists on the main element
-  const readyMarkerFound = await page.$eval('#quotation-pdf-document[data-pdf-ready="true"]', el => !!(el && el.getAttribute('data-pdf-ready') === 'true'));
-  diag('PDF_DIAG_RENDER_READY_MARKER', context, { found: readyMarkerFound });
-
-  // Wait for the readiness marker to be present
+  const readyMarkerFound = await page.$eval('#quotation-pdf-document[data-pdf-ready="true"]', el => el.getAttribute('data-pdf-ready') === 'true').catch(() => false);
+  context.stage = 'ready-marker';
   if (!readyMarkerFound) await page.waitForSelector('#quotation-pdf-document[data-pdf-ready="true"]', { timeout: 15_000 });
+
   context.stage = 'ready';
-  diag('PDF_DIAG_RENDER_READY', context);
+  diag('PDF_DIAG_RENDER_READY', context, { waitedForMarker: !readyMarkerFound });
 
   // Wait for fonts to be loaded
   await page.evaluate(async () => { await document.fonts.ready; });
-  diag('PDF_DIAG_FONTS_READY', context);
 
   // Wait for images to be fully loaded
   await page.evaluate(async () => {
@@ -102,7 +89,6 @@ async function waitReady(page: Page, context: PdfContext) {
       image.addEventListener('error', () => resolve(), { once: true });
     })));
   });
-  diag('PDF_DIAG_IMAGES_READY', context);
 }
 async function renderPdf(url: string, context: PdfContext) {
   let browser: Browser | undefined;
@@ -116,15 +102,11 @@ async function renderPdf(url: string, context: PdfContext) {
     diag("RENDER_URL_BEFORE_GOTO", context, { renderUrl: redactedUrl });
     const response = await page.goto(url, { waitUntil: "load", timeout: 15_000 });
     const status = response?.status() ?? 0;
-    const finalUrl = response?.url() ?? "none";
-    let finalPathname = "unknown";
-    try { finalPathname = new URL(finalUrl).pathname; } catch { /* ignore */ }
-    const redactedFinal = finalUrl.replace(/token=[^&]+/, "token=[REDACTED]");
-    diag("RENDER_URL_AFTER_GOTO", context, { finalUrl: redactedFinal, finalPathname, status });
     if (!response || !response.ok()) {
-      const errorPageTitle = await page.title().catch(() => "unknown");
-      const errorBodyPreview = await page.evaluate(() => document.body?.innerText?.slice(0, 200) || "(empty body)").catch(() => "(evaluate failed)");
-      diag("RENDER_HTTP_ERROR_BODY", context, { status, errorPageTitle, errorBodyPreview: errorBodyPreview.replace(/[<>]/g, "") });
+      const redact = (text: string) => text.replace(/token=[^&\s]+/g, "token=[REDACTED]").replace(/[<>]/g, "");
+      const errorPageTitle = await page.title().then(redact).catch(() => "unavailable");
+      const errorBodyPreview = await page.evaluate(() => document.body?.innerText?.slice(0, 160) || "(empty body)").then(redact).catch(() => "(evaluate failed)");
+      diag("RENDER_HTTP_ERROR_BODY", context, { status, errorPageTitle, errorBodyPreview });
       throw new Error(`PDF_RENDER_HTTP_${status}`);
     }
     diag("RENDER_NAVIGATION_SUCCESS", context);
@@ -142,18 +124,18 @@ async function renderPdf(url: string, context: PdfContext) {
 }
 
 export async function generateQuotationPdf(quotation: QuotationState, requestOrigin: string, emit?: PdfDiagnostic) {
-  const context: PdfContext = { stage: "render-url", emit };
+  const context: PdfContext = { stage: "render-url", startedAt: Date.now(), emit };
   try {
     if (!quotation.id) throw new Error("PDF_RENDER_QUOTATION_ID_MISSING");
     const origin = trustedPdfOrigin(requestOrigin);
     const token = createQuotationRenderToken(quotation.id);
-    diag("RENDER_URL_CREATED", context, { originHost: new URL(origin).host });
+    diag("RENDER_URL_CREATED", context, { originHost: new URL(origin).host, ...deploymentContext() });
     return await renderPdf(`${origin}/internal/quotation-pdf/${encodeURIComponent(quotation.id)}?token=${encodeURIComponent(token)}`, context);
   } catch (error) { fail(context, error); }
 }
 
 export async function runPdfSelfTest() {
-  const context: PdfContext = { stage: "self-test" }; let browser: Browser | undefined;
+  const context: PdfContext = { stage: "self-test", startedAt: Date.now() }; let browser: Browser | undefined;
   try {
     const pathValue = await executablePath(); browser = await launch(context); const page = await browser.newPage();
     await page.setContent(`<style>@page{size:A4;margin:0}html,body{margin:0}</style><body><div data-self-test>STBS PDF SELF TEST</div></body>`, { waitUntil: "load" });
