@@ -3,6 +3,7 @@ import { FileText, Clock, IndianRupee, ExternalLink } from 'lucide-react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { verifyPortalToken } from '@/lib/portal-auth';
+import { PORTAL_DOCUMENT_STATUSES } from '@/lib/portal-doc-auth';
 import { prisma } from '@/lib/prisma';
 
 export const metadata = {
@@ -51,6 +52,7 @@ export default async function PortalDashboardPage() {
       where: {
         clientId: client.clientId,
         deletedAt: null,
+        status: { in: [...PORTAL_DOCUMENT_STATUSES] },
       },
       orderBy: { createdAt: 'desc' },
       select: {
@@ -83,9 +85,9 @@ export default async function PortalDashboardPage() {
           <div className="text-2xl font-bold text-gray-900 mt-1">{documents.length}</div>
         </div>
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-          <div className="text-sm text-gray-500">Pending Approval</div>
+          <div className="text-sm text-gray-500">Awaiting response</div>
           <div className="text-2xl font-bold text-yellow-600 mt-1">
-            {documents.filter(d => d.status === 'PENDING_REVIEW').length}
+            {documents.filter(d => d.status === 'ISSUED' || d.status === 'VIEWED').length}
           </div>
         </div>
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">

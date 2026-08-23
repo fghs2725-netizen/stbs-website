@@ -119,30 +119,7 @@ export default function PDFBuilder({ initialDocument, documentType = 'INTERNAL_D
     setTimeout(() => setPdfNotice(null), 4000);
   }, []);
 
-  const handleGeneratePdf = useCallback(async () => {
-    if (isGeneratingPdf) return;
-    if (!isPersisted) {
-      showNotice('Save the document first to generate a PDF.');
-      return;
-    }
-    setIsGeneratingPdf(true);
-    try {
-      const res = await fetch(`/api/documents/${document.id}/pdf`, { method: 'POST' });
-      const data = await res.json().catch(() => null);
-      if (res.ok && data?.pdfUrl) {
-        setDocument(prev => ({ ...prev, pdfUrl: data.pdfUrl }));
-        window.open(data.pdfUrl, '_blank', 'noopener');
-      } else {
-        showNotice(data?.error || 'Could not generate PDF. Try again.');
-      }
-    } catch {
-      showNotice('Could not generate PDF. Check your connection and try again.');
-    } finally {
-      setIsGeneratingPdf(false);
-    }
-  }, [document.id, isGeneratingPdf, isPersisted, showNotice]);
-
-  const persistDocument = useCallback(async (updated: DocumentState) => {
+  const persistDocument = useCallback(async (updated: DocumentState): Promise<boolean> => {
     setSaveStatus('saving');
     try {
       const res = await fetch(`/api/documents/${updated.id}`, {
@@ -172,16 +149,49 @@ export default function PDFBuilder({ initialDocument, documentType = 'INTERNAL_D
         setSaveStatus('saved');
         setVersionRefreshKey((k) => k + 1);
         setTimeout(() => setSaveStatus('idle'), 2000);
+        return true;
       } else {
         setSaveStatus('error');
         setTimeout(() => setSaveStatus('idle'), 3000);
+        return false;
       }
     } catch (error) {
       console.error('Failed to save document:', error);
       setSaveStatus('error');
       setTimeout(() => setSaveStatus('idle'), 3000);
+      return false;
     }
   }, []);
+
+  // Save-then-generate: unsaved edits must never be silently excluded from
+  // the produced PDF, so persisted documents are saved before rendering.
+  const handleGeneratePdf = useCallback(async () => {
+    if (isGeneratingPdf) return;
+    if (!isPersisted) {
+      showNotice('Save the document first to generate a PDF.');
+      return;
+    }
+    setIsGeneratingPdf(true);
+    try {
+      const saved = await persistDocument(document);
+      if (!saved) {
+        showNotice('Could not save your changes, so no PDF was generated.');
+        return;
+      }
+      const res = await fetch(`/api/documents/${document.id}/pdf`, { method: 'POST' });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.pdfUrl) {
+        setDocument(prev => ({ ...prev, pdfUrl: data.pdfUrl }));
+        window.open(data.pdfUrl, '_blank', 'noopener');
+      } else {
+        showNotice(data?.error || 'Could not generate PDF. Try again.');
+      }
+    } catch {
+      showNotice('Could not generate PDF. Check your connection and try again.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }, [document, isGeneratingPdf, isPersisted, showNotice, persistDocument]);
 
   const handleSave = useCallback(() => {
     setIsSaving(true);

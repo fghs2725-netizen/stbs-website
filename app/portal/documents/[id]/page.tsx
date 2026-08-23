@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowLeft, FileText, Calendar, IndianRupee, Download } from 'lucide-react';
 import { cookies } from 'next/headers';
 import { verifyPortalToken } from '@/lib/portal-auth';
+import { PORTAL_DOCUMENT_STATUSES } from '@/lib/portal-doc-auth';
 import { prisma } from '@/lib/prisma';
 import PortalDocView from '@/components/portal/PortalDocView';
 
@@ -42,6 +43,7 @@ export default async function PortalDocumentPage(props: PortalDocumentPageProps)
         id,
         clientId: client.clientId,
         deletedAt: null,
+        status: { in: [...PORTAL_DOCUMENT_STATUSES] },
       },
       include: {
         items: { orderBy: { position: 'asc' } },
@@ -64,17 +66,15 @@ export default async function PortalDocumentPage(props: PortalDocumentPageProps)
           <h1 className="text-2xl font-bold text-gray-900">{document.title}</h1>
           <p className="text-sm text-gray-500 font-mono mt-1">{document.reference}</p>
         </div>
-        {document.pdfUrl && (
-          <a
-            href={document.pdfUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-2 px-4 py-2 bg-[#1e3a5f] text-white text-sm font-medium rounded-lg hover:bg-[#152a45] transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            Download PDF
-          </a>
-        )}
+        <a
+          href={`/api/portal/documents/${document.id}/pdf`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-2 px-4 py-2 bg-[#1e3a5f] text-white text-sm font-medium rounded-lg hover:bg-[#152a45] transition-colors"
+        >
+          <Download className="w-4 h-4" />
+          Download PDF
+        </a>
       </div>
 
       {/* Document Info Cards */}

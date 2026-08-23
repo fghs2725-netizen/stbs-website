@@ -3,6 +3,7 @@ import { FileText, Clock, IndianRupee, Search } from 'lucide-react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { verifyPortalToken } from '@/lib/portal-auth';
+import { PORTAL_DOCUMENT_STATUSES } from '@/lib/portal-doc-auth';
 import { prisma } from '@/lib/prisma';
 
 export const metadata = {
@@ -16,10 +17,9 @@ function formatCurrency(amount: number): string {
 function getStatusStyle(status: string) {
   switch (status) {
     case 'APPROVED': case 'FINALIZED': return 'bg-green-50 text-green-700 border-green-200';
-    case 'DRAFT': return 'bg-gray-50 text-gray-700 border-gray-200';
-    case 'PENDING_REVIEW': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-    case 'REVISION': return 'bg-orange-50 text-orange-700 border-orange-200';
-    case 'REJECTED': case 'CANCELLED': return 'bg-red-50 text-red-700 border-red-200';
+    case 'ISSUED': case 'VIEWED': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+    case 'ACCEPTED': case 'COMPLETED': return 'bg-green-50 text-green-700 border-green-200';
+    case 'EXPIRED': return 'bg-gray-100 text-gray-600 border-gray-200';
     default: return 'bg-gray-50 text-gray-700 border-gray-200';
   }
 }
@@ -39,6 +39,7 @@ export default async function PortalDocumentsPage() {
       where: {
         clientId: client.clientId,
         deletedAt: null,
+        status: { in: [...PORTAL_DOCUMENT_STATUSES] },
       },
       orderBy: { createdAt: 'desc' },
       select: {

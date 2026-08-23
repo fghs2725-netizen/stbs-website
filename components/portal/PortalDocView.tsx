@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { FileText, Calendar, Building2, IndianRupee } from 'lucide-react';
-import ApprovalActions from './ApprovalActions';
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
@@ -35,12 +34,6 @@ export default function PortalDocView({ document }: { document: any }) {
             </button>
           )}
         </div>
-
-        <ApprovalActions 
-          documentId={document.id} 
-          currentStatus={document.status} 
-          onAction={(action) => console.log('Action:', action)} 
-        />
       </div>
 
       {/* Content */}

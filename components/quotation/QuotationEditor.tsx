@@ -112,7 +112,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
   }, []);
   useEffect(() => { const fn=(e:BeforeUnloadEvent)=>{if(dirty)e.preventDefault();}; window.addEventListener("beforeunload",fn); return()=>window.removeEventListener("beforeunload",fn); },[dirty]);
   const saveDraft = async () => { if(saving)return; setSaving(true); setMessage(""); try { const saved=await saveDraftAction(q); setQ(saved); setDirty(false); setMessage(`SAVED ${saved.quotationReference}`); if(!q.id) router.replace(`/admin/quotations/${saved.id}/edit`); } catch(e:any) { setMessage(e?.message === "FINAL_READ_ONLY" ? "Final quotations are read-only." : "Could not save draft."); } finally { setSaving(false); } };
-  const finalize = async () => { if(!q.id || saving)return; setSaving(true); try { await saveDraftAction(q); await finalizeAction(q.id); setQ(x=>({...x,status:"FINAL"})); setDirty(false); setMessage("FINALIZED"); } catch { setMessage("Could not finalize quotation."); } finally { setSaving(false); } };
+  const finalize = async () => { if(!q.id || saving)return; if(!confirm("Finalize this quotation?\n\nThis locks it permanently - it cannot be edited afterward. Need changes later? Duplicate it from the quotations list.\n\nContinue?"))return; setSaving(true); try { await saveDraftAction(q); await finalizeAction(q.id); setQ(x=>({...x,status:"FINAL"})); setDirty(false); setMessage("FINALIZED"); } catch { setMessage("Could not finalize quotation."); } finally { setSaving(false); } };
 
   // --- Dev test helpers ---
   const loadTestItems = (count: number) => {

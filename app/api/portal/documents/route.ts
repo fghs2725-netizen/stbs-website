@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyPortalToken } from '@/lib/portal-auth';
+import { PORTAL_DOCUMENT_STATUSES } from '@/lib/portal-doc-auth';
 
 async function getClientFromRequest(req: NextRequest) {
   const token = req.cookies.get('portal_token')?.value;
@@ -18,6 +19,7 @@ export async function GET(req: NextRequest) {
       where: {
         clientId: client.clientId,
         deletedAt: null,
+        status: { in: [...PORTAL_DOCUMENT_STATUSES] },
       },
       orderBy: { createdAt: 'desc' },
       select: {

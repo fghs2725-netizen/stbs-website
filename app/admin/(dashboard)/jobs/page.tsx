@@ -31,12 +31,12 @@ interface Job {
   id: string;
   type: string;
   queue: string;
-  status: "pending" | "active" | "completed" | "failed" | "dead_letter";
+  status: string;
   createdAt: string;
   data?: any;
 }
 
-type StatusFilter = "all" | "pending" | "active" | "completed" | "failed";
+type StatusFilter = "all" | "PENDING" | "ACTIVE" | "COMPLETED" | "FAILED";
 
 export default function JobsPage() {
   const [stats, setStats] = useState<JobStats>({
@@ -51,6 +51,7 @@ export default function JobsPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [actionError, setActionError] = useState("");
 
   const fetchData = useCallback(async () => {
     try {
@@ -89,21 +90,28 @@ export default function JobsPage() {
 
   const handleCancelJob = async (id: string) => {
     if (!confirm("Are you sure you want to cancel this job?")) return;
+    setActionError("");
     try {
-      await fetch(`/api/jobs/${id}/cancel`, { method: "POST" });
+      const res = await fetch(`/api/jobs/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setActionError(data?.error || "Could not cancel the job.");
+      }
       fetchData();
     } catch (error) {
       console.error("Cancel failed:", error);
+      setActionError("Could not cancel the job.");
     }
   };
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-      active: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-      completed: "bg-green-500/20 text-green-400 border-green-500/30",
-      failed: "bg-red-500/20 text-red-400 border-red-500/30",
-      dead_letter: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+      PENDING: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+      ACTIVE: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+      COMPLETED: "bg-green-500/20 text-green-400 border-green-500/30",
+      FAILED: "bg-red-500/20 text-red-400 border-red-500/30",
+      DELAYED: "bg-sky-500/20 text-sky-400 border-sky-500/30",
+      DEAD_LETTER: "bg-gray-500/20 text-gray-400 border-gray-500/30",
     };
     return (
       <span
@@ -126,10 +134,10 @@ export default function JobsPage() {
 
   const statusFilters: { value: StatusFilter; label: string }[] = [
     { value: "all", label: "All" },
-    { value: "pending", label: "Pending" },
-    { value: "active", label: "Active" },
-    { value: "completed", label: "Completed" },
-    { value: "failed", label: "Failed" },
+    { value: "PENDING", label: "Pending" },
+    { value: "ACTIVE", label: "Active" },
+    { value: "COMPLETED", label: "Completed" },
+    { value: "FAILED", label: "Failed" },
   ];
 
   return (
@@ -251,6 +259,11 @@ export default function JobsPage() {
             ))}
           </div>
         </div>
+        {actionError && (
+          <p className="px-4 py-3 text-sm text-red-300 bg-red-500/10 border-b border-red-500/20" role="alert">
+            {actionError}
+          </p>
+        )}
 
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -310,7 +323,7 @@ export default function JobsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {(job.status === "pending" || job.status === "active") && (
+                      {(job.status === "PENDING" || job.status === "ACTIVE" || job.status === "DELAYED") && (
                         <button
                           onClick={() => handleCancelJob(job.id)}
                           className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
