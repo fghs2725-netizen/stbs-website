@@ -10,6 +10,7 @@ export default async function AdminDashboard() {
   let docCount = 0;
   let activeQuotations = 0;
   let pendingDocs = 0;
+  let pipelineValue = 0;
   let recentDocs: any[] = [];
   let activities: any[] = [];
 
@@ -21,12 +22,18 @@ export default async function AdminDashboard() {
     pendingDocs = await prisma.document.count({
       where: { status: 'PENDING_REVIEW' }
     });
-    
+
+    const openDocs = await prisma.document.findMany({
+      where: { status: { in: ['DRAFT', 'PENDING_REVIEW'] } },
+      select: { totalAmount: true },
+    });
+    pipelineValue = openDocs.reduce((sum, d) => sum + (Number(d.totalAmount) || 0), 0);
+
     const docs = await prisma.document.findMany({
       orderBy: { createdAt: 'desc' },
       take: 10,
     });
-    
+
     recentDocs = docs.map(d => ({
       id: d.id,
       reference: d.reference,
@@ -39,7 +46,6 @@ export default async function AdminDashboard() {
       pdfUrl: d.pdfUrl
     }));
 
-    // Dummy activities for now if none exist
     activities = await prisma.auditLog.findMany({
       orderBy: { createdAt: 'desc' },
       take: 10,
@@ -49,15 +55,18 @@ export default async function AdminDashboard() {
     console.error('Database connection or tables not ready yet:', error);
   }
 
+  const formatINR = (amount: number) =>
+    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+
   const stats = [
-    { label: 'Total Documents', value: docCount, icon: 'FileText', trend: 12, color: 'from-blue-500/20 to-blue-500/0 text-blue-400' },
-    { label: 'Active Quotations', value: activeQuotations, icon: 'Briefcase', trend: 5, color: 'from-signal/20 to-signal/0 text-signal' },
-    { label: 'Pending Approvals', value: pendingDocs, icon: 'Clock', trend: -2, color: 'from-purple-500/20 to-purple-500/0 text-purple-400' },
-    { label: 'Revenue (MTD)', value: '$0.00', icon: 'DollarSign', trend: 0, color: 'from-green-500/20 to-green-500/0 text-green-400' },
+    { label: 'Total Documents', value: docCount, icon: 'FileText', color: 'from-blue-500/20 to-blue-500/0 text-blue-400' },
+    { label: 'Active Quotations', value: activeQuotations, icon: 'Briefcase', color: 'from-signal/20 to-signal/0 text-signal' },
+    { label: 'Pending Approvals', value: pendingDocs, icon: 'Clock', color: 'from-purple-500/20 to-purple-500/0 text-purple-400' },
+    { label: 'Open Pipeline Value', value: formatINR(pipelineValue), icon: 'DollarSign', color: 'from-green-500/20 to-green-500/0 text-green-400' },
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-oswald font-bold tracking-tight text-white mb-1">Dashboard</h1>

@@ -4,6 +4,39 @@ import { auth } from '@/auth';
 import { createDocumentRenderToken } from '@/lib/document-render-auth';
 import { generateDocumentPdf } from '@/lib/document-pdf';
 
+// Streams the current document as a PDF (regenerated on demand via the same
+// pipeline as POST). Authenticated admins only.
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const session = await auth();
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const document = await prisma.document.findUnique({ where: { id }, select: { id: true } });
+    if (!document) {
+      return NextResponse.json({ error: 'Document not found' }, { status: 404 });
+    }
+
+    const host = _req.headers.get('host') || 'localhost:3000';
+    const proto = _req.headers.get('x-forwarded-proto') || (host.startsWith('localhost') ? 'http' : 'https');
+    const origin = `${proto}://${host}`;
+
+    const pdfBytes = await generateDocumentPdf(id, origin);
+
+    return new NextResponse(Buffer.from(pdfBytes), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="${id}.pdf"`,
+        'Cache-Control': 'no-store',
+      },
+    });
+  } catch (error) {
+    console.error('Failed to stream document PDF:', error);
+    return NextResponse.json({ error: 'PDF generation failed' }, { status: 500 });
+  }
+}
+
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -28,7 +61,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       where: { documentId: id }
     });
 
-    const pdfUrl = `/api/documents/${id}/pdf/download`;
+    const pdfUrl = `/api/documents/${id}/pdf`;
 
     await prisma.documentVersion.create({
       data: {

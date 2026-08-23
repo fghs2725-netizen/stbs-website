@@ -73,9 +73,10 @@ export function RightSidebar({ activeSection, documentData, updateField, items, 
               )}
               {items.map((item, index) => (
                 <div key={item.id} className="p-3 bg-white/5 rounded-lg border border-white/10 relative group">
-                  <button 
+                  <button
                     onClick={() => removeItem(item.id)}
-                    className="absolute top-2 right-2 text-white/40 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-2 right-2 p-1.5 text-white/40 hover:text-red-400 transition-colors"
+                    aria-label={`Delete item ${item.description || index + 1}`}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -155,8 +156,7 @@ export function RightSidebar({ activeSection, documentData, updateField, items, 
       default:
         return (
           <div className="text-sm text-white/60">
-            <p>Properties for {activeSection.title || activeSection.type}</p>
-            <textarea className="builder-input builder-textarea mt-4 w-full" placeholder="Enter content..." />
+            <p>This section is generated automatically and has no editable properties.</p>
           </div>
         );
     }

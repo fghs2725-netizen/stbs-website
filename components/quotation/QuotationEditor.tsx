@@ -13,6 +13,18 @@ import { openQuotationPdf, pdfFailureMessage } from "./requestQuotationPdf";
 const today = () => { const d = new Date(); return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; };
 const emptyItem = (): QuotationItem => ({ id: crypto.randomUUID(), description: "", unit: "", quantity: 1, rate: 0 });
 
+const CLIENT_FIELD_LABELS: Record<string, string> = {
+  companyName: "Company name",
+  contactPerson: "Contact person",
+  addressLine1: "Address line 1",
+  addressLine2: "Address line 2",
+  city: "City",
+  state: "State",
+  pinCode: "PIN code",
+  phone: "Phone",
+  email: "Email",
+};
+
 /* ---------- Dev test data (NOT permanently stored) ---------- */
 const TEST_ITEMS: QuotationItem[] = [
   { id: "t1", description: "Supply and installation of 6\" PVC casing pipe (ISI marked) for borewell construction", unit: "Rft", quantity: 200, rate: 480 },
@@ -153,7 +165,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
           )}
 
           {section("info", "Quotation information", <>
-            <label>Reference<input value={q.quotationReference} onChange={e => update("quotationReference", e.target.value)} /></label>
+            <label>Reference<input value={q.quotationReference} onChange={e => update("quotationReference", e.target.value)} readOnly={Boolean(q.id)} title={q.id ? "Assigned automatically" : undefined} /></label>
             <label>Date<input value={q.quotationDate} onChange={e => update("quotationDate", e.target.value)} /></label>
             <label>Validity<input value={q.validity} onChange={e => update("validity", e.target.value)} /></label>
           </>)}
@@ -161,7 +173,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
           {section("client", "Prepared for", <>
             {clients.length > 0 && <label>Client source<select value={q.clientId || "new"} onChange={e => e.target.value === "new" ? update("clientId", undefined) : selectClient(e.target.value)}><option value="new">ENTER NEW CLIENT</option>{clients.map(client => <option key={client.id} value={client.id}>{client.companyName}</option>)}</select></label>}
             {Object.entries(q.client).map(([k, v]) => (
-              <label key={k}>{k.replace(/([A-Z])/g, " $1")}<input value={v} onChange={e => updateClient(k, e.target.value)} /></label>
+              <label key={k}>{CLIENT_FIELD_LABELS[k] ?? k}<input value={v} onChange={e => updateClient(k, e.target.value)} /></label>
             ))}
             <label className="flex items-center gap-2 normal-case"><input type="checkbox" checked={Boolean(q.saveClientForFuture && !q.clientId)} onChange={e => { setDirty(true); setQ(x => ({ ...x, saveClientForFuture: e.target.checked, clientId: e.target.checked ? undefined : x.clientId })); }} /> SAVE CLIENT FOR FUTURE QUOTATIONS</label>
           </>)}
@@ -234,22 +246,24 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
             )}
           </>)}
 
-          {/* Dev test panel */}
-          <div className="dev-test-panel">
-            <button className="dev-test-toggle" onClick={() => setShowTestPanel(!showTestPanel)}>
-              {showTestPanel ? "▾ DEV TEST" : "▸ DEV TEST"}
-            </button>
-            {showTestPanel && (
-              <div className="dev-test-buttons">
-                <span>Load test items:</span>
-                <button onClick={() => loadTestItems(1)}>1</button>
-                <button onClick={() => loadTestItems(5)}>5</button>
-                <button onClick={() => loadTestItems(10)}>10</button>
-                <button onClick={() => loadTestItems(13)}>13</button>
-                <button onClick={() => setQ(x => ({ ...x, items: [] }))}>Clear</button>
-              </div>
-            )}
-          </div>
+          {/* Dev test panel (development only) */}
+          {process.env.NODE_ENV === "development" && (
+            <div className="dev-test-panel">
+              <button className="dev-test-toggle" onClick={() => setShowTestPanel(!showTestPanel)}>
+                {showTestPanel ? "▾ DEV TEST" : "▸ DEV TEST"}
+              </button>
+              {showTestPanel && (
+                <div className="dev-test-buttons">
+                  <span>Load test items:</span>
+                  <button onClick={() => loadTestItems(1)}>1</button>
+                  <button onClick={() => loadTestItems(5)}>5</button>
+                  <button onClick={() => loadTestItems(10)}>10</button>
+                  <button onClick={() => loadTestItems(13)}>13</button>
+                  <button onClick={() => setQ(x => ({ ...x, items: [] }))}>Clear</button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </aside>
 
@@ -273,6 +287,20 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
           </div>
         </div>
       </main>
+      {tab === "edit" && (
+        <div className="mobile-action-bar" role="toolbar" aria-label="Quotation actions">
+          <button onClick={saveDraft} disabled={saving || q.status === "FINAL"}>{saving ? "SAVING…" : "SAVE DRAFT"}</button>
+          <button onClick={finalize} disabled={saving || !q.id || q.status === "FINAL"}>FINALIZE</button>
+          <button
+            className="primary"
+            disabled={!canGenerateQuotation || page4Overflow || message === "Generating PDF..."}
+            title={canGenerateQuotation && !page4Overflow ? "Generate the quotation PDF" : "Complete the quotation and resolve Page 4 overflow first"}
+            onClick={generatePdf}
+          >
+            {message === "Generating PDF..." ? "GENERATING…" : "SAVE TO PDF"}
+          </button>
+        </div>
+      )}
       <QuotationPrintDocument quotation={q} />
     </div>
   );

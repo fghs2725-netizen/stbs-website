@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Literal family aliases. The offline font files live in public/fonts and are
+  exposed as CSS variables in app/layout.tsx (--font-manrope = Inter files,
+  --font-oswald = Noto Sans file). Components and the PDF renderer reference
+  plain names like "Oswald" or "Inter"; these declarations make those resolve
+  to the bundled faces instead of falling back to system defaults, keeping
+  on-screen previews consistent with generated PDFs.
+*/
+@font-face { font-family: "Inter"; src: url("/fonts/inter-latin-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("/fonts/inter-latin-600.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Oswald"; src: url("/fonts/noto-sans-regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Montserrat"; src: url("/fonts/inter-latin-600.woff2") format("woff2"); font-weight: 400 700; font-display: swap; }
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; background: #090909; color: #fff; }

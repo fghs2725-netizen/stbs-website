@@ -107,6 +107,40 @@ export default function PDFBuilder({ initialDocument, documentType = 'INTERNAL_D
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showCompare, setShowCompare] = useState(false);
   const [versionRefreshKey, setVersionRefreshKey] = useState(0);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfNotice, setPdfNotice] = useState<string | null>(null);
+
+  // Unsaved documents get a client-side "doc-*" id; they must be saved before
+  // a PDF can be generated server-side.
+  const isPersisted = !document.id.startsWith('doc-');
+
+  const showNotice = useCallback((message: string) => {
+    setPdfNotice(message);
+    setTimeout(() => setPdfNotice(null), 4000);
+  }, []);
+
+  const handleGeneratePdf = useCallback(async () => {
+    if (isGeneratingPdf) return;
+    if (!isPersisted) {
+      showNotice('Save the document first to generate a PDF.');
+      return;
+    }
+    setIsGeneratingPdf(true);
+    try {
+      const res = await fetch(`/api/documents/${document.id}/pdf`, { method: 'POST' });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.pdfUrl) {
+        setDocument(prev => ({ ...prev, pdfUrl: data.pdfUrl }));
+        window.open(data.pdfUrl, '_blank', 'noopener');
+      } else {
+        showNotice(data?.error || 'Could not generate PDF. Try again.');
+      }
+    } catch {
+      showNotice('Could not generate PDF. Check your connection and try again.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }, [document.id, isGeneratingPdf, isPersisted, showNotice]);
 
   const persistDocument = useCallback(async (updated: DocumentState) => {
     setSaveStatus('saving');
@@ -219,11 +253,15 @@ export default function PDFBuilder({ initialDocument, documentType = 'INTERNAL_D
 
   return (
     <div className="pdf-builder">
-      <ToolBar 
+      <ToolBar
         title={document.title}
         zoom={zoom}
         onZoomChange={setZoom}
         onSave={handleSave}
+        onTitleChange={(title) => updateField('title', title)}
+        onGeneratePdf={handleGeneratePdf}
+        generatingPdf={isGeneratingPdf}
+        canGeneratePdf={isPersisted && document.status !== 'CANCELLED'}
         status={saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : saveStatus === 'error' ? 'Save failed' : document.status}
         actions={
           <>
@@ -249,6 +287,12 @@ export default function PDFBuilder({ initialDocument, documentType = 'INTERNAL_D
         }
       />
       
+      {pdfNotice && (
+        <div className="px-4 py-2 bg-red-500/15 border-b border-red-500/30 text-red-200 text-sm" role="status">
+          {pdfNotice}
+        </div>
+      )}
+
       <div className="pdf-builder-content">
         <div className={`flex-shrink-0 transition-all duration-300 ${showVersionHistory ? 'w-72' : 'w-0'} overflow-hidden`}>
           {showVersionHistory && (
@@ -270,9 +314,10 @@ export default function PDFBuilder({ initialDocument, documentType = 'INTERNAL_D
           onSectionToggle={handleSectionToggle}
         />
         
-        <LivePreview 
+        <LivePreview
           document={document}
           zoom={zoom}
+          onZoomChange={setZoom}
         />
         
         <RightSidebar 

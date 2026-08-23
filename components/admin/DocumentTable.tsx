@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal, FileText, Download, Edit2, Trash2, Eye } from 'lucide-react';
+import { MoreHorizontal, FileText, Download, Trash2, Eye } from 'lucide-react';
 import { DOCUMENT_STATUS_CONFIG } from '@/lib/documents/template-registry';
 import { DOCUMENT_TYPE_CONFIGS } from '@/lib/documents/template-registry';
 
@@ -22,6 +22,27 @@ interface Document {
 export function DocumentTable({ documents }: { documents: Document[] }) {
   const router = useRouter();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (doc: Document) => {
+    if (deletingId) return;
+    if (!confirm(`Delete document ${doc.reference}? This cannot be undone.`)) return;
+    setDeletingId(doc.id);
+    try {
+      const res = await fetch(`/api/documents/${doc.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.error || 'Could not delete the document.');
+        return;
+      }
+      setOpenMenuId(null);
+      router.refresh();
+    } catch {
+      alert('Could not delete the document. Check your connection and try again.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   if (!documents || documents.length === 0) {
     return (
@@ -104,20 +125,19 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
                     <>
                       <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)}></div>
                       <div className="absolute right-8 top-10 z-20 w-48 bg-steel border border-white/10 rounded-xl shadow-xl py-1 overflow-hidden">
-                        <button onClick={() => { router.push(`/admin/documents/${doc.id}/builder`); setOpenMenuId(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white flex items-center">
-                          <Eye className="w-4 h-4 mr-2" /> View
+                        <button onClick={() => { router.push(`/admin/documents/${doc.id}/builder`); setOpenMenuId(null); }} className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white flex items-center">
+                          <Eye className="w-4 h-4 mr-2" /> Open in Builder
                         </button>
-                        <button onClick={() => { router.push(`/admin/documents/${doc.id}/builder`); setOpenMenuId(null); }} className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white flex items-center">
-                          <Edit2 className="w-4 h-4 mr-2" /> Edit
-                        </button>
-                        {doc.pdfUrl && (
-                          <a href={doc.pdfUrl} target="_blank" rel="noreferrer" className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white flex items-center" onClick={() => setOpenMenuId(null)}>
-                            <Download className="w-4 h-4 mr-2" /> Download PDF
-                          </a>
-                        )}
+                        <a href={`/api/documents/${doc.id}/pdf`} target="_blank" rel="noreferrer" className="w-full text-left px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white flex items-center" onClick={() => setOpenMenuId(null)}>
+                          <Download className="w-4 h-4 mr-2" /> Download PDF
+                        </a>
                         <div className="h-px bg-white/10 my-1"></div>
-                        <button className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 flex items-center" onClick={() => setOpenMenuId(null)}>
-                          <Trash2 className="w-4 h-4 mr-2" /> Delete
+                        <button
+                          disabled={deletingId === doc.id}
+                          onClick={() => handleDelete(doc)}
+                          className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 disabled:opacity-50 flex items-center"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" /> {deletingId === doc.id ? 'Deleting…' : 'Delete'}
                         </button>
                       </div>
                     </>

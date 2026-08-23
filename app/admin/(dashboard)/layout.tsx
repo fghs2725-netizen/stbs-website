@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { AdminMobileNav } from '@/components/admin/AdminMobileNav';
 import { Search, User } from 'lucide-react';
 import { NotificationBell } from '@/components/admin/NotificationBell';
 
@@ -20,14 +21,18 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <header className="h-16 flex-shrink-0 border-b border-white/5 bg-steel/50 backdrop-blur-md flex items-center justify-between px-6">
-          <div className="flex items-center text-gray-400 focus-within:text-white transition-colors">
-            <Search className="w-5 h-5 mr-3" />
-            <input 
-              type="text" 
-              placeholder="Search documents, clients, templates..." 
-              className="bg-transparent border-none outline-none text-sm w-64 md:w-96 placeholder:text-gray-500"
-            />
+        <header className="h-16 flex-shrink-0 border-b border-white/5 bg-steel/50 backdrop-blur-md flex items-center justify-between px-4 md:px-6 gap-3">
+          <div className="flex items-center flex-1 min-w-0">
+            <AdminMobileNav userName={session.user?.name} />
+            <form action="/admin/search" method="GET" className="flex items-center text-gray-400 focus-within:text-white transition-colors ml-2 md:ml-0 min-w-0">
+              <Search className="w-5 h-5 mr-3 flex-shrink-0" />
+              <input
+                type="search"
+                name="q"
+                placeholder="Search documents, clients..."
+                className="bg-transparent border-none outline-none text-sm w-full max-w-64 md:max-w-96 placeholder:text-gray-500"
+              />
+            </form>
           </div>
           
           <div className="flex items-center space-x-4">

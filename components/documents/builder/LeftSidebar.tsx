@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ChevronDown, ChevronRight, GripVertical, FileText, 
-  Layout, Image as ImageIcon, Type, Plus, ToggleLeft, ToggleRight
+import {
+  ChevronDown, ChevronRight, FileText,
+  Layout, ToggleLeft, ToggleRight
 } from 'lucide-react';
 
 interface LeftSidebarProps {
@@ -17,7 +17,6 @@ interface LeftSidebarProps {
 export function LeftSidebar({ sections, activeSectionId, onSectionClick, onSectionToggle }: LeftSidebarProps) {
   const [openPanels, setOpenPanels] = useState<Record<string, boolean>>({
     'sections': true,
-    'branding': false,
   });
 
   const togglePanel = (panel: string) => {
@@ -31,64 +30,40 @@ export function LeftSidebar({ sections, activeSectionId, onSectionClick, onSecti
       </div>
 
       <div className="flex-1">
-        <AccordionPanel 
-          title="Sections" 
-          isOpen={openPanels['sections']} 
+        <AccordionPanel
+          title="Sections"
+          isOpen={openPanels['sections']}
           onToggle={() => togglePanel('sections')}
           icon={<Layout className="w-4 h-4" />}
         >
           <div className="flex flex-col gap-2">
             {sections.map((section) => (
-              <div 
-                key={section.id} 
+              <div
+                key={section.id}
                 className={`section-item ${activeSectionId === section.id ? 'active' : ''}`}
                 onClick={() => onSectionClick(section.id)}
               >
-                <div className="section-drag-handle">
-                  <GripVertical className="w-4 h-4" />
+                <div className="flex-1 flex items-center gap-2 min-w-0">
+                  <FileText className="w-4 h-4 text-white/60 flex-shrink-0" />
+                  <span className="text-sm font-medium truncate">{section.title || section.type}</span>
                 </div>
-                <div className="flex-1 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-white/60" />
-                  <span className="text-sm font-medium">{section.title || section.type}</span>
-                </div>
-                <div 
-                  className="cursor-pointer"
+                <div
+                  className="cursor-pointer flex-shrink-0 p-1"
+                  role="switch"
+                  aria-checked={section.visible}
+                  aria-label={`${section.visible ? 'Hide' : 'Show'} ${section.title || section.type}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     onSectionToggle(section.id, !section.visible);
                   }}
                 >
-                  {section.visible ? 
-                    <ToggleRight className="w-5 h-5 text-[#f7c600]" /> : 
+                  {section.visible ?
+                    <ToggleRight className="w-5 h-5 text-[#f7c600]" /> :
                     <ToggleLeft className="w-5 h-5 text-white/40" />
                   }
                 </div>
               </div>
             ))}
-          </div>
-        </AccordionPanel>
-
-        <AccordionPanel 
-          title="Branding & Colors" 
-          isOpen={openPanels['branding']} 
-          onToggle={() => togglePanel('branding')}
-          icon={<ImageIcon className="w-4 h-4" />}
-        >
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs text-white/60 mb-1">Primary Color</label>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-[#1e3a5f] border border-white/20"></div>
-                <input type="text" className="builder-input flex-1" value="#1E3A5F" readOnly />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs text-white/60 mb-1">Accent Color</label>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-[#f7c600] border border-white/20"></div>
-                <input type="text" className="builder-input flex-1" value="#F7C600" readOnly />
-              </div>
-            </div>
           </div>
         </AccordionPanel>
       </div>
