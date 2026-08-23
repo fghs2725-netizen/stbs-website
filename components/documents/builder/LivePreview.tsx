@@ -25,8 +25,15 @@ export function LivePreview({ document, zoom, onZoomChange }: LivePreviewProps) 
   useEffect(() => {
     const el = containerRef.current;
     if (!el || !onZoomChange) return;
+    // React to width changes only. The scaled wrapper's height tracks the
+    // current zoom, so honouring height ticks here would re-run the fitter
+    // while the user zooms and silently cap manual zoom at fit-width.
+    let lastWidth = -1;
     const fit = () => {
-      const available = el.clientWidth - 48;
+      const width = el.clientWidth;
+      if (width === lastWidth) return;
+      lastWidth = width;
+      const available = width - 48;
       if (available > 200 && A4_WIDTH_PX * zoomRef.current > available) {
         onZoomChange(Math.max(0.3, Math.round((available / A4_WIDTH_PX) * 100) / 100));
       }
