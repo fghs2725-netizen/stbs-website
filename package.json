@@ -7,6 +7,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
+    "test:quotation": "npx tsx scripts/test-quotation-validation.ts",
     "validate-env": "npx tsx scripts/validate-env.ts"
   },
   "dependencies": {

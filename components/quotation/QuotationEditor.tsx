@@ -2,7 +2,7 @@
 import { useCallback, useRef, useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { QuotationPreview } from "./QuotationPreview";
-import { defaultSubject, initialQuotation, serviceOptions, type QuotationState, type QuotationItem, validateItem, isItemValid, calcAmount, formatINR, getValidItems, calcTotal } from "./quotation-model";
+import { defaultSubject, buildDraft, serviceOptions, type QuotationState, type QuotationItem, validateItem, isItemValid, calcAmount, formatINR, getValidItems, isQuotationPdfReady, calcTotal } from "./quotation-model";
 import "./editor.css";
 import { saveDraftAction, finalizeAction } from "@/app/admin/(dashboard)/quotations/actions";
 import { AdminBackLink } from "@/components/admin-back-link";
@@ -43,7 +43,7 @@ const TEST_ITEMS: QuotationItem[] = [
 ];
 
 export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: { initial?: QuotationState; backHref?: string; backLabel?: string; clients?: ReusableClient[] }) {
-  const [q, setQ] = useState<QuotationState>(initial ?? { ...initialQuotation, quotationDate: today() });
+  const [q, setQ] = useState<QuotationState>(() => buildDraft(initial));
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [dirty, setDirty] = useState(false);
@@ -60,7 +60,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
   // --- Derived values (never stored in state) ---
   const validItems = useMemo(() => getValidItems(q.items), [q.items]);
   const total = useMemo(() => calcTotal(validItems), [validItems]);
-  const canGenerateQuotation = q.client.companyName.trim() !== "" && q.serviceType.trim() !== "" && (q.serviceType !== "Custom" || q.customServiceType.trim() !== "") && q.subject.trim() !== "" && validItems.length > 0;
+  const canGenerateQuotation = isQuotationPdfReady(q) && (q.serviceType !== "Custom" || q.customServiceType.trim() !== "");
 
   const fitPreviewToPanel = useCallback(() => {
     const width = previewPanelRef.current?.clientWidth ?? 900;
@@ -105,7 +105,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
     });
   }, []);
 
-  const reset = () => { if (confirm("Start a new quotation? Unsaved changes will be cleared.")) { setQ({ ...initialQuotation, quotationDate: today(), items: [] }); setSubjectEdited(false); } };
+  const reset = () => { if (confirm("Start a new quotation? Unsaved changes will be cleared.")) { setQ(buildDraft({ quotationDate: today(), items: [] })); setSubjectEdited(false); } };
 
   const handlePage4Overflow = useCallback((isOver: boolean) => {
     setPage4Overflow(isOver);

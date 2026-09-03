@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getQuotation } from "@/lib/quotation-management";
 import { generateQuotationPdf } from "@/lib/quotation-pdf";
+import { isQuotationPdfReady } from "@/components/quotation/quotation-model";
 import { deploymentContext } from "@/lib/deployment-info";
 
 export const runtime = "nodejs";
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const quotation = await request.json();
-    if (!quotation?.client?.companyName || !quotation?.serviceType || !quotation?.subject || !Array.isArray(quotation.items) || !quotation.items.some((item: any) => item?.description && item?.unit && Number(item.quantity) > 0 && Number(item.rate) >= 0)) {
+    if (!isQuotationPdfReady(quotation)) {
       return NextResponse.json({ error: "Complete the quotation before generating a PDF." }, { status: 400 });
     }
     const pdf = await generateQuotationPdf(quotation, new URL(request.url).origin);

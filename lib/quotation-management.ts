@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import type { QuotationState } from "@/components/quotation/quotation-model";
+import { isQuotationPdfReady } from "@/components/quotation/quotation-model";
 
 export async function requireAdmin() { const session = await auth(); if (!session?.user) throw new Error("UNAUTHORIZED"); }
 function input(q: QuotationState) { return { date:q.quotationDate, validity:q.validity, serviceType:q.serviceType, customServiceType:q.customServiceType || null, subject:q.subject, clientCompanyName:q.client.companyName, clientContactPerson:q.client.contactPerson || null, clientAddressLine1:q.client.addressLine1 || null, clientAddressLine2:q.client.addressLine2 || null, clientCity:q.client.city || null, clientState:q.client.state || null, clientPinCode:q.client.pinCode || null, clientPhone:q.client.phone || null, clientEmail:q.client.email || null }; }
@@ -43,7 +44,7 @@ export async function listQuotations(search = "", status = "ALL", page = 1, page
     page,
   };
 }
-export async function finalizeQuotation(id:string){await requireAdmin(); const q=await getQuotation(id); if(!q) throw new Error("NOT_FOUND"); if(q.status==="FINAL") throw new Error("ALREADY_FINALIZED"); if(!q.client.companyName||!q.subject||!q.serviceType||!q.items.some(i=>i.description&&i.unit&&i.quantity>0&&i.rate>=0)) throw new Error("INVALID"); await prisma.quotation.update({where:{id},data:{status:"FINAL",finalizedAt:new Date()}});}
+export async function finalizeQuotation(id:string){await requireAdmin(); const q=await getQuotation(id); if(!q) throw new Error("NOT_FOUND"); if(q.status==="FINAL") throw new Error("ALREADY_FINALIZED"); if(!isQuotationPdfReady(q)) throw new Error("INVALID"); await prisma.quotation.update({where:{id},data:{status:"FINAL",finalizedAt:new Date()}});}
 export async function duplicateQuotation(id:string){await requireAdmin(); return prisma.$transaction(async tx=>{const x=await tx.quotation.findUnique({where:{id},include:{items:true}}); if(!x) throw new Error("NOT_FOUND"); const ref=await reference(tx); return state(await tx.quotation.create({data:{reference:ref,status:"DRAFT",date:x.date,validity:x.validity,serviceType:x.serviceType,customServiceType:x.customServiceType,subject:x.subject,clientId:x.clientId,clientCompanyName:x.clientCompanyName,clientContactPerson:x.clientContactPerson,clientAddressLine1:x.clientAddressLine1,clientAddressLine2:x.clientAddressLine2,clientCity:x.clientCity,clientState:x.clientState,clientPinCode:x.clientPinCode,clientPhone:x.clientPhone,clientEmail:x.clientEmail,items:{create:x.items.map(i=>({position:i.position,description:i.description,unit:i.unit,quantity:i.quantity,rate:i.rate}))}},include:{items:true}}));});}
 export async function dashboardCounts(){await requireAdmin(); return prisma.quotation.groupBy({by:["status"],_count:true});}
 export type ReusableClient = { id:string; companyName:string; contactPerson:string; addressLine1:string; addressLine2:string; city:string; state:string; pinCode:string; phone:string; email:string };
