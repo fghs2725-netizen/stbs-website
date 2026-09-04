@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 
 interface PaginationProps {
   page: number;
@@ -43,37 +43,37 @@ export function Pagination({ page, totalPages, totalItems, basePath, params }: P
   return (
     <div data-testid="result-line" className="px-4 py-3 border-t border-white/5 flex flex-wrap items-center justify-between gap-3">
       <span className="text-xs text-gray-500">
-        {totalItems} {totalItems === 1 ? 'result' : 'results'} · page {page} of {totalPages}
+        {totalItems} {totalItems === 1 ? 'result' : 'results'} Â· page {page} of {totalPages}
       </span>
       <nav aria-label="Pagination" className="flex items-center gap-1">
         {prev ? (
-          <Link href={prev} aria-label="Previous page" className="min-h-[40px] px-3 inline-flex items-center rounded-lg border border-white/10 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
+          <Link href={prev} aria-label="Previous page" className="min-h-11 px-3 inline-flex items-center rounded-lg border border-white/10 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
             Prev
           </Link>
         ) : (
-          <span aria-disabled="true" className="min-h-[40px] px-3 inline-flex items-center rounded-lg border border-white/5 text-sm text-gray-600">
+          <span aria-disabled="true" className="min-h-11 px-3 inline-flex items-center rounded-lg border border-white/5 text-sm text-gray-600">
             Prev
           </span>
         )}
-        {start > 1 && <span className="px-1 text-gray-600">…</span>}
+        {start > 1 && <span className="px-1 text-gray-600">â€¦</span>}
         {pages.map((p) =>
           p === page ? (
-            <span key={p} aria-current="page" className="min-h-[40px] min-w-[40px] px-2 inline-flex items-center justify-center rounded-lg bg-signal text-sm font-bold text-black">
+            <span key={p} aria-current="page" className="min-h-11 min-w-[40px] px-2 inline-flex items-center justify-center rounded-lg bg-signal text-sm font-bold text-black">
               {p}
             </span>
           ) : (
-            <Link key={p} href={hrefFor(p)} className="min-h-[40px] min-w-[40px] px-2 inline-flex items-center justify-center rounded-lg border border-white/10 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
+            <Link key={p} href={hrefFor(p)} className="min-h-11 min-w-[40px] px-2 inline-flex items-center justify-center rounded-lg border border-white/10 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
               {p}
             </Link>
           )
         )}
-        {end < totalPages && <span className="px-1 text-gray-600">…</span>}
+        {end < totalPages && <span className="px-1 text-gray-600">â€¦</span>}
         {next ? (
-          <Link href={next} aria-label="Next page" className="min-h-[40px] px-3 inline-flex items-center rounded-lg border border-white/10 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
+          <Link href={next} aria-label="Next page" className="min-h-11 px-3 inline-flex items-center rounded-lg border border-white/10 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
             Next
           </Link>
         ) : (
-          <span aria-disabled="true" className="min-h-[40px] px-3 inline-flex items-center rounded-lg border border-white/5 text-sm text-gray-600">
+          <span aria-disabled="true" className="min-h-11 px-3 inline-flex items-center rounded-lg border border-white/5 text-sm text-gray-600">
             Next
           </span>
         )}

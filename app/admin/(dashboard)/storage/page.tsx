@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -129,7 +129,7 @@ export default function StoragePage() {
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-oswald font-bold text-white">Storage</h1>
+          <h1 className="text-2xl font-display font-bold text-white">Storage</h1>
           <p className="text-sm text-gray-400 mt-1">
             Manage file storage and monitor usage
           </p>
@@ -157,7 +157,7 @@ export default function StoragePage() {
       {/* Storage Usage */}
       <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-oswald font-semibold text-white">
+          <h2 className="text-lg font-display font-semibold text-white">
             Storage Usage
           </h2>
           <span className="text-sm text-gray-400">

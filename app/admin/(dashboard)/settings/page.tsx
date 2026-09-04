@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { Building2, Palette, PenTool, Percent, Scale, Droplets, LayoutTemplate, Sparkles } from 'lucide-react';
 
 const settingsGroups = [
@@ -31,7 +31,7 @@ export default function SettingsPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-10 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-3xl font-oswald font-bold tracking-tight text-white mb-2">Settings</h1>
+        <h1 className="text-3xl font-display font-bold tracking-tight text-white mb-2">Settings</h1>
         <p className="text-gray-400">Configure your document management system preferences.</p>
       </div>
 

@@ -65,7 +65,7 @@ export function AdminMobileNav({ userName }: { userName?: string | null }) {
         ref={triggerRef}
         aria-expanded={open}
         aria-controls="admin-mobile-navigation"
-        className="lg:hidden size-10 inline-flex items-center justify-center -ml-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+        className="lg:hidden size-11 inline-flex items-center justify-center -ml-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
       >
         <Menu className="w-6 h-6" />
       </button>
@@ -100,7 +100,7 @@ export function AdminMobileNav({ userName }: { userName?: string | null }) {
                 <button
                   onClick={() => setOpen(false)}
                   aria-label="Close navigation menu"
-                  className="p-2 -mr-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                  className="p-2 -mr-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors min-h-11 min-w-11 inline-flex items-center justify-center"
                 >
                   <X className="w-5 h-5" />
                 </button>

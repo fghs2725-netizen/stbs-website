@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { FileText, Briefcase, FileSignature, Receipt } from 'lucide-react';
@@ -14,7 +14,7 @@ const actions = [
 export function QuickActions() {
   return (
     <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-      <h2 className="text-xl font-oswald font-semibold text-white mb-4">Quick Actions</h2>
+      <h2 className="text-xl font-display font-semibold text-white mb-4">Quick Actions</h2>
       <div className="grid grid-cols-2 gap-3">
         {actions.map((action, i) => (
           <Link key={i} href={`/admin/documents/new?type=${action.type}`}>

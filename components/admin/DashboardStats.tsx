@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { motion } from 'framer-motion';
 import { FileText, Briefcase, Clock, DollarSign, TrendingUp, TrendingDown, Minus } from 'lucide-react';
@@ -68,7 +68,7 @@ export function DashboardStats({ stats }: { stats: Stat[] }) {
             
             <div>
               <div className="text-gray-400 text-sm font-medium mb-1">{stat.label}</div>
-              <div className="text-2xl font-bold text-white font-oswald tracking-wide">{stat.value}</div>
+              <div className="text-2xl font-bold text-white font-display tracking-wide">{stat.value}</div>
             </div>
           </motion.div>
         );

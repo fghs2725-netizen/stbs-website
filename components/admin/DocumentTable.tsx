@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { format } from 'date-fns';
@@ -101,7 +101,7 @@ export function DocumentTable({ documents, outOfRange = false }: { documents: Do
             onClick={() => handleDelete(doc)}
             className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 disabled:opacity-50 flex items-center"
           >
-            <Trash2 className="w-4 h-4 mr-2" /> {deletingId === doc.id ? 'Deleting…' : 'Delete'}
+            <Trash2 className="w-4 h-4 mr-2" /> {deletingId === doc.id ? 'Deletingâ€¦' : 'Delete'}
           </button>
         </div>
       </>
@@ -109,7 +109,7 @@ export function DocumentTable({ documents, outOfRange = false }: { documents: Do
 
   return (
     <>
-      {/* ── Mobile: card list, whole card opens the builder ── */}
+      {/* â”€â”€ Mobile: card list, whole card opens the builder â”€â”€ */}
       <ul className="grid gap-3 p-3 md:hidden" aria-label="Documents">
         {documents.map((doc) => {
           const { statusConfig, typeConfig } = configFor(doc);
@@ -138,7 +138,7 @@ export function DocumentTable({ documents, outOfRange = false }: { documents: Do
               </a>
               <button
                 onClick={() => setOpenMenuId(openMenuId === doc.id ? null : doc.id)}
-                className="absolute top-3 right-3 mt-5 -mr-1 p-2 min-w-[40px] min-h-[40px] rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="absolute top-3 right-3 mt-5 -mr-1 p-2 min-w-11 min-h-11 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
                 aria-label={`More actions for ${doc.reference}`}
                 aria-expanded={openMenuId === doc.id}
               >
@@ -150,7 +150,7 @@ export function DocumentTable({ documents, outOfRange = false }: { documents: Do
         })}
       </ul>
 
-      {/* ── Desktop: table ── */}
+      {/* â”€â”€ Desktop: table â”€â”€ */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-gray-400 bg-surface/50 border-y border-white/5">
@@ -187,7 +187,7 @@ export function DocumentTable({ documents, outOfRange = false }: { documents: Do
                   <td className="px-4 py-4 text-right whitespace-nowrap relative" onClick={e => e.stopPropagation()}>
                     <button
                       onClick={() => setOpenMenuId(openMenuId === doc.id ? null : doc.id)}
-                      className="p-2 min-w-[40px] min-h-[40px] inline-flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                      className="p-2 min-w-11 min-h-11 inline-flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
                       aria-label={`More actions for ${doc.reference}`}
                       aria-expanded={openMenuId === doc.id}
                     >

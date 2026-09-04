@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -104,7 +104,7 @@ export default function HealthPage() {
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-oswald font-bold text-white">Health</h1>
+          <h1 className="text-2xl font-display font-bold text-white">Health</h1>
           <p className="text-sm text-gray-400 mt-1">
             System health status and service monitoring
           </p>
@@ -147,7 +147,7 @@ export default function HealthPage() {
                   {getStatusIcon(health.status)}
                 </div>
                 <div>
-                  <h2 className="text-xl font-oswald font-semibold text-white">
+                  <h2 className="text-xl font-display font-semibold text-white">
                     System Status
                   </h2>
                   <div className="flex items-center gap-2 mt-1">
@@ -173,7 +173,7 @@ export default function HealthPage() {
           {/* Service Checks */}
           <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
             <div className="p-4 border-b border-white/5">
-              <h2 className="text-lg font-oswald font-semibold text-white">
+              <h2 className="text-lg font-display font-semibold text-white">
                 Service Checks
               </h2>
             </div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
@@ -10,6 +10,7 @@ import {
   LayoutTemplate,
   TrendingUp,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface SearchResult {
   id: string;
@@ -103,23 +104,22 @@ export default function SearchClient({ initialQuery = "" }: { initialQuery?: str
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-oswald font-bold text-white">Search</h1>
+          <h1 className="text-2xl font-display font-bold text-white">Search</h1>
           <p className="text-sm text-gray-400 mt-1">
             Full-text search across all entities
           </p>
         </div>
-        <button
+        <Button
+          type="button"
+          variant="secondary"
           onClick={handleReindex}
           disabled={reindexing}
-          className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-gray-400 hover:text-white transition-colors disabled:opacity-50"
         >
           <RefreshCw
-            className={`w-4 h-4 inline mr-2 ${
-              reindexing ? "animate-spin" : ""
-            }`}
+            className={`w-4 h-4 ${reindexing ? "animate-spin" : ""}`}
           />
           {reindexing ? "Reindexing..." : "Reindex"}
-        </button>
+        </Button>
       </div>
 
       {/* Search Input */}
@@ -141,7 +141,7 @@ export default function SearchClient({ initialQuery = "" }: { initialQuery?: str
       {/* Index Stats */}
       <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-oswald font-semibold text-white">
+          <h2 className="text-lg font-display font-semibold text-white">
             Index Statistics
           </h2>
           <div className="flex items-center text-sm text-gray-400">
@@ -213,7 +213,7 @@ export default function SearchClient({ initialQuery = "" }: { initialQuery?: str
       {/* Results */}
       <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
         <div className="p-4 border-b border-white/5">
-          <h2 className="text-lg font-oswald font-semibold text-white">
+          <h2 className="text-lg font-display font-semibold text-white">
             Search Results
           </h2>
         </div>

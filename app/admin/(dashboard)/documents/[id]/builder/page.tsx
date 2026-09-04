@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+﻿import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import PDFBuilder from '@/components/documents/builder/PDFBuilder';
 import Link from 'next/link';
@@ -94,8 +94,8 @@ export default async function BuilderPage({ params }: { params: Promise<{ id: st
           <ChevronLeft className="w-4 h-4 mr-1" />
           Back to Documents
         </Link>
-        <div className="mx-auto font-oswald text-lg font-medium text-white">
-          <span className="text-signal">STBS</span> Builder <span className="text-gray-500 mx-2">|</span> {initialData?.reference || 'Draft'}
+        <div className="mx-auto font-display text-lg font-medium text-white">
+          <span className="text-signal">STBS</span> Document Editor <span className="text-gray-500 mx-2">|</span> {initialData?.reference || 'Draft'}
         </div>
         <div className="w-[140px]"></div>
       </div>

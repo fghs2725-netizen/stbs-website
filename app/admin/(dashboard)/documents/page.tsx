@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { Plus, Search, X } from 'lucide-react';
 import { DocumentTable } from '@/components/admin/DocumentTable';
 import { Pagination } from '@/components/admin/Pagination';
@@ -79,16 +79,6 @@ export default async function DocumentsPage({
   return (
     <div className="admin-page min-h-0 flex-1">
       <PageHeader eyebrow="Documents" title="Documents" description="Manage quotations, invoices, reports and certificates." action={<Button asChild><Link href="/admin/documents/new"><Plus className="size-4" />New Document</Link></Button>} />
-      <div className="hidden">
-        <div>
-          <h1 className="text-3xl font-oswald font-bold tracking-tight text-white mb-1">Documents</h1>
-          <p className="text-gray-400 text-sm">Quotations, invoices, reports and certificates — all in one place.</p>
-        </div>
-        <Link href="/admin/documents/new" className="min-h-[40px] inline-flex items-center px-4 py-2 bg-signal text-ink text-sm font-bold rounded-lg hover:bg-signal/90 transition-colors">
-          <Plus className="w-4 h-4 mr-2" />
-          New Document
-        </Link>
-      </div>
 
       <div className="admin-card flex-1 flex flex-col overflow-hidden">
         {/* Filters compose through plain GET params: shareable and reload-
@@ -104,13 +94,13 @@ export default async function DocumentsPage({
               defaultValue={query}
             />
           </div>
-          <select name="type" defaultValue={typeFilter} aria-label="Filter by document type" className="admin-input min-w-[150px] text-sm">
+          <select name="type" defaultValue={typeFilter} aria-label="Filter by document type" className="admin-input min-w-[150px] sm:text-sm">
             <option value="">All Types</option>
             {Object.entries(DOCUMENT_TYPE_CONFIGS).map(([value, cfg]) => (
               <option key={value} value={value}>{cfg.name}</option>
             ))}
           </select>
-          <select name="status" defaultValue={statusFilter} aria-label="Filter by status" className="admin-input min-w-[150px] text-sm">
+          <select name="status" defaultValue={statusFilter} aria-label="Filter by status" className="admin-input min-w-[150px] sm:text-sm">
             <option value="">All Statuses</option>
             {Object.entries(DOCUMENT_STATUS_CONFIG).map(([value, cfg]) => (
               <option key={value} value={value}>{cfg.label}</option>

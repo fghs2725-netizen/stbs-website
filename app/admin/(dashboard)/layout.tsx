@@ -30,7 +30,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
                 type="search"
                 name="q"
                 placeholder="Search documents, clients..."
-                className="bg-transparent border-none outline-none text-sm w-full placeholder:text-gray-500"
+                className="bg-transparent border-none outline-none text-[16px] w-full placeholder:text-gray-500"
               />
             </form>
           </div>

@@ -318,8 +318,8 @@
 
   /* Comfortable touch targets for icon-only controls. */
   .builder-btn-icon {
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 44px;
+    min-height: 44px;
   }
   .accordion-header {
     min-height: 48px;

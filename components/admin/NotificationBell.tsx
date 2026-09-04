@@ -82,7 +82,7 @@ export function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
+        className="relative p-2 rounded-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white min-h-11 min-w-11 inline-flex items-center justify-center"
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
@@ -142,7 +142,7 @@ export function NotificationBell() {
                       <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">
                         {n.message}
                       </p>
-                      <span className="text-[10px] text-gray-600 mt-1 block">
+                      <span className="text-[11px] text-gray-600 mt-1 block">
                         {new Date(n.createdAt).toLocaleString("en-IN")}
                       </span>
                     </div>

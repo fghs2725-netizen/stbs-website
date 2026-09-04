@@ -1,17 +1,21 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
+import { Button } from "@/components/ui/button";
+import { Copy } from "lucide-react";
 
 export function DuplicateQuotationButton() {
   const { pending } = useFormStatus();
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      aria-disabled={pending}
-      className="border border-white/20 min-h-[40px] inline-flex items-center px-4 py-2 text-xs uppercase disabled:cursor-not-allowed disabled:opacity-60"
-    >
-      {pending ? "Duplicating…" : "Duplicate"}
-    </button>
+    <Button type="submit" variant="secondary" size="sm" disabled={pending} aria-disabled={pending}>
+      {pending ? (
+        "Duplicating…"
+      ) : (
+        <>
+          <Copy className="size-4" />
+          Duplicate
+        </>
+      )}
+    </Button>
   );
 }

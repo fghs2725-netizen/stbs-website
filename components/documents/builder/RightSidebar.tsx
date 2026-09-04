@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { Settings2, Plus, Trash2 } from 'lucide-react';
@@ -62,7 +62,7 @@ export function RightSidebar({ activeSection, documentData, updateField, items, 
           <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-medium">Items ({items.length})</span>
-              <button onClick={addItem} className="builder-btn-icon text-[#f7c600]">
+              <button onClick={addItem} className="builder-btn-icon text-signal">
                 <Plus className="w-4 h-4" />
               </button>
             </div>
@@ -123,7 +123,7 @@ export function RightSidebar({ activeSection, documentData, updateField, items, 
             <div className="pt-4 border-t border-white/10 mt-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-white/80">Total</span>
-                <span className="text-sm font-bold text-[#f7c600]">{formatCurrency(documentData?.totalAmount || 0)}</span>
+                <span className="text-sm font-bold text-signal">{formatCurrency(documentData?.totalAmount || 0)}</span>
               </div>
             </div>
           </div>
@@ -165,7 +165,7 @@ export function RightSidebar({ activeSection, documentData, updateField, items, 
   return (
     <div className="pdf-right-sidebar pdf-scrollable">
       <div className="p-4 border-b border-white/10 flex items-center justify-between">
-        <h2 className="text-lg font-bold font-oswald tracking-wide uppercase">{activeSection.title || activeSection.type} Properties</h2>
+        <h2 className="text-lg font-bold font-display tracking-wide uppercase">{activeSection.title || activeSection.type} Properties</h2>
       </div>
       <div className="p-4">
         {renderContent()}

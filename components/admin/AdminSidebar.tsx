@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -44,7 +44,7 @@ export function AdminSidebar() {
           </div>
         )}
         {collapsed && (
-          <div className="w-full flex justify-center font-oswald text-2xl font-bold text-signal">
+          <div className="w-full flex justify-center font-display text-2xl font-bold text-signal">
             S
           </div>
         )}

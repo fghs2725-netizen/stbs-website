@@ -23,14 +23,14 @@ export function ToolBar({ title, zoom, onZoomChange, onSave, status, actions, on
   return (
     <div className="pdf-toolbar flex-wrap">
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        <LayoutTemplate className="w-5 h-5 text-[#f7c600] flex-shrink-0" />
+        <LayoutTemplate className="w-5 h-5 text-signal flex-shrink-0" />
         <input
           type="text"
           value={title}
           onChange={(e) => onTitleChange?.(e.target.value)}
           placeholder="Untitled Document"
           aria-label="Document title"
-          className="min-w-0 flex-1 max-w-xs bg-transparent border border-transparent hover:border-white/10 focus:border-[#f7c600] rounded px-1.5 py-1 outline-none text-white font-medium"
+          className="min-w-0 flex-1 max-w-xs bg-transparent border border-transparent hover:border-white/10 focus:border-signal rounded px-1.5 py-1 outline-none text-white font-medium"
         />
         <div className="hidden sm:flex items-center px-2 py-1 rounded bg-white/5 border border-white/10 text-xs text-white/70 whitespace-nowrap">
           <span className="w-2 h-2 rounded-full bg-green-500 mr-2"></span>

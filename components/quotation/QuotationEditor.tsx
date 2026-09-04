@@ -288,16 +288,15 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
         </div>
       </main>
       {tab === "edit" && (
-        <div className="mobile-action-bar" role="toolbar" aria-label="Quotation actions">
-          <button onClick={saveDraft} disabled={saving || q.status === "FINAL"}>{saving ? "SAVING…" : "SAVE DRAFT"}</button>
-          <button onClick={finalize} disabled={saving || !q.id || q.status === "FINAL"}>FINALIZE</button>
+        <div className="mobile-action-bar" role="toolbar" aria-label="Document actions">
+          <button onClick={saveDraft} disabled={saving || q.status === "FINAL"}>{saving ? "Saving…" : "Save Draft"}</button>
           <button
             className="primary"
             disabled={!canGenerateQuotation || page4Overflow || message === "Generating PDF..."}
             title={canGenerateQuotation && !page4Overflow ? "Generate the quotation PDF" : "Complete the quotation and resolve Page 4 overflow first"}
             onClick={generatePdf}
           >
-            {message === "Generating PDF..." ? "GENERATING…" : "SAVE TO PDF"}
+            {message === "Generating PDF..." ? "Generating…" : "Generate PDF"}
           </button>
         </div>
       )}

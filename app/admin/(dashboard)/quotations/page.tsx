@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Plus } from "lucide-react";
 import { auth } from "@/auth";
 import { listQuotations } from "@/lib/quotation-management";
 import { duplicateAction } from "./actions";
 import { Pagination } from "@/components/admin/Pagination";
 import { DuplicateQuotationButton } from "@/components/quotation/DuplicateQuotationButton";
-import { PageHeader } from '@/components/admin/PageHeader';
-import { Button } from '@/components/ui/button';
+import { PageHeader } from "@/components/admin/PageHeader";
+import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,6 @@ export default async function QuotationsPage({
   let totalPages = 1;
   let error = "";
   try {
-    // Bounded, paginated query (was unbounded fetch of every quotation).
     const result = await listQuotations(query, statusFilter, pageNumber);
     rows = result.rows;
     total = result.total;
@@ -37,28 +37,11 @@ export default async function QuotationsPage({
     error = "Quotation history is unavailable.";
   }
 
-  // Same rationale as the documents page: a page past the last result shows
-  // an explanatory notice instead of an empty list under a clamped footer.
   const outOfRange = !error && total > 0 && pageNumber > totalPages;
 
   return (
     <div className="admin-page">
-        <PageHeader eyebrow="Documents" title="Quotations" description="Search, review and continue quotation work." action={<Button asChild><Link href="/admin/quotations/new">New quotation</Link></Button>} />
-        <div className="hidden">
-          <div>
-            {/* IA signpost: quotations created through the document engine
-                live in Documents; this list is the legacy quotation system. */}
-            <p className="mt-2 text-sm text-white/50">
-              Legacy quotation engine ·{" "}
-              <Link href="/admin/documents?type=QUOTATION" className="text-signal underline underline-offset-4 hover:text-signal/80">
-                document-based quotations live in Documents
-              </Link>
-            </p>
-          </div>
-          <Link href="/admin/quotations/new" className="min-h-[40px] inline-flex items-center bg-signal px-5 py-3 text-xs font-bold uppercase tracking-wider text-black">
-            New quotation
-          </Link>
-        </div>
+        <PageHeader eyebrow="Documents" title="Quotations" description="Search, review and continue quotation work." action={<Button asChild><Link href="/admin/quotations/new"><Plus className="size-4" />New quotation</Link></Button>} />
 
         <form className="admin-card flex flex-col sm:flex-row flex-wrap gap-3 p-4">
           <input
@@ -67,7 +50,7 @@ export default async function QuotationsPage({
             placeholder="Search reference, client, service"
             className="admin-input min-w-0 flex-1"
           />
-          <select name="status" defaultValue={statusFilter} aria-label="Filter by status" className="admin-input w-auto text-sm">
+          <select name="status" defaultValue={statusFilter} aria-label="Filter by status" className="admin-input w-auto sm:text-sm">
             <option value="ALL">ALL</option>
             <option value="DRAFT">DRAFT</option>
             <option value="FINAL">FINAL</option>
@@ -79,7 +62,7 @@ export default async function QuotationsPage({
 
         <div className="admin-card overflow-hidden">
           {outOfRange ? (
-            <div className="border border-white/10 bg-white/[.035] p-8 text-center">
+            <div className="flex flex-col items-center border border-white/10 bg-white/[.035] p-8 text-center">
               <h2 className="text-lg font-bold uppercase">Page out of range</h2>
               <p className="mt-1 text-sm text-white/50">That page goes past the last result. Head back to the first page.</p>
               <Link href="/admin/quotations" className="mt-4 inline-flex min-h-[40px] items-center bg-signal px-5 py-3 text-xs font-bold uppercase tracking-wider text-black">
@@ -91,22 +74,22 @@ export default async function QuotationsPage({
               {rows.map((q) => (
                 <article key={q.id} data-testid="quotation-row" className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-white/[.08] p-4 sm:p-5 last:border-b-0">
                   <div className="min-w-0 flex-1 basis-full sm:basis-auto">
-                    <p className="font-bold text-signal truncate">{q.quotationReference}</p>
-                    <p className="truncate">{q.client.companyName || "Unnamed client"} · {q.serviceType}</p>
+                    <Link href={`/admin/quotations/${q.id}`} className="font-semibold text-signal truncate hover:text-white">
+                      {q.quotationReference}
+                    </Link>
+                    <p className="text-sm text-zinc-300 truncate">{q.client.companyName || "Unnamed client"} · {q.serviceType}</p>
                     <p className="text-sm text-white/45">
                       {q.status} · {q.itemCount} item{q.itemCount === 1 ? "" : "s"} · Updated {q.updatedAt}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 ml-auto">
-                    {/* Single primary action: OPEN. The old "PDF" button pointed
-                        at the same detail page and was removed as a duplicate. */}
-                    <Link href={`/admin/quotations/${q.id}`} className="bg-signal rounded-lg min-h-[40px] inline-flex items-center px-4 py-2 text-sm font-semibold text-black">
-                      Open
-                    </Link>
+                    <Button asChild size="sm">
+                      <Link href={`/admin/quotations/${q.id}`}>Open</Link>
+                    </Button>
                     {q.status === "DRAFT" && (
-                      <Link href={`/admin/quotations/${q.id}/edit`} className="border border-white/20 rounded-lg min-h-[40px] inline-flex items-center px-4 py-2 text-sm font-semibold">
-                        Edit
-                      </Link>
+                      <Button asChild variant="secondary" size="sm">
+                        <Link href={`/admin/quotations/${q.id}/edit`}>Edit</Link>
+                      </Button>
                     )}
                     <form action={duplicateAction.bind(null, q.id)}>
                       <DuplicateQuotationButton />

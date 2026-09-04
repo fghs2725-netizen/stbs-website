@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -138,7 +138,7 @@ export default function EmailPage() {
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-oswald font-bold text-white">Email</h1>
+          <h1 className="text-2xl font-display font-bold text-white">Email</h1>
           <p className="text-sm text-gray-400 mt-1">
             Manage email logs, templates, and notifications
           </p>
@@ -197,7 +197,7 @@ export default function EmailPage() {
       {/* Templates */}
       {templates.length > 0 && (
         <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-          <h2 className="text-lg font-oswald font-semibold text-white mb-4">
+          <h2 className="text-lg font-display font-semibold text-white mb-4">
             Templates
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -298,7 +298,7 @@ export default function EmailPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-steel border border-white/10 rounded-2xl w-full max-w-lg mx-4 overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-white/5">
-              <h3 className="text-lg font-oswald font-semibold text-white">
+              <h3 className="text-lg font-display font-semibold text-white">
                 Compose Email
               </h3>
               <button

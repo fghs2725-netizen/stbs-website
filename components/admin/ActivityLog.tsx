@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { formatDistanceToNow } from 'date-fns';
 import { CheckCircle, Edit, FileText, Send, XCircle, Clock } from 'lucide-react';
@@ -29,7 +29,7 @@ export function ActivityLog({ activities }: { activities: Activity[] }) {
   if (!activities || activities.length === 0) {
     return (
       <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-        <h2 className="text-xl font-oswald font-semibold text-white mb-4">Recent Activity</h2>
+        <h2 className="text-xl font-display font-semibold text-white mb-4">Recent Activity</h2>
         <div className="py-8 text-center text-sm text-gray-500">No recent activity</div>
       </div>
     );
@@ -37,7 +37,7 @@ export function ActivityLog({ activities }: { activities: Activity[] }) {
 
   return (
     <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-      <h2 className="text-xl font-oswald font-semibold text-white mb-6">Recent Activity</h2>
+      <h2 className="text-xl font-display font-semibold text-white mb-6">Recent Activity</h2>
       
       <div className="space-y-6 relative before:absolute before:inset-0 before:ml-2.5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
         {activities.map((activity, i) => (
@@ -49,7 +49,7 @@ export function ActivityLog({ activities }: { activities: Activity[] }) {
             <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] p-3 rounded-lg border border-white/5 bg-surface/50 shadow">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-semibold text-white capitalize">{activity.action}</span>
-                <span className="text-[10px] text-gray-500">
+                <span className="text-xs text-gray-500">
                   {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
                 </span>
               </div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -137,7 +137,7 @@ export default function AnalyticsPage() {
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-oswald font-bold text-white">
+          <h1 className="text-2xl font-display font-bold text-white">
             Analytics
           </h1>
           <p className="text-sm text-gray-400 mt-1">
@@ -203,7 +203,7 @@ export default function AnalyticsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Documents by Type */}
             <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <h3 className="text-lg font-oswald font-semibold text-white mb-4">
+              <h3 className="text-lg font-display font-semibold text-white mb-4">
                 Documents by Type
               </h3>
               <div className="space-y-3">
@@ -224,7 +224,7 @@ export default function AnalyticsPage() {
 
             {/* Documents by Status */}
             <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <h3 className="text-lg font-oswald font-semibold text-white mb-4">
+              <h3 className="text-lg font-display font-semibold text-white mb-4">
                 Documents by Status
               </h3>
               <div className="space-y-3">
@@ -257,7 +257,7 @@ export default function AnalyticsPage() {
 
             {/* Top Clients */}
             <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <h3 className="text-lg font-oswald font-semibold text-white mb-4">
+              <h3 className="text-lg font-display font-semibold text-white mb-4">
                 Top Clients
               </h3>
               <div className="space-y-3">
@@ -278,7 +278,7 @@ export default function AnalyticsPage() {
 
             {/* Approval Trend */}
             <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-              <h3 className="text-lg font-oswald font-semibold text-white mb-4">
+              <h3 className="text-lg font-display font-semibold text-white mb-4">
                 Approval Trend
               </h3>
               <div className="space-y-3">

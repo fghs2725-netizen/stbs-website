@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import {
@@ -146,7 +146,7 @@ export function VersionCompareView({ documentId, onClose }: VersionCompareViewPr
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
           <div className="flex items-center gap-3">
             <GitCompare className="w-5 h-5 text-gold" />
-            <h2 className="text-lg font-oswald font-bold text-white">Compare Versions</h2>
+            <h2 className="text-lg font-display font-bold text-white">Compare Versions</h2>
           </div>
           <button
             onClick={onClose}

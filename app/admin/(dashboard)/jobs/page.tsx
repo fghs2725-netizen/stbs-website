@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -144,7 +144,7 @@ export default function JobsPage() {
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-oswald font-bold text-white">Jobs</h1>
+          <h1 className="text-2xl font-display font-bold text-white">Jobs</h1>
           <p className="text-sm text-gray-400 mt-1">
             Monitor and manage background job queues
           </p>
@@ -190,7 +190,7 @@ export default function JobsPage() {
       {/* Queue Breakdown */}
       {queues.length > 0 && (
         <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-          <h2 className="text-lg font-oswald font-semibold text-white mb-4">
+          <h2 className="text-lg font-display font-semibold text-white mb-4">
             Queue Breakdown
           </h2>
           <div className="overflow-x-auto">

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,7 +26,7 @@ export function LeftSidebar({ sections, activeSectionId, onSectionClick, onSecti
   return (
     <div className="pdf-left-sidebar pdf-scrollable">
       <div className="p-4 border-b border-white/10">
-        <h2 className="text-lg font-bold font-oswald tracking-wide">DOCUMENT STRUCTURE</h2>
+        <h2 className="text-lg font-bold font-display tracking-wide">DOCUMENT STRUCTURE</h2>
       </div>
 
       <div className="flex-1">
@@ -58,7 +58,7 @@ export function LeftSidebar({ sections, activeSectionId, onSectionClick, onSecti
                   }}
                 >
                   {section.visible ?
-                    <ToggleRight className="w-5 h-5 text-[#f7c600]" /> :
+                    <ToggleRight className="w-5 h-5 text-signal" /> :
                     <ToggleLeft className="w-5 h-5 text-white/40" />
                   }
                 </div>

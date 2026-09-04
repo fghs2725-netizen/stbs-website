@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Save, Building2, Loader2, Check } from 'lucide-react';
@@ -136,7 +136,7 @@ export default function CompanySettingsPage() {
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-oswald font-bold tracking-tight text-white mb-1">Company Information</h1>
+          <h1 className="text-3xl font-display font-bold tracking-tight text-white mb-1">Company Information</h1>
           <p className="text-gray-400 text-sm">Manage your company details, addresses, and contacts.</p>
         </div>
         <button
