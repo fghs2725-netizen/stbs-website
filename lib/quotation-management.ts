@@ -45,7 +45,28 @@ export async function listQuotations(search = "", status = "ALL", page = 1, page
   };
 }
 export async function finalizeQuotation(id:string){await requireAdmin(); const q=await getQuotation(id); if(!q) throw new Error("NOT_FOUND"); if(q.status==="FINAL") throw new Error("ALREADY_FINALIZED"); if(!isQuotationPdfReady(q)) throw new Error("INVALID"); await prisma.quotation.update({where:{id},data:{status:"FINAL",finalizedAt:new Date()}});}
-export async function duplicateQuotation(id:string){await requireAdmin(); return prisma.$transaction(async tx=>{const x=await tx.quotation.findUnique({where:{id},include:{items:true}}); if(!x) throw new Error("NOT_FOUND"); const ref=await reference(tx); return state(await tx.quotation.create({data:{reference:ref,status:"DRAFT",date:x.date,validity:x.validity,serviceType:x.serviceType,customServiceType:x.customServiceType,subject:x.subject,clientId:x.clientId,clientCompanyName:x.clientCompanyName,clientContactPerson:x.clientContactPerson,clientAddressLine1:x.clientAddressLine1,clientAddressLine2:x.clientAddressLine2,clientCity:x.clientCity,clientState:x.clientState,clientPinCode:x.clientPinCode,clientPhone:x.clientPhone,clientEmail:x.clientEmail,items:{create:x.items.map(i=>({position:i.position,description:i.description,unit:i.unit,quantity:i.quantity,rate:i.rate}))}},include:{items:true}}));});}
+export async function duplicateQuotation(id:string){
+  await requireAdmin();
+  return prisma.$transaction(async tx=>{
+    // Copy only business data. IDs, lifecycle timestamps and soft-delete state
+    // intentionally remain database defaults on the independent draft.
+    const x=await tx.quotation.findFirst({where:{id,deletedAt:null},include:{items:{orderBy:{position:"asc"}}}});
+    if(!x) throw new Error("NOT_FOUND");
+    const ref=await reference(tx);
+    return state(await tx.quotation.create({
+      data:{
+        reference:ref,status:"DRAFT",date:x.date,validity:x.validity,
+        serviceType:x.serviceType,customServiceType:x.customServiceType,subject:x.subject,
+        clientId:x.clientId,clientCompanyName:x.clientCompanyName,
+        clientContactPerson:x.clientContactPerson,clientAddressLine1:x.clientAddressLine1,
+        clientAddressLine2:x.clientAddressLine2,clientCity:x.clientCity,clientState:x.clientState,
+        clientPinCode:x.clientPinCode,clientPhone:x.clientPhone,clientEmail:x.clientEmail,
+        items:{create:x.items.map(i=>({position:i.position,description:i.description,unit:i.unit,quantity:i.quantity,rate:i.rate}))}
+      },
+      include:{items:{orderBy:{position:"asc"}}}
+    }));
+  });
+}
 export async function dashboardCounts(){await requireAdmin(); return prisma.quotation.groupBy({by:["status"],_count:true});}
 export type ReusableClient = { id:string; companyName:string; contactPerson:string; addressLine1:string; addressLine2:string; city:string; state:string; pinCode:string; phone:string; email:string };
 function clientState(c:any):ReusableClient{return {id:c.id,companyName:c.companyName,contactPerson:c.contactPerson||"",addressLine1:c.addressLine1||"",addressLine2:c.addressLine2||"",city:c.city||"",state:c.state||"",pinCode:c.pinCode||"",phone:c.phone||"",email:c.email||""};}

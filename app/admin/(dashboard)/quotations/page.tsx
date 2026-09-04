@@ -5,6 +5,7 @@ import { listQuotations } from "@/lib/quotation-management";
 import { duplicateAction } from "./actions";
 import { AdminBackLink } from "@/components/admin-back-link";
 import { Pagination } from "@/components/admin/Pagination";
+import { DuplicateQuotationButton } from "@/components/quotation/DuplicateQuotationButton";
 
 export const dynamic = "force-dynamic";
 
@@ -109,9 +110,7 @@ export default async function QuotationsPage({
                       </Link>
                     )}
                     <form action={duplicateAction.bind(null, q.id)}>
-                      <button className="border border-white/20 min-h-[40px] inline-flex items-center px-4 py-2 text-xs uppercase">
-                        Duplicate
-                      </button>
+                      <DuplicateQuotationButton />
                     </form>
                   </div>
                 </article>
