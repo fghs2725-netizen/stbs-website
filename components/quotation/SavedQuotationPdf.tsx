@@ -6,7 +6,7 @@ import { openQuotationPdf, pdfFailureMessage } from "./requestQuotationPdf";
 import { isQuotationPdfReady, type QuotationState } from "./quotation-model";
 import "./quotation.css";
 import "./quotation-refinement.css";
-export function SavedQuotationPdf({quotation,compact=false}:{quotation:QuotationState;compact?:boolean}){
+export function SavedQuotationPdf({quotation}:{quotation:QuotationState}){
   const [message,setMessage]=useState("");
   const [saving,setSaving]=useState(false);
   const saveInFlight=useRef(false);
@@ -20,8 +20,8 @@ export function SavedQuotationPdf({quotation,compact=false}:{quotation:Quotation
     finally { saveInFlight.current=false; setSaving(false); }
   };
   return <>
-    <div className={compact ? '' : 'saved-pdf-screen mx-auto max-w-5xl'}>
-      <div className={`flex min-h-[44px] items-center gap-2 ${compact ? 'flex-wrap' : 'border-y border-white/15 py-2'}`}>
+    <div className="saved-pdf-screen mx-auto max-w-5xl">
+      <div className="flex min-h-[56px] items-center gap-2 border-y border-white/15 py-2">
         <Link href="/admin/quotations" aria-label="Back to quotations" className="inline-flex min-h-[40px] shrink-0 items-center px-2 text-sm text-white/80 hover:text-white">← <span className="ml-1 hidden sm:inline">Back</span></Link>
         <p className="min-w-0 flex-1 truncate text-center text-sm font-bold text-signal" title={quotation.quotationReference}>{quotation.quotationReference}</p>
         <div className="flex shrink-0 items-center gap-2">

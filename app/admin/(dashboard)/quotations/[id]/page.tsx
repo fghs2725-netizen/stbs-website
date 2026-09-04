@@ -51,7 +51,7 @@ export default async function ViewPage({ params }: { params: Promise<{ id: strin
         <Button asChild>
           <Link href={`/admin/quotations/${quotation.id}/edit`}>
             <FileText className="size-4" />
-            Open in Document Editor
+            Open in Quotation Editor
           </Link>
         </Button>
       )}
