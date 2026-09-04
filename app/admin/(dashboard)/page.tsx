@@ -4,6 +4,9 @@ import { ActivityLog } from '@/components/admin/ActivityLog';
 import { DocumentTable } from '@/components/admin/DocumentTable';
 import { prisma } from '@/lib/prisma';
 import { FileText, Briefcase, Clock, DollarSign } from 'lucide-react';
+import Link from 'next/link';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { Button } from '@/components/ui/button';
 
 export default async function AdminDashboard() {
   // Try to fetch real data, fallback to defaults if tables don't exist
@@ -66,21 +69,17 @@ export default async function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-oswald font-bold tracking-tight text-white mb-1">Dashboard</h1>
-          <p className="text-gray-400 text-sm">Welcome back. Here&apos;s an overview of your documents and activity.</p>
-        </div>
-      </div>
+    <div className="admin-page">
+      <PageHeader title="Dashboard" description="A concise view of work in progress and the items that need attention." action={<div className="flex gap-2"><Button asChild variant="secondary"><Link href="/admin/clients">New Client</Link></Button><Button asChild><Link href="/admin/documents/new">New Document</Link></Button></div>} />
 
       <DashboardStats stats={stats} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-oswald font-semibold text-white">Recent Documents</h2>
+          <div className="admin-card overflow-hidden">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-white/[.08]">
+              <h2 className="text-lg font-semibold text-white">Recent documents</h2>
+              <Link href="/admin/documents" className="text-sm font-medium text-signal hover:text-white">View all</Link>
             </div>
             <DocumentTable documents={recentDocs} />
           </div>

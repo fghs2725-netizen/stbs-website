@@ -110,11 +110,11 @@ export function DocumentTable({ documents, outOfRange = false }: { documents: Do
   return (
     <>
       {/* ── Mobile: card list, whole card opens the builder ── */}
-      <ul className="md:hidden divide-y divide-white/5" aria-label="Documents">
+      <ul className="grid gap-3 p-3 md:hidden" aria-label="Documents">
         {documents.map((doc) => {
           const { statusConfig, typeConfig } = configFor(doc);
           return (
-            <li key={doc.id} data-testid="document-card" className="relative p-4 active:bg-white/[0.03]">
+            <li key={doc.id} data-testid="document-card" className="relative rounded-lg border border-white/[.08] bg-black/15 p-4 active:bg-white/[0.03]">
               <a
                 href={`/admin/documents/${doc.id}/builder`}
                 className="block"
@@ -122,7 +122,7 @@ export function DocumentTable({ documents, outOfRange = false }: { documents: Do
               >
                 <div className="flex items-start justify-between gap-3 min-w-0">
                   <span className="font-medium text-white truncate">{doc.reference}</span>
-                  <span className={`flex-shrink-0 px-2 py-1 text-[11px] rounded-full font-medium`} style={{ backgroundColor: statusConfig.bgColor, color: statusConfig.color }}>
+                  <span className={`flex-shrink-0 px-2 py-1 text-xs rounded-full font-medium`} style={{ backgroundColor: statusConfig.bgColor, color: statusConfig.color }}>
                     {statusConfig.label}
                   </span>
                 </div>
@@ -153,7 +153,7 @@ export function DocumentTable({ documents, outOfRange = false }: { documents: Do
       {/* ── Desktop: table ── */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="text-xs text-gray-400 uppercase bg-surface/50 border-y border-white/5">
+          <thead className="text-xs text-gray-400 bg-surface/50 border-y border-white/5">
             <tr>
               <th className="px-4 py-3 font-medium">Reference</th>
               <th className="px-4 py-3 font-medium">Type</th>

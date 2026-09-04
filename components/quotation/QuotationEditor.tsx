@@ -149,10 +149,10 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
         {/* Sticky header */}
         <div className="editor-header-sticky">
           <div className="editor-top">
-            <div className="editor-brand">STBS <span>QUOTATION BUILDER</span></div>
-            <button className="new-quotation" onClick={reset}>NEW QUOTATION</button>
+            <div className="editor-brand">STBS <span>DOCUMENT EDITOR</span></div>
+            <button className="new-quotation" onClick={reset}>New quotation</button>
           </div>
-          <div className="flex items-center justify-between gap-3"><h2>Build quotation</h2>{backHref && <AdminBackLink href={backHref} label={backLabel || "Back"} dirty={dirty} />}</div>
+          <div className="flex items-center justify-between gap-3"><h2>Edit quotation</h2>{backHref && <AdminBackLink href={backHref} label={backLabel || "Back"} dirty={dirty} />}</div>
         </div>
 
         {/* Scrollable content */}
@@ -164,13 +164,13 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
             </div>
           )}
 
-          {section("info", "Quotation information", <>
+          {section("info", "Details", <>
             <label>Reference<input value={q.quotationReference} onChange={e => update("quotationReference", e.target.value)} readOnly={Boolean(q.id)} title={q.id ? "Assigned automatically" : undefined} /></label>
             <label>Date<input value={q.quotationDate} onChange={e => update("quotationDate", e.target.value)} /></label>
             <label>Validity<input value={q.validity} onChange={e => update("validity", e.target.value)} /></label>
           </>)}
 
-          {section("client", "Prepared for", <>
+          {section("client", "Client", <>
             {clients.length > 0 && <label>Client source<select value={q.clientId || "new"} onChange={e => e.target.value === "new" ? update("clientId", undefined) : selectClient(e.target.value)}><option value="new">ENTER NEW CLIENT</option>{clients.map(client => <option key={client.id} value={client.id}>{client.companyName}</option>)}</select></label>}
             {Object.entries(q.client).map(([k, v]) => (
               <label key={k}>{CLIENT_FIELD_LABELS[k] ?? k}<input value={v} onChange={e => updateClient(k, e.target.value)} /></label>
@@ -178,7 +178,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
             <label className="flex items-center gap-2 normal-case"><input type="checkbox" checked={Boolean(q.saveClientForFuture && !q.clientId)} onChange={e => { setDirty(true); setQ(x => ({ ...x, saveClientForFuture: e.target.checked, clientId: e.target.checked ? undefined : x.clientId })); }} /> SAVE CLIENT FOR FUTURE QUOTATIONS</label>
           </>)}
 
-          {section("service", "Service & subject", <>
+          {section("service", "Technical scope", <>
             <label>Quotation type
               <select value={q.serviceType} onChange={e => setService(e.target.value)}>
                 {serviceOptions.map(x => <option key={x}>{x}</option>)}
@@ -188,7 +188,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
             <label>Subject<input value={q.subject || defaultSubject(q)} onChange={e => { setSubjectEdited(true); update("subject", e.target.value); }} /></label>
           </>)}
 
-          {section("items", "Price items", <>
+          {section("items", "Items", <>
             {q.items.length === 0 ? (
               <div className="items-empty-state">
                 <p>No price items added yet.</p>
@@ -269,14 +269,14 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
 
       <main ref={previewPanelRef} className={`editor-preview ${tab === "edit" ? "show-edit" : "show-preview"}`} data-can-generate={canGenerateQuotation}>
         <div className="preview-controls">
-          <span>QUOTATION PREVIEW</span>
+          <span>Live document</span>
           <button onClick={() => setZoom(Math.max(50, zoom - 10))}>−</button>
           <b>{zoom}%</b>
           <button onClick={() => setZoom(Math.min(100, zoom + 10))}>+</button>
-          <button onClick={fitPreviewToPanel}>FIT WIDTH</button>
-          <button className="generate-pdf save-to-pdf" disabled={!canGenerateQuotation || page4Overflow || message === "Generating PDF..."} title={canGenerateQuotation && !page4Overflow ? "Generate the quotation PDF" : "Complete the quotation and resolve Page 4 overflow first"} onClick={generatePdf}> {message === "Generating PDF..." ? "GENERATING..." : "SAVE TO PDF"}</button>
-          <button className="generate-pdf" onClick={saveDraft} disabled={saving || q.status === "FINAL"}>{saving ? "SAVING..." : "SAVE DRAFT"}</button>
-          <button className="generate-pdf" onClick={finalize} disabled={saving || !q.id || q.status === "FINAL"}>FINALIZE QUOTATION</button>
+          <button onClick={fitPreviewToPanel}>Fit</button>
+          <button className="generate-pdf" onClick={saveDraft} disabled={saving || q.status === "FINAL"}>{saving ? "Saving..." : "Save Draft"}</button>
+          <button className="generate-pdf save-to-pdf" disabled={!canGenerateQuotation || page4Overflow || message === "Generating PDF..."} title={canGenerateQuotation && !page4Overflow ? "Generate the quotation PDF" : "Complete the quotation and resolve Page 4 overflow first"} onClick={generatePdf}> {message === "Generating PDF..." ? "Generating..." : "Generate PDF"}</button>
+          <button className="generate-pdf" onClick={finalize} disabled={saving || !q.id || q.status === "FINAL"}>Finalize</button>
           <small>{message || "4 Pages"}</small>
         </div>
         <div className="preview-viewport">

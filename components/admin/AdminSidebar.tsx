@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { motion } from 'framer-motion';
 import { LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ADMIN_WORK_NAV, ADMIN_SYSTEM_NAV, NavItemDef } from './nav-items';
 
@@ -21,18 +20,10 @@ export function AdminSidebar() {
     const active = isActive(item.href);
     return (
       <Link href={item.href}>
-        <div className={`flex items-center px-4 py-3 my-1 rounded-xl transition-all duration-200 group relative ${
+        <div className={`flex min-h-11 items-center px-3 py-2 my-1 rounded-lg transition-colors duration-200 group relative ${
           active ? 'bg-signal/10 text-signal' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'
         }`}>
-          {active && (
-            <motion.div
-              layoutId="activeNav"
-              className="absolute left-0 top-0 bottom-0 w-1 bg-signal rounded-r-md"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
-            />
-          )}
+          {active && <span aria-hidden className="absolute left-0 top-2 bottom-2 w-0.5 bg-signal rounded-r" />}
           <item.icon className={`w-5 h-5 flex-shrink-0 ${active ? 'text-signal' : 'text-gray-400 group-hover:text-gray-200'} ${!collapsed && 'mr-3'}`} />
           {!collapsed && (
             <span className="font-medium whitespace-nowrap overflow-hidden text-sm">
@@ -45,14 +36,11 @@ export function AdminSidebar() {
   };
 
   return (
-    <motion.aside
-      className="hidden md:flex h-full bg-steel border-r border-white/5 flex-col transition-all duration-300 relative z-20 backdrop-blur-xl"
-      animate={{ width: collapsed ? 80 : 280 }}
-    >
+    <aside style={{ width: collapsed ? 80 : 264 }} className="hidden lg:flex h-full shrink-0 bg-[#141416] border-r border-white/[.08] flex-col transition-[width] duration-200 relative z-20">
       <div className="h-16 flex items-center justify-between px-6 border-b border-white/5">
         {!collapsed && (
-          <div className="font-oswald text-2xl font-bold tracking-tight text-white flex items-center">
-            <span className="text-signal mr-1">STBS</span>Enterprise
+          <div className="font-display text-lg font-semibold tracking-tight text-white flex items-center">
+            <span className="text-signal mr-1">STBS</span> Admin
           </div>
         )}
         {collapsed && (
@@ -90,6 +78,6 @@ export function AdminSidebar() {
           {!collapsed && <span className="font-medium text-sm">Logout</span>}
         </button>
       </div>
-    </motion.aside>
+      </aside>
   );
 }

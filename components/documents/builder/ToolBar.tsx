@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ZoomIn, ZoomOut, Save, Download, LayoutTemplate } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ToolBarProps {
   title: string;
@@ -62,26 +63,28 @@ export function ToolBar({ title, zoom, onZoomChange, onSave, status, actions, on
           <ZoomIn className="w-4 h-4" />
         </button>
 
-        <button
+        <Button
           type="button"
-          className="builder-btn builder-btn-secondary ml-2"
+          variant="secondary"
+          size="sm"
+          className="ml-2"
           onClick={onSave}
           title="Save draft"
         >
           <Save className="w-4 h-4" />
           <span className="hidden sm:inline">Save Draft</span>
-        </button>
+        </Button>
         {onGeneratePdf && (
-          <button
+          <Button
             type="button"
-            className="builder-btn builder-btn-primary"
+            size="sm"
             onClick={onGeneratePdf}
             disabled={generateDisabled}
             title={generateDisabled && !generatingPdf ? 'Save the document first to generate a PDF' : 'Generate and open the PDF'}
           >
             <Download className="w-4 h-4" />
             <span className="text-black">{generatingPdf ? 'Generating…' : 'Generate PDF'}</span>
-          </button>
+          </Button>
         )}
       </div>
     </div>

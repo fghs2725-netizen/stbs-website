@@ -8,8 +8,8 @@ export default {
         // Existing brand colors
         ink: "#090909",
         signal: "#f7c600",
-        steel: "#1b1b1b",
-        surface: "#0b0b0b",
+        steel: "#141416",
+        surface: "#1b1d1f",
 
         // Document system colors
         navy: {
@@ -47,19 +47,11 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["var(--font-manrope)", "system-ui", "sans-serif"],
-        display: ["var(--font-oswald)", "system-ui", "sans-serif"],
+        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Noto Sans", "system-ui", "sans-serif"],
       },
       spacing: {
-        "1": "0.5rem",
-        "2": "0.75rem",
-        "3": "1rem",
-        "4": "1.5rem",
-        "5": "2rem",
-        "6": "3rem",
-        "7": "4rem",
-        "8": "6rem",
-        "9": "8rem",
+        "1": "0.25rem", "2": "0.5rem", "3": "0.75rem", "4": "1rem", "5": "1.5rem", "6": "2rem", "7": "3rem", "8": "3rem", "9": "3rem",
       },
       borderRadius: {
         sm: "0.375rem",

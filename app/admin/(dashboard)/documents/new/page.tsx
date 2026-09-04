@@ -2,9 +2,10 @@
 
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { FileText, Briefcase, FileSignature, Receipt, ChevronRight, Check } from 'lucide-react';
 import { DOCUMENT_TYPE_CONFIGS } from '@/lib/documents/template-registry';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { Button } from '@/components/ui/button';
 
 export default function NewDocumentPage() {
   return (
@@ -58,21 +59,16 @@ function NewDocumentForm() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-8 animate-in fade-in duration-500">
-      <div className="mb-8">
-        <h1 className="text-3xl font-oswald font-bold tracking-tight text-white mb-2">Create New Document</h1>
-        <p className="text-gray-400">Select a document type to start building.</p>
-      </div>
+    <div className="admin-page max-w-5xl">
+      <PageHeader eyebrow="Documents" title={selectedType === 'QUOTATION' ? 'New quotation' : 'New document'} description={selectedType ? `Create a new ${DOCUMENT_TYPE_CONFIGS[selectedType as keyof typeof DOCUMENT_TYPE_CONFIGS].name.toLowerCase()}.` : 'Select a document type to continue.'} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-        {Object.entries(DOCUMENT_TYPE_CONFIGS).map(([type, config], i) => (
-          <motion.div
+        {Object.entries(DOCUMENT_TYPE_CONFIGS).map(([type, config]) => (
+          <button
             key={type}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
             onClick={() => setSelectedType(type)}
-            className={`relative group cursor-pointer rounded-2xl border ${
+            aria-pressed={selectedType === type}
+            className={`relative min-h-48 text-left group rounded-xl border ${
               selectedType === type 
                 ? 'bg-signal/5 border-signal' 
                 : 'bg-steel/40 border-white/10 hover:border-white/20 hover:bg-steel/80'
@@ -103,29 +99,24 @@ function NewDocumentForm() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </button>
         ))}
       </div>
 
-      <div className="flex justify-end pt-6 border-t border-white/10">
-        <button 
+      <div className="flex justify-end gap-2 pt-6 border-t border-white/10">
+        <Button
           onClick={() => router.back()}
-          className="px-6 py-2.5 text-sm font-medium text-gray-400 hover:text-white transition-colors mr-4"
+          variant="ghost"
         >
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleCreate}
           disabled={!selectedType || isSubmitting}
-          className={`flex items-center px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${
-            selectedType && !isSubmitting
-              ? 'bg-signal text-ink shadow-[0_0_20px_rgba(247,198,0,0.4)] hover:shadow-[0_0_30px_rgba(247,198,0,0.6)]'
-              : 'bg-white/10 text-gray-500 cursor-not-allowed'
-          }`}
         >
-          {isSubmitting ? 'Creating...' : 'Continue to Builder'}
+          {isSubmitting ? 'Creating...' : 'Continue'}
           {!isSubmitting && <ChevronRight className="w-4 h-4 ml-2" />}
-        </button>
+        </Button>
       </div>
     </div>
   );

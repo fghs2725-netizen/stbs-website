@@ -4,6 +4,8 @@ import { DocumentTable } from '@/components/admin/DocumentTable';
 import { Pagination } from '@/components/admin/Pagination';
 import { prisma } from '@/lib/prisma';
 import { DOCUMENT_TYPE_CONFIGS, DOCUMENT_STATUS_CONFIG } from '@/lib/documents/template-registry';
+import { PageHeader } from '@/components/admin/PageHeader';
+import { Button } from '@/components/ui/button';
 
 const PAGE_SIZE = 20;
 
@@ -75,8 +77,9 @@ export default async function DocumentsPage({
   const outOfRange = totalItems > 0 && pageNumber > totalPages;
 
   return (
-    <div className="space-y-6 h-full flex flex-col">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="admin-page min-h-0 flex-1">
+      <PageHeader eyebrow="Documents" title="Documents" description="Manage quotations, invoices, reports and certificates." action={<Button asChild><Link href="/admin/documents/new"><Plus className="size-4" />New Document</Link></Button>} />
+      <div className="hidden">
         <div>
           <h1 className="text-3xl font-oswald font-bold tracking-tight text-white mb-1">Documents</h1>
           <p className="text-gray-400 text-sm">Quotations, invoices, reports and certificates — all in one place.</p>
@@ -87,7 +90,7 @@ export default async function DocumentsPage({
         </Link>
       </div>
 
-      <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl flex-1 flex flex-col overflow-hidden">
+      <div className="admin-card flex-1 flex flex-col overflow-hidden">
         {/* Filters compose through plain GET params: shareable and reload-
             safe. Submitting drops the page param, returning to page 1. */}
         <form method="GET" action="/admin/documents" className="p-4 pb-3 border-b border-white/5 flex flex-col md:flex-row gap-3">
@@ -97,17 +100,17 @@ export default async function DocumentsPage({
               type="text"
               name="q"
               placeholder="Search by reference, title, or client..."
-              className="w-full min-h-[40px] bg-surface border border-white/10 rounded-lg pl-10 pr-4 py-2 text-base sm:text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-signal/50 focus:ring-1 focus:ring-signal/50 transition-all"
+              className="admin-input pl-10 pr-4"
               defaultValue={query}
             />
           </div>
-          <select name="type" defaultValue={typeFilter} aria-label="Filter by document type" className="min-h-[40px] bg-surface border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-signal/50 appearance-none min-w-[150px]">
+          <select name="type" defaultValue={typeFilter} aria-label="Filter by document type" className="admin-input min-w-[150px] text-sm">
             <option value="">All Types</option>
             {Object.entries(DOCUMENT_TYPE_CONFIGS).map(([value, cfg]) => (
               <option key={value} value={value}>{cfg.name}</option>
             ))}
           </select>
-          <select name="status" defaultValue={statusFilter} aria-label="Filter by status" className="min-h-[40px] bg-surface border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-signal/50 appearance-none min-w-[150px]">
+          <select name="status" defaultValue={statusFilter} aria-label="Filter by status" className="admin-input min-w-[150px] text-sm">
             <option value="">All Statuses</option>
             {Object.entries(DOCUMENT_STATUS_CONFIG).map(([value, cfg]) => (
               <option key={value} value={value}>{cfg.label}</option>
