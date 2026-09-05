@@ -15,7 +15,7 @@ export const DEFAULT_COMPANY: CompanySettingsData = {
   phone1: "9812003001",
   phone2: "7988024114",
   email: "stbs2025@gmail.com",
-  website: "https://sainitubewell.com",
+  website: "https://stbs.in",
   addressLine1: "Sonipat, Haryana",
   addressLine2: "",
   city: "Sonipat",

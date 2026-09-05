@@ -1,12 +1,17 @@
 import QRCode from 'qrcode';
 import crypto from 'crypto';
+import { absolutePath } from '@/lib/site-url';
 
 function getSecretKey(): string {
   const value = process.env.QR_SECRET_KEY;
   if (!value) throw new Error('QR_SECRET_KEY is not configured. Set it in your environment variables.');
   return value;
 }
-const BASE_URL = process.env.NEXT_PUBLIC_VERIFY_URL || 'https://stbs.in/verify/';
+function getVerifyBaseUrl(): string {
+  const override = process.env.NEXT_PUBLIC_VERIFY_URL?.trim();
+  if (override) return override.endsWith('/') ? override : `${override}/`;
+  return absolutePath('/verify/');
+}
 
 export class QRService {
   /**
@@ -23,7 +28,7 @@ export class QRService {
    * Builds the full URL for verification
    */
   static getVerificationUrl(code: string): string {
-    return `${BASE_URL}${code}`;
+    return `${getVerifyBaseUrl()}${code}`;
   }
 
   /**
