@@ -8,7 +8,7 @@ import { saveDraftAction, finalizeAction } from "@/app/admin/(dashboard)/quotati
 import { AdminBackLink } from "@/components/admin-back-link";
 import type { ReusableClient } from "@/lib/quotation-management";
 import { QuotationPrintDocument } from "./QuotationPrintDocument";
-import { openQuotationPdf, pdfFailureMessage } from "./requestQuotationPdf";
+import { openQuotationPdf, pdfActionMessage, pdfFailureMessage } from "./requestQuotationPdf";
 
 const today = () => { const d = new Date(); return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; };
 const emptyItem = (): QuotationItem => ({ id: crypto.randomUUID(), description: "", unit: "", quantity: 1, rate: 0 });
@@ -78,7 +78,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
   const generatePdf = useCallback(async () => {
     if (!canGenerateQuotation || page4Overflow) return;
     setMessage("Generating PDF...");
-    try { await openQuotationPdf(q); setMessage("PDF ready. Use Share to save it to Files."); }
+    try { setMessage(pdfActionMessage(await openQuotationPdf(q))); }
     catch (error) { setMessage(pdfFailureMessage(error)); }
   }, [canGenerateQuotation, page4Overflow, q]);
 

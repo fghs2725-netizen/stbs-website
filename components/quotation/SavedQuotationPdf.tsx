@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { QuotationPrintDocument } from "./QuotationPrintDocument";
-import { openQuotationPdf, pdfFailureMessage } from "./requestQuotationPdf";
+import { openQuotationPdf, pdfActionMessage, pdfFailureMessage, isPdfSuccessMessage } from "./requestQuotationPdf";
 import { isQuotationPdfReady, type QuotationState } from "./quotation-model";
 import "./quotation.css";
 import "./quotation-refinement.css";
@@ -15,7 +15,7 @@ export function SavedQuotationPdf({quotation}:{quotation:QuotationState}){
     if (saveInFlight.current) return;
     if(!canSave){setMessage("Complete the client, service, subject, and at least one valid price item before generating the PDF.");return;}
     saveInFlight.current=true; setSaving(true); setMessage("");
-    try { await openQuotationPdf(quotation); setMessage("PDF download started."); }
+    try { setMessage(pdfActionMessage(await openQuotationPdf(quotation))); }
     catch(error) { setMessage(pdfFailureMessage(error)); }
     finally { saveInFlight.current=false; setSaving(false); }
   };
@@ -31,7 +31,7 @@ export function SavedQuotationPdf({quotation}:{quotation:QuotationState}){
           <button onClick={()=>window.print()} className="inline-flex min-h-[40px] items-center border border-white/25 px-3 text-xs font-bold uppercase tracking-wider text-white">Print</button>
         </div>
       </div>
-      {message&&<p role="status" className={`mt-3 max-w-lg text-sm ${message === "PDF download started." ? "text-emerald-300" : "text-red-300"}`}>{message}</p>}
+      {message&&<p role="status" className={`mt-3 max-w-lg text-sm ${isPdfSuccessMessage(message) ? "text-emerald-300" : "text-red-300"}`}>{message}</p>}
     </div>
     <QuotationPrintDocument quotation={quotation}/>
   </>
