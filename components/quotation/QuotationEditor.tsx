@@ -9,6 +9,7 @@ import { AdminBackLink } from "@/components/admin-back-link";
 import type { ReusableClient } from "@/lib/quotation-management";
 import { QuotationPrintDocument } from "./QuotationPrintDocument";
 import { openQuotationPdf, pdfActionMessage, pdfFailureMessage } from "./requestQuotationPdf";
+import { fitScaleForWidth } from "./useQuotationPreviewFit";
 
 const today = () => { const d = new Date(); return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`; };
 const emptyItem = (): QuotationItem => ({ id: crypto.randomUUID(), description: "", unit: "", quantity: 1, rate: 0 });
@@ -62,6 +63,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
   const [page4Overflow, setPage4Overflow] = useState(false);
   const [showTestPanel, setShowTestPanel] = useState(false);
   const previewPanelRef = useRef<HTMLElement>(null);
+  const lastFitWidth = useRef(0);
   const descriptionRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
   // --- Derived values (never stored in state) ---
@@ -70,9 +72,10 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
   const canGenerateQuotation = isQuotationPdfReady(q) && (q.serviceType !== "Custom" || q.customServiceType.trim() !== "");
 
   const fitPreviewToPanel = useCallback(() => {
-    const width = previewPanelRef.current?.clientWidth ?? 900;
-    const a4WidthPx = 210 / 25.4 * 96;
-    setZoom(Math.round(Math.min(100, Math.max(30, ((width - 28) / a4WidthPx) * 60))));
+    const width = previewPanelRef.current?.clientWidth ?? 0;
+    if (!width || Math.abs(width - lastFitWidth.current) < 1) return;
+    lastFitWidth.current = width;
+    setZoom(Math.round(fitScaleForWidth(width) * 60));
   }, []);
 
   const generatePdf = useCallback(async () => {
