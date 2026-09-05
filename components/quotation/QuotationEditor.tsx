@@ -48,7 +48,14 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
   const [message, setMessage] = useState("");
   const [dirty, setDirty] = useState(false);
   const router = useRouter();
-  const [open, setOpen] = useState({ info: true, client: true, service: true, items: true });
+  const [step, setStep] = useState(() => {
+    if (initial?.id) {
+      const saved = Number(sessionStorage.getItem("wizard-step"));
+      sessionStorage.removeItem("wizard-step");
+      return saved >= 2 && saved <= 5 ? saved : 1;
+    }
+    return 1;
+  });
   const [tab, setTab] = useState<"edit" | "preview">("edit");
   const [subjectEdited, setSubjectEdited] = useState(false);
   const [zoom, setZoom] = useState(60);
@@ -105,13 +112,13 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
     });
   }, []);
 
-  const reset = () => { if (confirm("Start a new quotation? Unsaved changes will be cleared.")) { setQ(buildDraft({ quotationDate: today(), items: [] })); setSubjectEdited(false); } };
+  const reset = () => { if (confirm("Start a new quotation? Unsaved changes will be cleared.")) { setQ(buildDraft({ quotationDate: today(), items: [] })); setSubjectEdited(false); setStep(1); } };
 
   const handlePage4Overflow = useCallback((isOver: boolean) => {
     setPage4Overflow(isOver);
   }, []);
   useEffect(() => { const fn=(e:BeforeUnloadEvent)=>{if(dirty)e.preventDefault();}; window.addEventListener("beforeunload",fn); return()=>window.removeEventListener("beforeunload",fn); },[dirty]);
-  const saveDraft = async () => { if(saving)return; setSaving(true); setMessage(""); try { const saved=await saveDraftAction(q); setQ(saved); setDirty(false); setMessage(`SAVED ${saved.quotationReference}`); if(!q.id) router.replace(`/admin/quotations/${saved.id}/edit`); } catch(e:any) { setMessage(e?.message === "FINAL_READ_ONLY" ? "Final quotations are read-only." : "Could not save draft."); } finally { setSaving(false); } };
+  const saveDraft = async () => { if(saving)return; setSaving(true); setMessage(""); try { const saved=await saveDraftAction(q); setQ(saved); setDirty(false); setMessage(`SAVED ${saved.quotationReference}`); if(!q.id) { sessionStorage.setItem("wizard-step", String(step)); router.replace(`/admin/quotations/${saved.id}/edit`); } } catch(e:any) { setMessage(e?.message === "FINAL_READ_ONLY" ? "Final quotations are read-only." : "Could not save draft."); } finally { setSaving(false); } };
   const finalize = async () => { if(!q.id || saving)return; if(!confirm("Finalize this quotation?\n\nThis locks it permanently - it cannot be edited afterward. Need changes later? Duplicate it from the quotations list.\n\nContinue?"))return; setSaving(true); try { await saveDraftAction(q); await finalizeAction(q.id); setQ(x=>({...x,status:"FINAL"})); setDirty(false); setMessage("FINALIZED"); } catch { setMessage("Could not finalize quotation."); } finally { setSaving(false); } };
 
   // --- Dev test helpers ---
@@ -119,15 +126,27 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
     setQ(x => ({ ...x, items: TEST_ITEMS.slice(0, count) }));
   };
 
-  // --- Section toggle helper ---
-  const section = (key: keyof typeof open, title: string, children: React.ReactNode) => (
-    <section className="editor-section">
-      <button className="section-toggle" onClick={() => setOpen(x => ({ ...x, [key]: !x[key] }))}>
-        <span>{title}</span><b>{open[key] ? "−" : "+"}</b>
-      </button>
-      {open[key] && <div className="section-content">{children}</div>}
-    </section>
-  );
+  // --- Wizard steps ---
+  const STEPS = [
+    { key: "info", label: "Quotation information" },
+    { key: "client", label: "Prepared for" },
+    { key: "service", label: "Service & subject" },
+    { key: "items", label: "Price items" },
+    { key: "review", label: "Review & Generate" },
+  ];
+
+  const stepError = (n: number): string | null => {
+    switch (n) {
+      case 2: return q.client.companyName.trim() ? null : "Add the client's company name before continuing.";
+      case 4: return validItems.length ? null : "Add at least one item with a description, unit, quantity and rate before continuing.";
+      default: return null;
+    }
+  };
+  const firstInvalidStep = [1, 2, 3, 4].find((n) => stepError(n)) ?? 5;
+  const canProceed = step < 5 && !stepError(step);
+  const goNext = () => { if (canProceed) setStep((s) => Math.min(5, s + 1)); };
+  const goBack = () => { setStep((s) => Math.max(1, s - 1)); };
+  const goToStep = (n: number) => { if (n >= 1 && n <= firstInvalidStep) setStep(n); };
 
   // --- Validation per item ---
   const itemErrors = useMemo(() => {
@@ -152,10 +171,23 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
 <div className="editor-brand">STBS <span>QUOTATION BUILDER</span></div>
             <button className="new-quotation" onClick={reset}>New quotation</button>
           </div>
-          <div className="flex items-center justify-between gap-3"><h2>Build quotation</h2>{backHref && <AdminBackLink href={backHref} label={backLabel || "Back"} dirty={dirty} />}</div>
+<div className="flex items-center justify-between gap-3"><h2>Build quotation</h2>{backHref && <AdminBackLink href={backHref} label={backLabel || "Back"} dirty={dirty} />}</div>
+          <nav className="editor-stepper" aria-label="Quotation steps">
+            {STEPS.map((s, i) => {
+              const n = i + 1;
+              const active = step === n;
+              const passedValid = n < step && !stepError(n);
+              return (
+                <button key={s.key} type="button" className={`step ${active ? "active" : ""} ${passedValid ? "complete" : ""}`} onClick={() => goToStep(n)} aria-current={active ? "step" : undefined} disabled={n > firstInvalidStep}>
+                  <span className="step-dot">{passedValid ? "✓" : n}</span>
+                  <span className="step-label">{s.label}</span>
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Scrollable content */}
+{/* Scrollable content */}
         <div className="editor-scroll-content">
           {/* Overflow warning */}
           {page4Overflow && (
@@ -164,106 +196,148 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
             </div>
           )}
 
-{section("info", "Quotation information", <>
-            <label>Reference<input value={q.quotationReference} onChange={e => update("quotationReference", e.target.value)} readOnly={Boolean(q.id)} title={q.id ? "Assigned automatically" : undefined} /></label>
-            <label>Date<input value={q.quotationDate} onChange={e => update("quotationDate", e.target.value)} /></label>
-            <label>Validity<input value={q.validity} onChange={e => update("validity", e.target.value)} /></label>
-          </>)}
+          {step === 1 && (
+            <>
+              <div className="step-heading"><h3>Quotation information</h3><p>Reference, date and validity are printed on the quotation header.</p></div>
+              <label>Reference<input value={q.quotationReference} onChange={e => update("quotationReference", e.target.value)} readOnly={Boolean(q.id)} title={q.id ? "Assigned automatically" : undefined} /></label>
+              <label>Date<input value={q.quotationDate} onChange={e => update("quotationDate", e.target.value)} /></label>
+              <label>Validity<input value={q.validity} onChange={e => update("validity", e.target.value)} /></label>
+            </>
+          )}
 
-          {section("client", "Prepared for", <>
-            {clients.length > 0 && <label>Client source<select value={q.clientId || "new"} onChange={e => e.target.value === "new" ? update("clientId", undefined) : selectClient(e.target.value)}><option value="new">ENTER NEW CLIENT</option>{clients.map(client => <option key={client.id} value={client.id}>{client.companyName}</option>)}</select></label>}
-            {Object.entries(q.client).map(([k, v]) => (
-              <label key={k}>{CLIENT_FIELD_LABELS[k] ?? k}<input value={v} onChange={e => updateClient(k, e.target.value)} /></label>
-            ))}
-            <label className="flex items-center gap-2 normal-case"><input type="checkbox" checked={Boolean(q.saveClientForFuture && !q.clientId)} onChange={e => { setDirty(true); setQ(x => ({ ...x, saveClientForFuture: e.target.checked, clientId: e.target.checked ? undefined : x.clientId })); }} /> SAVE CLIENT FOR FUTURE QUOTATIONS</label>
-          </>)}
+          {step === 2 && (
+            <>
+              <div className="step-heading"><h3>Prepared for</h3><p>Who is this quotation for? These details appear in the quotation header.</p></div>
+              {clients.length > 0 && <label>Client source<select value={q.clientId || "new"} onChange={e => e.target.value === "new" ? update("clientId", undefined) : selectClient(e.target.value)}><option value="new">ENTER NEW CLIENT</option>{clients.map(client => <option key={client.id} value={client.id}>{client.companyName}</option>)}</select></label>}
+              {Object.entries(q.client).map(([k, v]) => (
+                <label key={k}>{CLIENT_FIELD_LABELS[k] ?? k}<input value={v} onChange={e => updateClient(k, e.target.value)} /></label>
+              ))}
+              <label className="flex items-center gap-2 normal-case"><input type="checkbox" checked={Boolean(q.saveClientForFuture && !q.clientId)} onChange={e => { setDirty(true); setQ(x => ({ ...x, saveClientForFuture: e.target.checked, clientId: e.target.checked ? undefined : x.clientId })); }} /> SAVE CLIENT FOR FUTURE QUOTATIONS</label>
+            </>
+          )}
 
-          {section("service", "Service & subject", <>
-            <label>Quotation type
-              <select value={q.serviceType} onChange={e => setService(e.target.value)}>
-                {serviceOptions.map(x => <option key={x}>{x}</option>)}
-              </select>
-            </label>
-            {q.serviceType === "Custom" && <label>Custom service name<input value={q.customServiceType} onChange={e => setCustomService(e.target.value)} /></label>}
-            <label>Subject<input value={q.subject || defaultSubject(q)} onChange={e => { setSubjectEdited(true); update("subject", e.target.value); }} /></label>
-          </>)}
+          {step === 3 && (
+            <>
+              <div className="step-heading"><h3>Service & subject</h3><p>Choose the service type — the subject line is generated automatically.</p></div>
+              <label>Quotation type
+                <select value={q.serviceType} onChange={e => setService(e.target.value)}>
+                  {serviceOptions.map(x => <option key={x}>{x}</option>)}
+                </select>
+              </label>
+              {q.serviceType === "Custom" && <label>Custom service name<input value={q.customServiceType} onChange={e => setCustomService(e.target.value)} /></label>}
+              <label>Subject<input value={q.subject || defaultSubject(q)} onChange={e => { setSubjectEdited(true); update("subject", e.target.value); }} /></label>
+            </>
+          )}
 
-          {section("items", "Price items", <>
-            {q.items.length === 0 ? (
-              <div className="items-empty-state">
-                <p>No price items added yet.</p>
-                <button type="button" className="add-first-item" onClick={addItem}>+ ADD FIRST ITEM</button>
-              </div>
-            ) : (
-              <>
-                <div className="items-list">
-                  {q.items.map((item, n) => {
-                    const errs = itemErrors.get(item.id);
-                    return (
-                      <div className={`editor-item ${errs ? "has-errors" : ""}`} key={item.id}>
-                        <div className="item-heading">
-                          <strong>ITEM {String(n + 1).padStart(2, "0")}</strong>
-                          <button onClick={() => removeItem(item.id)}>Delete</button>
-                        </div>
-                        <label>
-                          Description
-                          <input
-                            ref={el => { if (el) descriptionRefs.current.set(item.id, el); else descriptionRefs.current.delete(item.id); }}
-                            placeholder="Describe the work or material"
-                            value={item.description}
-                            onChange={e => setItem(item.id, "description", e.target.value)}
-                            className={errs?.description ? "field-error" : ""}
-                          />
-                          {errs?.description && <span className="validation-msg">{errs.description}</span>}
-                        </label>
-                        <div className="item-grid">
-                          <label>
-                            Unit
-                            <input value={item.unit} onChange={e => setItem(item.id, "unit", e.target.value)} className={errs?.unit ? "field-error" : ""} />
-                            {errs?.unit && <span className="validation-msg">{errs.unit}</span>}
-                          </label>
-                          <label>
-                            Quantity
-                            <input type="number" min="1" step="1" value={item.quantity} onChange={e => setItem(item.id, "quantity", Number(e.target.value))} className={errs?.quantity ? "field-error" : ""} />
-                            {errs?.quantity && <span className="validation-msg">{errs.quantity}</span>}
-                          </label>
-                          <label>
-                            Rate
-                            <input type="number" min="0" step="0.01" value={item.rate} onChange={e => setItem(item.id, "rate", Number(e.target.value))} className={errs?.rate ? "field-error" : ""} />
-                            {errs?.rate && <span className="validation-msg">{errs.rate}</span>}
-                          </label>
-                        </div>
-                        <div className="item-amount">
-                          Amount <b>{isItemValid(item) ? formatINR(calcAmount(item.quantity, item.rate)) : "—"}</b>
-                        </div>
-                      </div>
-                    );
-                  })}
+          {step === 4 && (
+            <>
+              <div className="step-heading"><h3>Price items</h3><p>List each quoted item with unit, quantity and rate. The template keeps them within the fixed A4 pages.</p></div>
+              {q.items.length === 0 ? (
+                <div className="items-empty-state">
+                  <p>No price items added yet.</p>
+                  <button type="button" className="add-first-item" onClick={addItem}>+ ADD FIRST ITEM</button>
                 </div>
-                <button type="button" className="add-item" onClick={addItem}>+ ADD ITEM</button>
-                <div className="editor-total">Total <b>{formatINR(total)}</b></div>
-              </>
-            )}
-          </>)}
+              ) : (
+                <>
+                  <div className="items-list">
+                    {q.items.map((item, n) => {
+                      const errs = itemErrors.get(item.id);
+                      return (
+                        <div className={`editor-item ${errs ? "has-errors" : ""}`} key={item.id}>
+                          <div className="item-heading">
+                            <strong>ITEM {String(n + 1).padStart(2, "0")}</strong>
+                            <button onClick={() => removeItem(item.id)}>Delete</button>
+                          </div>
+                          <label>
+                            Description
+                            <input
+                              ref={el => { if (el) descriptionRefs.current.set(item.id, el); else descriptionRefs.current.delete(item.id); }}
+                              placeholder="Describe the work or material"
+                              value={item.description}
+                              onChange={e => setItem(item.id, "description", e.target.value)}
+                              className={errs?.description ? "field-error" : ""}
+                            />
+                            {errs?.description && <span className="validation-msg">{errs.description}</span>}
+                          </label>
+                          <div className="item-grid">
+                            <label>
+                              Unit
+                              <input value={item.unit} onChange={e => setItem(item.id, "unit", e.target.value)} className={errs?.unit ? "field-error" : ""} />
+                              {errs?.unit && <span className="validation-msg">{errs.unit}</span>}
+                            </label>
+                            <label>
+                              Quantity
+                              <input type="number" min="1" step="1" value={item.quantity} onChange={e => setItem(item.id, "quantity", Number(e.target.value))} className={errs?.quantity ? "field-error" : ""} />
+                              {errs?.quantity && <span className="validation-msg">{errs.quantity}</span>}
+                            </label>
+                            <label>
+                              Rate
+                              <input type="number" min="0" step="0.01" value={item.rate} onChange={e => setItem(item.id, "rate", Number(e.target.value))} className={errs?.rate ? "field-error" : ""} />
+                              {errs?.rate && <span className="validation-msg">{errs.rate}</span>}
+                            </label>
+                          </div>
+                          <div className="item-amount">
+                            Amount <b>{isItemValid(item) ? formatINR(calcAmount(item.quantity, item.rate)) : "—"}</b>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <button type="button" className="add-item" onClick={addItem}>+ ADD ITEM</button>
+                  <div className="editor-total">Total <b>{formatINR(total)}</b></div>
+                </>
+              )}
 
-          {/* Dev test panel (development only) */}
-          {process.env.NODE_ENV === "development" && (
-            <div className="dev-test-panel">
-              <button className="dev-test-toggle" onClick={() => setShowTestPanel(!showTestPanel)}>
-                {showTestPanel ? "▾ DEV TEST" : "▸ DEV TEST"}
-              </button>
-              {showTestPanel && (
-                <div className="dev-test-buttons">
-                  <span>Load test items:</span>
-                  <button onClick={() => loadTestItems(1)}>1</button>
-                  <button onClick={() => loadTestItems(5)}>5</button>
-                  <button onClick={() => loadTestItems(10)}>10</button>
-                  <button onClick={() => loadTestItems(13)}>13</button>
-                  <button onClick={() => setQ(x => ({ ...x, items: [] }))}>Clear</button>
+              {/* Dev test panel (development only) */}
+              {process.env.NODE_ENV === "development" && (
+                <div className="dev-test-panel">
+                  <button className="dev-test-toggle" onClick={() => setShowTestPanel(!showTestPanel)}>
+                    {showTestPanel ? "▾ DEV TEST" : "▸ DEV TEST"}
+                  </button>
+                  {showTestPanel && (
+                    <div className="dev-test-buttons">
+                      <span>Load test items:</span>
+                      <button onClick={() => loadTestItems(1)}>1</button>
+                      <button onClick={() => loadTestItems(5)}>5</button>
+                      <button onClick={() => loadTestItems(10)}>10</button>
+                      <button onClick={() => loadTestItems(13)}>13</button>
+                      <button onClick={() => setQ(x => ({ ...x, items: [] }))}>Clear</button>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+            </>
           )}
+
+          {step === 5 && (
+            <>
+              <div className="step-heading"><h3>Review & Generate</h3><p>Confirm the details — the STBS template preview updates live on the right. Generate the final PDF when ready.</p></div>
+              <div className="review-block">
+                <div className="review-row"><span>Reference</span><b>{q.quotationReference || "Assigned when saved"}</b></div>
+                <div className="review-row"><span>Date</span><b>{q.quotationDate || "—"}</b></div>
+                <div className="review-row"><span>Validity</span><b>{q.validity || "—"}</b></div>
+                <div className="review-row"><span>Client</span><b>{q.client.companyName || "Not set"}</b></div>
+                <div className="review-row"><span>Service</span><b>{q.serviceType === "Custom" ? q.customServiceType || "—" : q.serviceType}</b></div>
+                <div className="review-row"><span>Subject</span><b>{q.subject || defaultSubject(q)}</b></div>
+                <div className="review-row"><span>Price items</span><b>{validItems.length}</b></div>
+                <div className="review-row total"><span>Total</span><b>{formatINR(total)}</b></div>
+              </div>
+              <div className="review-actions">
+                <button className="generate-pdf" onClick={saveDraft} disabled={saving || q.status === "FINAL"}>{saving ? "Saving..." : "Save Draft"}</button>
+                <button className="generate-pdf save-to-pdf" disabled={!canGenerateQuotation || page4Overflow || message === "Generating PDF..."} title={canGenerateQuotation && !page4Overflow ? "Generate the quotation PDF" : "Complete the quotation and resolve Page 4 overflow first"} onClick={generatePdf}>{message === "Generating PDF..." ? "Generating..." : "Generate PDF"}</button>
+                <button className="generate-pdf" onClick={finalize} disabled={saving || !q.id || q.status === "FINAL"}>Finalize</button>
+              </div>
+              {message && <p className="wizard-msg">{message}</p>}
+            </>
+          )}
+
+          <div className="wizard-nav">
+            <button type="button" className="wizard-back" onClick={goBack} disabled={step === 1}>‹ Back</button>
+            <span className="wizard-hint">{stepError(step) || ""}</span>
+            {step < 5 ? (
+              <button type="button" className="wizard-next" onClick={goNext} disabled={!canProceed}>Next ›</button>
+            ) : null}
+          </div>
         </div>
       </aside>
 

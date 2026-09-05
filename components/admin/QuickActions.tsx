@@ -17,7 +17,7 @@ export function QuickActions() {
       <h2 className="text-xl font-display font-semibold text-white mb-4">Quick Actions</h2>
       <div className="grid grid-cols-2 gap-3">
         {actions.map((action, i) => (
-          <Link key={i} href={`/admin/documents/new?type=${action.type}`}>
+          <Link key={i} href={action.type === 'QUOTATION' ? '/admin/quotations/new' : `/admin/documents/new?type=${action.type}`}>
             <motion.div 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

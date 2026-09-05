@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   FileText,
+  Briefcase,
   Users,
   CheckCircle,
   Building2,
@@ -21,6 +22,7 @@ export interface NavItemDef {
 export const ADMIN_WORK_NAV: NavItemDef[] = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Documents', href: '/admin/documents', icon: FileText },
+  { name: 'Quotations', href: '/admin/quotations', icon: Briefcase },
   { name: 'Clients', href: '/admin/clients', icon: Users },
   { name: 'Approvals', href: '/admin/approvals', icon: CheckCircle },
 ];
