@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
+import { storage } from "@/lib/storage/storage-service";
 import { serialize } from "./types";
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
@@ -34,6 +35,21 @@ function revalidateAdmin() {
 function revalidatePublic() {
   revalidatePath("/", "layout");
   revalidateAdmin();
+}
+
+/**
+ * Best-effort removal of stored media objects (blobs) referenced by URLs.
+ * Intended for CMS deletes so no orphaned blobs accumulate.
+ */
+async function deleteStoredMediaUrls(urls: Array<string | null | undefined>): Promise<void> {
+  for (const url of urls) {
+    if (!url) continue;
+    try {
+      await storage.deleteUrl(url);
+    } catch (error) {
+      console.error("[Website Actions] Failed to delete media:", url, error);
+    }
+  }
 }
 
 // ─── Dashboard Stats ─────────────────────────────────────────────────────────
@@ -407,6 +423,10 @@ export async function updateService(
 
 export async function deleteService(id: string) {
   await requireAuth();
+  const service = await prisma.websiteService.findUnique({ where: { id } });
+  if (service) {
+    await deleteStoredMediaUrls([service.image]);
+  }
   await prisma.websiteService.update({
     where: { id },
     data: { deletedAt: new Date() },
@@ -509,6 +529,10 @@ export async function updateTestimonialApproval(
 
 export async function deleteTestimonial(id: string) {
   await requireAuth();
+  const testimonial = await prisma.websiteTestimonial.findUnique({ where: { id } });
+  if (testimonial) {
+    await deleteStoredMediaUrls([testimonial.photo]);
+  }
   await prisma.websiteTestimonial.update({
     where: { id },
     data: { deletedAt: new Date() },
@@ -619,6 +643,10 @@ export async function unpublishWebsiteClient(id: string) {
 
 export async function deleteWebsiteClient(id: string) {
   await requireAuth();
+  const client = await prisma.websiteClient.findUnique({ where: { id } });
+  if (client) {
+    await deleteStoredMediaUrls([client.logoUrl]);
+  }
   await prisma.websiteClient.update({
     where: { id },
     data: { deletedAt: new Date() },
@@ -730,6 +758,10 @@ export async function unpublishGalleryItem(id: string) {
 
 export async function deleteGalleryItem(id: string) {
   await requireAuth();
+  const item = await prisma.websiteGalleryItem.findUnique({ where: { id } });
+  if (item) {
+    await deleteStoredMediaUrls([item.mediaUrl, item.thumbnailUrl]);
+  }
   await prisma.websiteGalleryItem.update({
     where: { id },
     data: { deletedAt: new Date() },

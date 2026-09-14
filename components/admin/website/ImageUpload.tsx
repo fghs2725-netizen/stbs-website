@@ -38,6 +38,27 @@ export function ImageUpload({
     }
   }
 
+  async function handleRemove(url: string) {
+    setUploading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/website/media", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      if (!res.ok && res.status !== 404) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Failed to remove image");
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Removed from list but storage cleanup failed");
+    } finally {
+      setUploading(false);
+      onChange(null);
+    }
+  }
+
   return (
     <div>
       {label && <label className="admin-label">{label}</label>}
@@ -55,7 +76,7 @@ export function ImageUpload({
             </button>
             <button
               type="button"
-              onClick={() => onChange(null)}
+              onClick={() => handleRemove(value)}
               className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-semibold text-red-400 transition-colors hover:bg-red-500/10"
             >
               <X size={14} /> Remove

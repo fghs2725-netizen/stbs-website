@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { randomUUID } from "crypto";
 import { join, extname } from "path";
 import { mkdir, writeFile, unlink, readdir, stat, access, readFile } from "fs/promises";
+import { put, del, head, list as listBlobs } from "@vercel/blob";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -102,7 +103,7 @@ const MIME_TO_EXT: Record<string, string> = {
 
 function getStorageConfig() {
   return {
-    provider: (process.env.STORAGE_PROVIDER as "local" | "s3" | "r2") || "local",
+    provider: (process.env.STORAGE_PROVIDER as "local" | "s3" | "r2" | "vercel-blob") || "local",
     bucket: process.env.STORAGE_BUCKET || "stbs-storage",
     region: process.env.STORAGE_REGION || "us-east-1",
     accessKey: process.env.STORAGE_ACCESS_KEY || "",
@@ -116,7 +117,7 @@ function getStorageConfig() {
 // ─── Storage Provider Interface ─────────────────────────────────────────────
 
 export interface StorageProvider {
-  upload(key: string, buffer: Buffer, mimeType: string, metadata?: Record<string, string>): Promise<{ etag?: string; versionId?: string }>;
+  upload(key: string, buffer: Buffer, mimeType: string, metadata?: Record<string, string>): Promise<{ etag?: string; versionId?: string; url?: string }>;
   delete(key: string): Promise<void>;
   list(prefix: string, limit?: number): Promise<{ key: string; size: number; lastModified: Date }[]>;
   getSignedUploadUrl(key: string, contentType: string, expiresIn?: number): Promise<{ url: string; fields?: Record<string, string>; expiresAt: Date }>;
@@ -226,10 +227,82 @@ class LocalStorageProvider implements StorageProvider {
   }
 }
 
+// ─── Vercel Blob Provider ────────────────────────────────────────────────────
+//
+// Primary provider for production (Vercel Serverless) website media storage.
+// Blobs are stored with `access: "public"`, so the stored URL is directly
+// usable in renders. The upload URL is captured at `put()` time (the store
+// host cannot be reconstructed from the key alone) and persisted in the
+// StorageFile `metadata.blobUrl` by StorageService.
+//
+// Requires BLOB_READ_WRITE_TOKEN (set in the Vercel dashboard).
+
+class VercelBlobStorageProvider implements StorageProvider {
+  async upload(key: string, buffer: Buffer, mimeType: string, _metadata?: Record<string, string>): Promise<{ etag?: string; url?: string }> {
+    const blob = await put(key, buffer, {
+      access: "public",
+      addRandomSuffix: false,
+      contentType: mimeType,
+      cacheControlMaxAge: 31536000,
+    });
+    return { etag: blob.etag, url: blob.url };
+  }
+
+  async delete(key: string): Promise<void> {
+    try {
+      await del(key);
+    } catch {
+      // Deleting a missing blob is a no-op.
+    }
+  }
+
+  async list(prefix: string, limit = 1000): Promise<{ key: string; size: number; lastModified: Date }[]> {
+    const result = await listBlobs({ prefix, limit });
+    return result.blobs.map((b) => ({
+      key: b.pathname,
+      size: b.size,
+      lastModified: b.uploadedAt,
+    }));
+  }
+
+  async getSignedUploadUrl(key: string, _contentType: string, expiresIn = 3600): Promise<{ url: string; expiresAt: Date }> {
+    // Website media is always uploaded server-side via StorageService.upload().
+    throw new Error("Signed upload URLs are not supported for Vercel Blob; use StorageService.upload().");
+  }
+
+  async getSignedDownloadUrl(key: string, expiresIn = 3600): Promise<{ url: string; expiresAt: Date }> {
+    const blob = await head(key);
+    if (!blob) throw new Error("Blob not found");
+    return { url: blob.downloadUrl, expiresAt: new Date(Date.now() + expiresIn * 1000) };
+  }
+
+  async getMetadata(key: string): Promise<{ size: number; contentType: string; etag?: string } | null> {
+    const blob = await head(key);
+    if (!blob) return null;
+    return { size: blob.size, contentType: blob.contentType, etag: blob.etag };
+  }
+
+  async getObject(key: string): Promise<{ body: Buffer; contentType: string } | null> {
+    const blob = await head(key);
+    if (!blob) return null;
+    const res = await fetch(blob.url);
+    if (!res.ok) return null;
+    return { body: Buffer.from(await res.arrayBuffer()), contentType: blob.contentType };
+  }
+
+  getPublicUrl(key: string): string {
+    // The blob store host is assigned by Vercel and cannot be derived from the
+    // key. Callers must use the URL captured at upload time (metadata.blobUrl).
+    throw new Error("Vercel Blob URLs must be resolved from StorageFile metadata, not the key.");
+  }
+}
+
 // ─── Factory ────────────────────────────────────────────────────────────────
 
 function createProvider(config: ReturnType<typeof getStorageConfig>): StorageProvider {
   switch (config.provider) {
+    case "vercel-blob":
+      return new VercelBlobStorageProvider();
     case "s3":
     case "r2":
       throw new Error(`S3/R2 provider not implemented. Install @aws-sdk/client-s3 and @aws-sdk/s3-request-presigner to enable.`);
@@ -296,7 +369,16 @@ class StorageService {
       }
 
       const key = generateKey(params.entityType, params.entityId, params.originalName);
-      const { etag } = await this.provider.upload(key, params.buffer, params.mimeType);
+      const { etag, url: uploadedUrl } = await this.provider.upload(key, params.buffer, params.mimeType);
+
+      // For providers that hand back a stable public URL (Vercel Blob), persist
+      // it so renders and future lookups (delete/migration) can resolve it.
+      const url = uploadedUrl || this.provider.getPublicUrl(key);
+      const metadata = {
+        ...(params.metadata ? JSON.parse(JSON.stringify(params.metadata)) : {}),
+        provider: this.config.provider,
+        blobUrl: url,
+      };
 
       const dbFile = await prisma.storageFile.create({
         data: {
@@ -310,7 +392,7 @@ class StorageService {
           entityType: params.entityType,
           entityId: params.entityId,
           uploadedById: params.uploadedById || null,
-          metadata: params.metadata ? JSON.parse(JSON.stringify(params.metadata)) : undefined,
+          metadata,
         },
       });
 
@@ -320,7 +402,7 @@ class StorageService {
         success: true,
         fileId: dbFile.id,
         key: dbFile.key,
-        url: this.provider.getPublicUrl(key),
+        url,
         size: dbFile.size,
         mimeType: dbFile.mimeType,
       };
@@ -391,7 +473,8 @@ class StorageService {
   }
 
   /**
-   * Delete a file from storage and remove its database record.
+   * Delete a file: remove the stored object and soft-delete the StorageFile
+   * record (kept for audit/history, marked `deletedAt`).
    */
   async delete(fileId: string): Promise<{ success: boolean; error?: string }> {
     try {
@@ -400,15 +483,57 @@ class StorageService {
         return { success: false, error: "File not found" };
       }
 
-      await this.provider.delete(file.key);
+      if (!file.deletedAt) {
+        await this.provider.delete(file.key);
 
-      await prisma.storageFile.delete({ where: { id: fileId } });
+        await prisma.storageFile.update({
+          where: { id: fileId },
+          data: { deletedAt: new Date() },
+        });
 
-      await this.updateQuota(file.entityType || "unknown", file.entityId || "unknown", -file.size, -1);
+        await this.updateQuota(file.entityType || "unknown", file.entityId || "unknown", -file.size, -1);
+      }
 
       return { success: true };
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error deleting file";
+      return { success: false, error: message };
+    }
+  }
+
+  /**
+   * Resolve a storage key from a public URL (blob URL or legacy local path).
+   */
+  private urlToKey(url: string): string | null {
+    const LOCAL_PREFIX = "/api/storage/local/";
+    try {
+      if (url.startsWith(LOCAL_PREFIX)) {
+        return decodeURIComponent(url.slice(LOCAL_PREFIX.length));
+      }
+      const parsed = new URL(url);
+      return parsed.pathname.replace(/^\//, "");
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Delete a website media file by its public URL (blob URL or local path).
+   * Used when an admin removes an image from the CMS.
+   */
+  async deleteUrl(url: string): Promise<{ success: boolean; deleted?: boolean; error?: string }> {
+    try {
+      const key = this.urlToKey(url);
+      if (!key) return { success: false, error: "Invalid media URL" };
+
+      const file = await prisma.storageFile.findUnique({ where: { key } });
+      if (!file) return { success: false, error: "Storage record not found" };
+      if (file.entityType !== "website") return { success: false, error: "Not a website media file" };
+
+      const result = await this.delete(file.id);
+      return { ...result, deleted: result.success };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error deleting media";
       return { success: false, error: message };
     }
   }
