@@ -5,13 +5,22 @@ import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import { Button } from "@/components/ui/button";
 import { company } from "@/lib/company";
+import { PageRenderer } from "@/components/public/page-renderer";
+import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
+import { absolutePath } from "@/lib/site-url";
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description: "Contact Saini Tubewell Boring Service to discuss borewell and tubewell requirements. Call, email, or request a quote.",
-};
+export const dynamic = "force-dynamic";
 
-export default function Contact() {
+const SLUG = "contact";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const meta = await getPublishedPageMeta(SLUG);
+  const canonical = { alternates: { canonical: absolutePath("/contact") } };
+  if (meta && meta.seoTitle) return { title: meta.seoTitle, description: meta.metaDescription ?? undefined, ...canonical };
+  return { title: "Contact", description: "Contact Saini Tubewell Boring Service to discuss borewell and tubewell requirements. Call, email, or request a quote.", ...canonical };
+}
+
+function ContactStatic() {
   return (
     <>
       <PageHero
@@ -89,4 +98,12 @@ export default function Contact() {
       </section>
     </>
   );
+}
+
+export default async function Contact() {
+  const cmsPage = await getPublishedPage(SLUG);
+  if (cmsPage && cmsPage.sections.length > 0) {
+    return <PageRenderer sections={cmsPage.sections.map((s) => ({ type: s.type, content: s.content as Record<string, unknown> }))} />;
+  }
+  return <ContactStatic />;
 }

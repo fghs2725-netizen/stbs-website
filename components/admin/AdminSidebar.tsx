@@ -1,11 +1,11 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
-import { ADMIN_WORK_NAV, ADMIN_SYSTEM_NAV, NavItemDef } from './nav-items';
+import { ADMIN_WORK_NAV, ADMIN_WEBSITE_NAV, ADMIN_SYSTEM_NAV, NavItemDef } from './nav-items';
 
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -61,6 +61,11 @@ export function AdminSidebar() {
         <div className="mb-6">
           {!collapsed && <div className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Work</div>}
           {ADMIN_WORK_NAV.map((item) => <NavItem key={item.name} item={item} />)}
+        </div>
+
+        <div className="mb-6">
+          {!collapsed && <div className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Website</div>}
+          {ADMIN_WEBSITE_NAV.map((item) => <NavItem key={item.name} item={item} />)}
         </div>
 
         <div>

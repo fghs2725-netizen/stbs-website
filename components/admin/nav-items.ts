@@ -10,6 +10,7 @@ import {
   BarChart3,
   Activity,
   Settings,
+  Globe,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -25,6 +26,10 @@ export const ADMIN_WORK_NAV: NavItemDef[] = [
   { name: 'Quotations', href: '/admin/quotations', icon: Briefcase },
   { name: 'Clients', href: '/admin/clients', icon: Users },
   { name: 'Approvals', href: '/admin/approvals', icon: CheckCircle },
+];
+
+export const ADMIN_WEBSITE_NAV: NavItemDef[] = [
+  { name: 'Website', href: '/admin/website', icon: Globe },
 ];
 
 export const ADMIN_SYSTEM_NAV: NavItemDef[] = [

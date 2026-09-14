@@ -22,17 +22,6 @@ export const services = [
   { title: "Tubewell Construction", icon: Construction, text: "End-to-end tubewell construction with disciplined execution, quality materials and site coordination." },
 ];
 
-export const gallery = [
-  { src: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=85", alt: "Industrial drilling equipment", label: "Drilling Operations", category: "Drilling" },
-  { src: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=85", alt: "Industrial engineering work", label: "Site Engineering", category: "Machines" },
-  { src: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1200&q=85", alt: "Construction site", label: "Project Execution", category: "Installation" },
-  { src: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=85", alt: "Construction professionals on site", label: "Field Team", category: "Workers" },
-  { src: "https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=1200&q=85", alt: "Completed water project", label: "Finished Borewell", category: "Completed Projects" },
-  { src: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=85", alt: "Satisfied client review", label: "Client Feedback", category: "Clients" },
-  { src: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=85", alt: "Drilling rig in action", label: "Machinery at Work", category: "Machines" },
-  { src: "https://images.unsplash.com/photo-1519691510287-9fafbf2f061e?auto=format&fit=crop&w=1200&q=85", alt: "Rainwater harvesting tank", label: "Recharge System", category: "Installation" },
-];
-
 export const trustItems = [
   { label: "Years of Experience", value: "34+" },
   { label: "Projects Completed", value: "1200+" },
@@ -49,14 +38,6 @@ export const whyChoose = [
   { title: "Experienced Team", text: "Skilled operators and site supervisors who own the work end to end." },
   { title: "Reliable Support", text: "Responsive coordination before, during and after the project is handed over." },
   { title: "Quality Materials", text: "Durable pipes, casing and components selected for long-term performance." },
-];
-
-export const testimonials = [
-  { name: "Project Manager", location: "Sonipat", project: "Borewell Drilling 200ft", rating: 5, quote: "The team delivered on time with professional coordination. Water flow is excellent and the site was left clean." },
-  { name: "Facilities Head", location: "Panipat", project: "Rainwater Harvesting", rating: 4, quote: "Good recharge system installation. Helps with groundwater management during dry seasons." },
-  { name: "Operations Lead", location: "Kundli", project: "Tubewell Construction", rating: 5, quote: "Quality materials used and work completed as per specifications. Responsive after-service support." },
-  { name: "Site Engineer", location: "Rohtak", project: "Borewell Material Supply", rating: 4, quote: "Materials arrived on schedule and were of good quality. Helped keep our project timeline on track." },
-  { name: "Maintenance Manager", location: "Gurugram", project: "Completed Project Review", rating: 5, quote: "After 2 years, the borewell still provides consistent water output. Maintenance has been straightforward." },
 ];
 
 export const processSteps = [

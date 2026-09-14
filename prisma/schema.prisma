@@ -719,3 +719,243 @@ enum EmailStatus {
   FAILED
   BOUNCED
 }
+
+// ─── Website CMS ─────────────────────────────────────────────────────────────
+
+enum WebsitePageStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum TestimonialApproval {
+  DRAFT
+  VERIFIED
+  APPROVED
+}
+
+enum ImageSourceType {
+  REAL_PROJECT
+  STOCK
+  GENERATED
+  ILLUSTRATION
+}
+
+model WebsitePage {
+  id              String            @id @default(cuid())
+  name            String
+  slug            String            @unique
+  title           String?
+  seoTitle        String?
+  metaDescription String?           @db.Text
+  ogTitle         String?
+  ogDescription   String?           @db.Text
+  ogImage         String?
+  status          WebsitePageStatus @default(DRAFT)
+  sortOrder       Int               @default(0)
+  hideFromNav     Boolean           @default(false)
+  sections        WebsiteSection[]
+  publishedAt     DateTime?
+  lastEditedBy    String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
+
+  @@index([slug])
+  @@index([status])
+  @@index([sortOrder])
+}
+
+model WebsiteSection {
+  id               String            @id @default(cuid())
+  pageId           String
+  page             WebsitePage       @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  type             String
+  name             String
+  description      String?
+  content          Json              @default("{}")
+  publishedContent Json?
+  position         Int               @default(0)
+  visible          Boolean           @default(true)
+  publishedAt      DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+
+  @@index([pageId, position])
+  @@index([type])
+}
+
+model WebsiteService {
+  id               String            @id @default(cuid())
+  title            String
+  slug             String            @unique
+  shortDescription String?           @db.Text
+  fullDescription  String?           @db.Text
+  features         Json?
+  faqs             Json?
+  ctaText          String?
+  ctaUrl           String?
+  image            String?
+  icon             String?
+  seoTitle         String?
+  seoDescription   String?           @db.Text
+  position         Int               @default(0)
+  visible          Boolean           @default(true)
+  status           WebsitePageStatus @default(DRAFT)
+  publishedAt      DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+
+  @@index([slug])
+  @@index([status])
+  @@index([position])
+}
+
+model WebsiteTestimonial {
+  id            String              @id @default(cuid())
+  personName    String
+  designation   String?
+  company       String?
+  location      String?
+  project       String?
+  quote         String              @db.Text
+  rating        Int?                @default(5)
+  photo         String?
+  approval      TestimonialApproval @default(DRAFT)
+  approvalNote  String?
+  sourceNote    String?
+  position      Int                 @default(0)
+  visible       Boolean             @default(true)
+  publishedAt   DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  deletedAt     DateTime?
+
+  @@index([approval])
+  @@index([position])
+}
+
+model WebsiteClient {
+  id          String            @id @default(cuid())
+  name        String
+  logoUrl     String?
+  websiteUrl  String?
+  altText     String?
+  description String?
+  sector      String?
+  featured      Boolean           @default(false)
+  position      Int               @default(0)
+  visible       Boolean           @default(true)
+  status        WebsitePageStatus @default(DRAFT)
+  publishedData Json?
+  publishedAt   DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  deletedAt     DateTime?
+
+  @@index([position])
+  @@index([featured])
+  @@index([status])
+}
+
+model WebsiteGalleryItem {
+  id           String            @id @default(cuid())
+  mediaUrl     String
+  thumbnailUrl String?
+  caption      String?
+  altText      String?
+  category     String?
+  sourceType   ImageSourceType   @default(REAL_PROJECT)
+  featured     Boolean           @default(false)
+  position     Int               @default(0)
+  visible      Boolean           @default(true)
+  status       WebsitePageStatus @default(DRAFT)
+  publishedData Json?
+  publishedAt  DateTime?
+  width        Int?
+  height       Int?
+  fileSize     Int?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  deletedAt    DateTime?
+
+  @@index([category])
+  @@index([position])
+  @@index([visible])
+  @@index([status])
+}
+
+model WebsiteNavItem {
+  id         String            @id @default(cuid())
+  label      String
+  url        String
+  position   Int               @default(0)
+  visible    Boolean           @default(true)
+  openNewTab Boolean           @default(false)
+  parentId   String?
+  status     WebsitePageStatus @default(DRAFT)
+  publishedData Json?
+  publishedAt DateTime?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  deletedAt  DateTime?
+
+  @@index([position])
+  @@index([parentId])
+  @@index([status])
+}
+
+model WebsiteSettings {
+  id                String    @id @default(cuid())
+  businessName      String?
+  shortDescription  String?   @db.Text
+  phone             String?
+  phone2            String?
+  whatsapp          String?
+  email             String?
+  addressLine1      String?
+  addressLine2      String?
+  city              String?
+  state             String?
+  pinCode           String?
+  googleMapsUrl     String?   @db.Text
+  googleBusinessUrl String?
+  serviceArea       String?
+  businessHours     Json?
+  websiteUrl        String?
+  primaryLogoUrl    String?
+  lightLogoUrl      String?
+  darkLogoUrl       String?
+  mobileLogoUrl     String?
+  faviconUrl        String?
+  defaultOgImage    String?
+  footerContent     String?   @db.Text
+  copyrightText     String?
+  founderName       String?
+  founderTitle      String?
+  founderBio        String?   @db.Text
+  founderPhoto      String?
+  mission           String?   @db.Text
+  vision            String?   @db.Text
+  publishedData     Json?
+  publishedAt       DateTime?
+  updatedAt         DateTime  @updatedAt
+}
+
+model WebsiteSeo {
+  id                 String    @id @default(cuid())
+  globalTitle        String?
+  globalDescription  String?   @db.Text
+  defaultOgImage     String?
+  twitterTitle       String?
+  twitterDescription String?   @db.Text
+  twitterImage       String?
+  canonicalUrl       String?
+  robotsSettings     String?
+  structuredData     Json?
+  publishedData      Json?
+  publishedAt        DateTime?
+  updatedAt          DateTime  @updatedAt
+}
+

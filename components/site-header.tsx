@@ -6,8 +6,12 @@ import { useState } from "react";
 import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { usePathname } from "next/navigation";
 
-const links = ["About", "Services", "Clients", "Gallery", "Contact"];
-export function SiteHeader() {
+const DEFAULT_LINKS = ["About", "Services", "Clients", "Gallery", "Contact"];
+
+export function SiteHeader({ navLinks, businessName }: { navLinks?: Array<{ label: string; href: string }>; businessName?: string }) {
+  const links = navLinks?.length
+    ? navLinks.filter(l => !l.href.startsWith("/admin") && !l.href.startsWith("/quote")).map(l => l.label)
+    : DEFAULT_LINKS;
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
@@ -16,7 +20,7 @@ export function SiteHeader() {
 
   return <motion.header initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: .6, ease: [0.22, 1, 0.36, 1] }} className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-500 ${scrolled || open ? "border-white/10 bg-black/85 shadow-[0_18px_70px_rgba(0,0,0,.35)] backdrop-blur-xl" : "border-white/0 bg-black/25 backdrop-blur-sm"}`}>
     <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
-      <Link href="/" className="flex items-center gap-3" aria-label="Saini Tubewell home">
+      <Link href="/" className="flex items-center gap-3" aria-label={businessName && businessName.length > 0 ? `${businessName} home` : "Home"}>
         <motion.span animate={{ scale: scrolled ? .94 : 1 }} transition={{ duration: .35 }} className="relative block h-[68px] w-44">
           <Image src="/stbs-logo-only.png" alt="STBS logo" fill className="object-contain object-left" sizes="176px" priority />
         </motion.span>
@@ -24,7 +28,7 @@ export function SiteHeader() {
       <nav className="hidden items-center gap-7 lg:flex" aria-label="Main navigation">
         <div className="flex items-center gap-1">
           {links.map(link => {
-          const href = `/${link.toLowerCase()}`;
+          const href = navLinks?.length ? (navLinks.find(l => l.label === link)?.href ?? `/${link.toLowerCase()}`) : `/${link.toLowerCase()}`;
           const active = pathname === href || (href !== "/about" && pathname.startsWith(`${href}/`));
             return <Link key={link} href={href} className={`group relative px-3 py-2 text-[11px] font-semibold uppercase tracking-[.13em] transition-colors duration-300 ${active ? "text-white" : "text-white/55 hover:text-white"}`}>
             {link}
@@ -37,6 +41,9 @@ export function SiteHeader() {
       </nav>
       <button className="text-white lg:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu">{open ? <X/> : <Menu/>}</button>
     </div>
-    {open && <nav className="border-t border-white/10 bg-black px-5 py-6 lg:hidden">{[...links, "Quote", "Admin"].map(link => <Link onClick={() => setOpen(false)} key={link} href={`/${link.toLowerCase()}`} className="block border-b border-white/10 py-4 font-display text-2xl uppercase text-white">{link}</Link>)}</nav>}
+    {open && <nav className="border-t border-white/10 bg-black px-5 py-6 lg:hidden">{[...links, "Quote", "Admin"].map(link => {
+      const href = navLinks?.length ? (navLinks.find(l => l.label === link)?.href ?? `/${link.toLowerCase()}`) : `/${link.toLowerCase()}`;
+      return <Link onClick={() => setOpen(false)} key={link} href={href} className="block border-b border-white/10 py-4 font-display text-2xl uppercase text-white">{link}</Link>;
+    })}</nav>}
   </motion.header>;
 }

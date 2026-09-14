@@ -5,7 +5,7 @@ import { ArrowDown, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/reveal";
-import { company, gallery, services, trustItems, whyChoose, testimonials, processSteps } from "@/lib/company";
+import { company, services, trustItems, whyChoose, processSteps } from "@/lib/company";
 
 function WhyChooseCard({ item, i }: { item: typeof whyChoose[0]; i: number }) {
   return (
@@ -20,25 +20,6 @@ function WhyChooseCard({ item, i }: { item: typeof whyChoose[0]; i: number }) {
       <p className="font-display text-2xl font-bold uppercase leading-tight text-signal">{item.title}</p>
       <p className="mt-3 text-sm leading-7 text-white/65">{item.text}</p>
     </motion.div>
-  );
-}
-
-function TestimonialCard({ item }: { item: typeof testimonials[0] }) {
-  return (
-    <div className="flex flex-col gap-6 border border-white/10 bg-white/5 p-8">
-      <div className="flex items-center gap-2">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <span key={i} className={`text-sm ${i < item.rating ? "text-signal" : "text-white/20"}`}>★</span>
-        ))}
-      </div>
-      <blockquote className="text-base leading-7 text-white/80">
-        &quot;{item.quote}&quot;
-      </blockquote>
-      <div className="mt-auto">
-        <p className="font-bold text-white">{item.name}</p>
-        <p className="text-xs uppercase tracking-wider text-white/50">{item.location} • {item.project}</p>
-      </div>
-    </div>
   );
 }
 
@@ -227,72 +208,6 @@ export function HomePage() {
                   </div>
                   <h3 className="font-display text-3xl font-semibold uppercase">{s.title}</h3>
                   <p className="text-sm leading-7 text-white/60">{s.text}</p>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="bg-black px-5 py-24 lg:px-8 lg:py-32">
-        <div className="mx-auto max-w-7xl">
-          <Reveal>
-            <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end">
-              <div>
-                <p className="mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">Client voices</p>
-                <h2 className="font-display text-5xl font-bold uppercase leading-none sm:text-7xl">
-                  What they say
-                </h2>
-              </div>
-              <p className="max-w-md text-sm leading-7 text-white/50">
-                Project feedback gathered from work across Haryana and NCR.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {testimonials.map((t) => (
-              <Reveal key={t.name}>
-                <TestimonialCard item={t} />
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Gallery Preview */}
-      <section className="bg-black px-5 pb-24 lg:px-8 lg:pb-32">
-        <div className="mx-auto max-w-7xl">
-          <Reveal>
-            <div className="mb-12 flex items-end justify-between">
-              <div>
-                <p className="mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">From the field</p>
-                <h2 className="font-display text-5xl font-bold uppercase sm:text-7xl">
-                  Work in motion
-                </h2>
-              </div>
-              <Link href="/gallery" className="hidden items-center gap-2 text-xs font-bold uppercase tracking-widest text-signal md:flex">
-                View gallery <ArrowRight size={16} />
-              </Link>
-            </div>
-          </Reveal>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" style={{ gridAutoRows: "240px" }}>
-            {gallery.slice(0, 6).map((item, i) => (
-              <Reveal key={item.label} delay={i * 0.05}>
-                <Link href="/gallery" className="group relative overflow-hidden">
-                  <Image
-                    src={item.src}
-                    alt={item.alt}
-                    fill
-                    className="object-cover grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0"
-                    sizes="(max-width:768px) 100vw,33vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
-                  <p className="absolute bottom-4 left-4 font-display text-xl uppercase text-white transition group-hover:text-signal">
-                    {item.label}
-                  </p>
                 </Link>
               </Reveal>
             ))}

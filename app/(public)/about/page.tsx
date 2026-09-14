@@ -3,13 +3,22 @@ import Image from "next/image";
 import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import { company, foundingYear, founderName, founderTitle, founderBio } from "@/lib/company";
+import { PageRenderer } from "@/components/public/page-renderer";
+import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
+import { absolutePath } from "@/lib/site-url";
 
-export const metadata: Metadata = {
-  title: "About",
-  description: "Learn about Saini Tubewell Boring Service, providing professional water infrastructure services since 1992.",
-};
+export const dynamic = "force-dynamic";
 
-export default function About() {
+const SLUG = "about";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const meta = await getPublishedPageMeta(SLUG);
+  const canonical = { alternates: { canonical: absolutePath("/about") } };
+  if (meta && meta.seoTitle) return { title: meta.seoTitle, description: meta.metaDescription ?? undefined, ...canonical };
+  return { title: "About", description: "Learn about Saini Tubewell Boring Service, providing professional water infrastructure services since 1992.", ...canonical };
+}
+
+function AboutStatic() {
   return (
     <>
       <PageHero
@@ -178,4 +187,12 @@ export default function About() {
       </section>
     </>
   );
+}
+
+export default async function About() {
+  const cmsPage = await getPublishedPage(SLUG);
+  if (cmsPage && cmsPage.sections.length > 0) {
+    return <PageRenderer sections={cmsPage.sections.map((s) => ({ type: s.type, content: s.content as Record<string, unknown> }))} />;
+  }
+  return <AboutStatic />;
 }

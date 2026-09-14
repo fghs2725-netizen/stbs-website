@@ -14,6 +14,8 @@ services:
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
       - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      - STORAGE_PROVIDER=local
+      - STORAGE_LOCAL_DIR=/app/uploads/storage
       - STORAGE_ENDPOINT=${STORAGE_ENDPOINT}
       - STORAGE_BUCKET=${STORAGE_BUCKET:-stbs-documents}
       - STORAGE_REGION=${STORAGE_REGION:-ap-south-1}

@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "test:quotation": "npx tsx scripts/test-quotation-validation.ts",
+    "test:website": "npx tsx scripts/test-website-config.ts",
+    "test:storage": "npx tsx scripts/test-storage-e2e.ts",
+    "test:publish": "npx tsx scripts/test-publish-e2e.ts",
     "validate-env": "npx tsx scripts/validate-env.ts"
   },
   "dependencies": {

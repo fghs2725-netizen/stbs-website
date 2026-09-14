@@ -50,6 +50,9 @@ coverage/
 skills-lock.json
 project_structure.json
 
+# local storage uploads
+.storage/
+
 # local dev artifacts
 site_pic/
 founder/

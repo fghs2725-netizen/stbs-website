@@ -19,7 +19,7 @@ if (process.env.NODE_ENV === "production") {
 const nextConfig: NextConfig = {
   outputFileTracingIncludes: { "/*": ["./node_modules/@sparticuz/chromium/bin/**"] },
   images: {
-    remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }, { protocol: "https", hostname: "logo.clearbit.com" }],
+    remotePatterns: [],
   },
   async headers() {
     return [

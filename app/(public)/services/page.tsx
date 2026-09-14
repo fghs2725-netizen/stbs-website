@@ -5,6 +5,29 @@ import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import { Button } from "@/components/ui/button";
 import { services } from "@/lib/company";
-export const metadata: Metadata = { title: "Services", description: "Borewell drilling, rainwater harvesting, borewell material supply and tubewell construction services." };
+import { PageRenderer } from "@/components/public/page-renderer";
+import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
+import { absolutePath } from "@/lib/site-url";
+
+export const dynamic = "force-dynamic";
+
+const SLUG = "services";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const meta = await getPublishedPageMeta(SLUG);
+  const canonical = { alternates: { canonical: absolutePath("/services") } };
+  if (meta && meta.seoTitle) return { title: meta.seoTitle, description: meta.metaDescription ?? undefined, ...canonical };
+  return { title: "Services", description: "Borewell drilling, rainwater harvesting, borewell material supply and tubewell construction services.", ...canonical };
+}
+
 const details = [["Site-aware drilling approach","Depth and requirement planning","Coordinated field execution"],["Groundwater recharge focus","Practical system planning","Site-suitable implementation"],["Essential borewell components","Durability-focused selection","Coordinated supply support"],["End-to-end construction","Material and site coordination","Performance-led execution"]];
-export default function Services() { return <><PageHero eyebrow="Capabilities" title="One partner. Four core services." text="Integrated support for drilling, water conservation, material requirements and tubewell construction."/><section className="bg-neutral-100 px-5 py-24 text-black lg:px-8"><div className="mx-auto max-w-7xl space-y-5">{services.map((s,i)=><Reveal key={s.title}><article className="grid border border-black/10 bg-white lg:grid-cols-[150px_1fr_1fr]"><div className="flex items-center justify-between bg-black p-7 text-white lg:flex-col"><s.icon size={42} className="text-signal" strokeWidth={1.4}/><span className="font-display text-5xl text-white/20">0{i+1}</span></div><div className="p-8 lg:p-12"><h2 className="font-display text-4xl font-bold uppercase">{s.title}</h2><p className="mt-5 max-w-xl leading-7 text-black/55">{s.text}</p></div><div className="border-t border-black/10 p-8 lg:border-l lg:border-t-0 lg:p-12">{details[i].map(x=><p key={x} className="mb-4 flex items-center gap-3 text-sm font-semibold"><span className="grid size-6 place-items-center bg-signal"><Check size={14}/></span>{x}</p>)}</div></article></Reveal>)}</div></section><section className="bg-signal px-5 py-20 text-black"><div className="mx-auto flex max-w-7xl flex-col justify-between gap-8 md:flex-row md:items-center"><h2 className="font-display text-5xl font-bold uppercase">Discuss your site requirements.</h2><Button asChild variant="dark" size="lg"><Link href="/quote">Request quote <ArrowRight size={17}/></Link></Button></div></section></> }
+function ServicesStatic() {
+  return <><PageHero eyebrow="Capabilities" title="One partner. Four core services." text="Integrated support for drilling, water conservation, material requirements and tubewell construction."/><section className="bg-neutral-100 px-5 py-24 text-black lg:px-8"><div className="mx-auto max-w-7xl space-y-5">{services.map((s,i)=><Reveal key={s.title}><article className="grid border border-black/10 bg-white lg:grid-cols-[150px_1fr_1fr]"><div className="flex items-center justify-between bg-black p-7 text-white lg:flex-col"><s.icon size={42} className="text-signal" strokeWidth={1.4}/><span className="font-display text-5xl text-white/20">0{i+1}</span></div><div className="p-8 lg:p-12"><h2 className="font-display text-4xl font-bold uppercase">{s.title}</h2><p className="mt-5 max-w-xl leading-7 text-black/55">{s.text}</p></div><div className="border-t border-black/10 p-8 lg:border-l lg:border-t-0 lg:p-12">{details[i].map(x=><p key={x} className="mb-4 flex items-center gap-3 text-sm font-semibold"><span className="grid size-6 place-items-center bg-signal"><Check size={14}/></span>{x}</p>)}</div></article></Reveal>)}</div></section><section className="bg-signal px-5 py-20 text-black"><div className="mx-auto flex max-w-7xl flex-col justify-between gap-8 md:flex-row md:items-center"><h2 className="font-display text-5xl font-bold uppercase">Discuss your site requirements.</h2><Button asChild variant="dark" size="lg"><Link href="/quote">Request quote <ArrowRight size={17}/></Link></Button></div></section></>;
+}
+export default async function Services() {
+  const cmsPage = await getPublishedPage(SLUG);
+  if (cmsPage && cmsPage.sections.length > 0) {
+    return <PageRenderer sections={cmsPage.sections.map((s) => ({ type: s.type, content: s.content as Record<string, unknown> }))} />;
+  }
+  return <ServicesStatic/>;
+}

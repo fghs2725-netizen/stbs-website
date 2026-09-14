@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { company } from "@/lib/company";
 
-export function WhatsAppFloat() {
+export function WhatsAppFloat({ phone }: { phone?: string }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -15,7 +14,12 @@ export function WhatsAppFloat() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const href = `https://wa.me/91${company.phones[0]}?text=Hello%20Saini%20Tubewell,%20I'd%20like%20to%20discuss%20a%20project.`;
+  const number = phone;
+  // When the admin has cleared the WhatsApp/phone numbers, do not show a
+  // hardcoded fallback number on the floating action button.
+  if (!number) return null;
+
+  const href = `https://wa.me/91${number}?text=Hello%20Saini%20Tubewell,%20I'd%20like%20to%20discuss%20a%20project.`;
 
   return (
     <AnimatePresence>

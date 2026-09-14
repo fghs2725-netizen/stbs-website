@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { randomUUID } from "crypto";
 import { join, extname } from "path";
-import { mkdir, writeFile, unlink, readdir, stat, access } from "fs/promises";
+import { mkdir, writeFile, unlink, readdir, stat, access, readFile } from "fs/promises";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -122,12 +122,16 @@ export interface StorageProvider {
   getSignedUploadUrl(key: string, contentType: string, expiresIn?: number): Promise<{ url: string; fields?: Record<string, string>; expiresAt: Date }>;
   getSignedDownloadUrl(key: string, expiresIn?: number): Promise<{ url: string; expiresAt: Date }>;
   getMetadata(key: string): Promise<{ size: number; contentType: string; etag?: string } | null>;
+  getObject(key: string): Promise<{ body: Buffer; contentType: string } | null>;
   getPublicUrl(key: string): string;
 }
 
 // ─── Local Filesystem Provider ──────────────────────────────────────────────
 
-const LOCAL_STORAGE_ROOT = join(process.cwd(), ".storage");
+// Configurable via STORAGE_LOCAL_DIR so deployments can point it at a
+// persistent, volume-mounted directory (see docker-compose.yml).
+const LOCAL_STORAGE_ROOT =
+  process.env.STORAGE_LOCAL_DIR || join(process.cwd(), ".storage");
 
 class LocalStorageProvider implements StorageProvider {
   private bucketDir: string;
@@ -207,8 +211,18 @@ class LocalStorageProvider implements StorageProvider {
     }
   }
 
+  async getObject(key: string): Promise<{ body: Buffer; contentType: string } | null> {
+    const filePath = this.getFilePath(key);
+    try {
+      const body = await readFile(filePath);
+      return { body, contentType: "application/octet-stream" };
+    } catch {
+      return null;
+    }
+  }
+
   getPublicUrl(key: string): string {
-    return `/api/storage/local/${encodeURIComponent(key)}`;
+    return `/api/storage/local/${key}`;
   }
 }
 
@@ -458,6 +472,17 @@ class StorageService {
       createdAt: file.createdAt,
       updatedAt: file.updatedAt,
     };
+  }
+
+  /**
+   * Read a raw object (public media streaming).
+   */
+  async getObject(key: string): Promise<{ body: Buffer; contentType: string } | null> {
+    const provider = this.provider;
+    const file = await prisma.storageFile.findUnique({ where: { key } });
+    const obj = await provider.getObject(key);
+    if (!obj) return null;
+    return { body: obj.body, contentType: file?.mimeType || "application/octet-stream" };
   }
 
   /**
