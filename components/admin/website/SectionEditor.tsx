@@ -5,36 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Plus, Trash2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ImageUpload } from "./ImageUpload";
 import { ConfirmButton } from "./ConfirmButton";
+import { FieldInput } from "./field-input";
 import { SectionTypeDef, SECTION_TYPES, SECTION_TYPE_DEFS, type SectionField } from "@/lib/website/section-types";
 import type { SerializedSection, SerializedPage } from "@/lib/website/action-types";
 import { updateSectionContent, updateSectionMeta, deleteSection, toggleSectionVisibility, duplicateSection } from "@/lib/website/actions";
-
-function FieldInput({ field, value, onChange }: { field: SectionField; value: unknown; onChange: (v: string) => void }) {
-  const str = typeof value === "string" ? value : "";
-  if (field.type === "image") {
-    return <ImageInput value={str} onChange={onChange} />;
-  }
-  if (field.type === "textarea") {
-    return <textarea className="admin-input min-h-28 resize-y" value={str} placeholder={field.placeholder} onChange={(e) => onChange(e.target.value)} />;
-  }
-  if (field.type === "select" && field.options?.length) {
-    return (
-      <select className="admin-input" value={str} onChange={(e) => onChange(e.target.value)}>
-        <option value="">Not set</option>
-        {field.options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-    );
-  }
-  return <input className="admin-input" type={field.type === "number" ? "number" : "text"} value={str} placeholder={field.placeholder} onChange={(e) => onChange(e.target.value)} />;
-}
-
-function ImageInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return <ImageUpload label="" value={value || null} onChange={(url) => onChange(url ?? "")} hint="Upload an image or paste a URL." />;
-}
 
 export function SectionEditor({ page, section }: { page: SerializedPage; section: SerializedSection }) {
   const router = useRouter();

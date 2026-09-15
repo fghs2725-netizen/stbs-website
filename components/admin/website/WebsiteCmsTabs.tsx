@@ -31,6 +31,10 @@ export function WebsiteCmsTabs() {
   const isActive = (tab: (typeof CMS_TABS)[number]) =>
     tab.exact ? pathname === tab.href : pathname.startsWith(tab.href);
 
+  // The visual editor owns /admin/website. The classic split-pane CMS screens
+  // are reachable one level down and keep this tab bar.
+  if (pathname === "/admin/website") return null;
+
   return (
     <div className="flex flex-wrap gap-1 overflow-x-auto rounded-xl border border-white/[.08] bg-[#141416] p-1.5 lg:flex-nowrap">
       {CMS_TABS.map((tab) => (

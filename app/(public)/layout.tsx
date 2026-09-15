@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
-import { WhatsAppFloat } from "@/components/whatsapp-float";
+import { WebsiteFrame } from "@/components/website/website-frame";
 import { getPublicSiteConfig } from "@/lib/website/public-config";
 import { getPublicSeoMetadata } from "@/lib/website/seo";
 
@@ -14,11 +12,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PublicLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const { navLinks, settings, phone } = await getPublicSiteConfig();
   return (
-    <>
-      <SiteHeader navLinks={navLinks} businessName={settings.businessName ?? undefined} />
-      <main>{children}</main>
-      <SiteFooter settings={settings} navLinks={navLinks} />
-      <WhatsAppFloat phone={phone} />
-    </>
+    <WebsiteFrame navLinks={navLinks} settings={settings} phone={phone}>
+      {children}
+    </WebsiteFrame>
   );
 }

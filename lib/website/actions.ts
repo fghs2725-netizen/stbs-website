@@ -743,6 +743,7 @@ export async function publishGalleryItem(id: string) {
     data: { status: "PUBLISHED", publishedAt: new Date(), publishedData },
   });
   revalidateAdmin();
+  revalidatePath("/gallery");
   return serialize(result);
 }
 
@@ -753,6 +754,7 @@ export async function unpublishGalleryItem(id: string) {
     data: { status: "DRAFT", publishedAt: null, publishedData: Prisma.DbNull },
   });
   revalidateAdmin();
+  revalidatePath("/gallery");
   return serialize(result);
 }
 
@@ -767,6 +769,7 @@ export async function deleteGalleryItem(id: string) {
     data: { deletedAt: new Date() },
   });
   revalidateAdmin();
+  revalidatePath("/gallery");
 }
 
 export async function reorderGalleryItems(ids: string[]) {
@@ -1079,4 +1082,52 @@ export async function publishWebsiteSeo() {
     data: { publishedData: rest as object, publishedAt: new Date() },
   });
   revalidatePublic();
+}
+
+// ─── Whole-website publish (visual editor) ──────────────────────────────────
+
+/**
+ * Publishes the accumulated draft for one page (its sections), global settings,
+ * SEO and all visible draft navigation/services/gallery/clients. Testimonials
+ * are deliberately NOT included: they stay approval-gated so a verified quote
+ * is never broadcast by an unrelated "publish website".
+ */
+export async function publishWebsiteNow(pageId: string) {
+  await requireAuth();
+
+  const page = await prisma.websitePage.findUnique({ where: { id: pageId } });
+  if (!page) throw new Error("Page not found");
+
+  await publishPage(pageId);
+
+  try {
+    await publishWebsiteSettings();
+  } catch {
+    // no settings row yet — nothing to publish
+  }
+  try {
+    await publishWebsiteSeo();
+  } catch {
+    // no SEO row yet — nothing to publish
+  }
+
+  const [nav, services, gallery, clients] = await Promise.all([
+    prisma.websiteNavItem.findMany({ where: { deletedAt: null, visible: true } }),
+    prisma.websiteService.findMany({ where: { deletedAt: null, visible: true } }),
+    prisma.websiteGalleryItem.findMany({ where: { deletedAt: null, visible: true } }),
+    prisma.websiteClient.findMany({ where: { deletedAt: null, visible: true } }),
+  ]);
+
+  await Promise.all([
+    ...nav.filter((n) => !n.publishedAt).map((n) => publishNavItem(n.id)),
+    ...services.filter((s) => s.status !== "PUBLISHED").map((s) => publishService(s.id)),
+    ...gallery.filter((g) => !g.publishedAt).map((g) => publishGalleryItem(g.id)),
+    ...clients.filter((c) => !c.publishedAt).map((c) => publishWebsiteClient(c.id)),
+  ]);
+
+  revalidatePath("/", "layout");
+  revalidatePath("/gallery");
+  revalidatePath(`/${page.slug}`);
+  revalidateAdmin();
+  return { publishedSlug: page.slug };
 }
