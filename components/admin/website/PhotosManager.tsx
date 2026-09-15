@@ -110,7 +110,7 @@ export function PhotosManager({ items, categories, usage }: { items: SerializedG
           <p>No photos match. Upload some using the button above.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {filtered.map((item, i) => {
             const used = usage[item.mediaUrl];
             const usedCount = (used?.sections.length ?? 0) + (used?.services.length ?? 0);
@@ -154,7 +154,7 @@ export function PhotosManager({ items, categories, usage }: { items: SerializedG
                     </p>
                   )}
 
-                  <div className="flex items-center gap-1.5 pt-1">
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
                     <button type="button" className="grid size-9 place-items-center rounded-md border border-white/[.08] text-zinc-400 hover:border-signal/40 hover:text-white disabled:opacity-30" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m18 15-6-6-6 6"/></svg>
                     </button>
