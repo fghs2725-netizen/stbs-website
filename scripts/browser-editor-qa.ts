@@ -49,7 +49,10 @@ async function visibleText(page: import("puppeteer-core").Page, needle: string, 
 
 async function typeInto(page: import("puppeteer-core").Page, selector: string, value: string) {
   await page.waitForSelector(selector, { visible: true, timeout: 15000 });
-  await page.click(selector, { clickCount: 3 });
+  await page.click(selector);
+  await page.keyboard.down("Control");
+  await page.keyboard.press("KeyA");
+  await page.keyboard.up("Control");
   await page.keyboard.type(value, { delay: 10 });
 }
 
@@ -136,10 +139,6 @@ async function restore(snap: Snapshot) {
   // purge QA gallery rows + their storage files
   const qaItems = await prisma.websiteGalleryItem.findMany({ where: { caption: { startsWith: "QA " } } });
   for (const it of qaItems) {
-    if (it.mediaUrl.startsWith("/api/storage/local/")) {
-      const file = await prisma.storageFile.findFirst({ where: { blobUrl: it.mediaUrl } });
-      if (file) await prisma.storageFile.update({ where: { id: file.id }, data: { deletedAt: new Date() } });
-    }
     await prisma.websiteGalleryItem.delete({ where: { id: it.id } }).catch(() => {});
   }
 }
@@ -314,7 +313,7 @@ async function main() {
     await typeInto(page, 'input[placeholder="Alt text (accessibility)"]', "QA field drilling");
     await typeInto(page, 'input[placeholder="Category (e.g. Industrial)"]', "Industrial");
     await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.includes("Add photo")); (b as HTMLButtonElement)?.click(); });
-    await waitFor(page, () => visibleText(page, "QA Field Test Photo") && visibleText(page, "Draft"), 15000, "gallery row created");
+    await waitFor(page, async () => (await visibleText(page, "QA Field Test Photo")) && (await visibleText(page, "Draft")), 15000, "gallery row created");
     check("gallery photo added (caption + alt + category) as Draft", true, "");
 
     // ── Preview ──
@@ -368,7 +367,8 @@ async function main() {
     for (const w of [320, 375, 390, 430]) {
       await page.setViewport({ width: w, height: 850 });
       await new Promise((r) => setTimeout(r, 400));
-    await heroWrap.evaluate((el) => { (el.querySelector('[title="Edit Heading"]') as HTMLElement)?.click(); });
+    const heroEl = await heroWrap.asElement();
+    await page.evaluate(() => { (document.querySelector('[title="Edit Heading"]') as HTMLElement)?.click(); });
       await waitFor(page, () => visibleText(page, "Save draft"), 12000, "drawer @" + w);
       const sheet = await page.evaluate(() => {
         const d = Array.from(document.querySelectorAll("div")).find((e) => e.className.includes("rounded-t-2xl") && e.className.includes("bottom-0"));
@@ -377,7 +377,7 @@ async function main() {
         return { left: Math.round(r.left), right: Math.round(r.right), width: Math.round(r.width), height: Math.round(r.height), iw: window.innerWidth };
       });
       check(`@${w}px drawer renders as full-width bottom sheet`, !!sheet && sheet.left === 0 && sheet.right === sheet.iw, sheet ? JSON.stringify(sheet) : "drawer not found");
-      await page.evaluate(() => { document.querySelector('button[aria-label="Close editor"]')?.click(); });
+      await page.evaluate(() => { (document.querySelector('button[aria-label="Close editor"]') as HTMLElement)?.click(); });
       await new Promise((r) => setTimeout(r, 400));
     }
 
@@ -393,7 +393,7 @@ async function main() {
     await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.includes("QA Field Test Photo")); (b as HTMLButtonElement)?.click(); });
     await waitFor(page, () => page.evaluate(() => Array.from(document.querySelectorAll("input")).some((i) => (i as HTMLInputElement).value === "QA Field Test Photo")), 10000, "photo expanded");
     await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.trim() === "Unpublish" && x.className.includes("secondary")); (b as HTMLButtonElement)?.click(); });
-    await waitFor(page, () => visibleText(page, "Published") && visibleText(page, "QA Field Test Photo"), 15000, "photo unpublished").catch(() => {});
+    await waitFor(page, async () => (await visibleText(page, "Published")) && (await visibleText(page, "QA Field Test Photo")), 15000, "photo unpublished").catch(() => {});
     check("photo unpublished via drawer", await page.evaluate(() => { const row = Array.from(document.querySelectorAll("div")).find((e) => e.className.includes("border-white/[.07]") && e.textContent.includes("QA Field Test Photo")); return !!(row && row.textContent.includes("Draft")); }), "");
     await page.click('button[aria-label="Close editor"]');
     await waitFor(page, () => page.evaluate(() => !document.querySelector('button[aria-label="Close editor"]')), 10000, "drawer closed");
@@ -432,7 +432,6 @@ async function main() {
     await new Promise((r) => setTimeout(r, 800));
     const realErrors = errors.filter((e) => !/favicon|net::ERR|Failed to load resource/i.test(e));
     check("no client runtime errors during flow", realErrors.length === 0, realErrors.slice(0, 5).join(" | "));
-    await waitErrors;
   } finally {
     await browser.close();
     await restore(snap);
