@@ -23,7 +23,12 @@ export function WebsiteFrame({
 }) {
   return (
     <>
-      <SiteHeader navLinks={navLinks} businessName={settings?.businessName ?? undefined} logoUrl={settings?.primaryLogoUrl ?? settings?.logoUrl ?? undefined} />
+      <SiteHeader
+        navLinks={navLinks}
+        businessName={settings?.businessName ?? undefined}
+        logoUrl={settings?.primaryLogoUrl ?? settings?.lightLogoUrl ?? settings?.darkLogoUrl ?? settings?.logoUrl ?? undefined}
+        mobileLogoUrl={settings?.mobileLogoUrl ?? undefined}
+      />
       <main>{children}</main>
       <SiteFooter settings={settings} navLinks={navLinks} />
       <WhatsAppFloat phone={phone} />

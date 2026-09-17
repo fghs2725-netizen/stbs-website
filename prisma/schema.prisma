@@ -752,8 +752,9 @@ model WebsitePage {
   ogImage         String?
   status          WebsitePageStatus @default(DRAFT)
   sortOrder       Int               @default(0)
-  hideFromNav     Boolean           @default(false)
-  sections        WebsiteSection[]
+    hideFromNav     Boolean           @default(false)
+    publishedData   Json?
+    sections        WebsiteSection[]
   publishedAt     DateTime?
   lastEditedBy    String?
   createdAt       DateTime          @default(now())

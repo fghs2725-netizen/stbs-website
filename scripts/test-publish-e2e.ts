@@ -49,10 +49,19 @@ async function main() {
   });
   const heroOriginal = homeSections.find((s) => s.type === "hero")!;
   const heroOriginalContent = heroOriginal.content as Record<string, unknown>;
-  const originalPage = {
-    status: homePage.status,
-    publishedAt: homePage.publishedAt,
-  };
+
+  // This test's fixture is an unpublished Home. Clear any prior live snapshot
+  // before the baseline assertions so a previous manual publish cannot leak in.
+  await prisma.$transaction([
+    prisma.websiteSection.updateMany({
+      where: { pageId: homePage.id, deletedAt: null },
+      data: { publishedContent: Prisma.DbNull, publishedAt: null },
+    }),
+    prisma.websitePage.update({
+      where: { id: homePage.id },
+      data: { status: "DRAFT", publishedData: Prisma.DbNull, publishedAt: null },
+    }),
+  ]);
 
   // ── Section 1: Homepage publish cycle (hero heading) ────────────────────
   console.log("Section 1  Homepage CMS publish cycle (hero heading)");
@@ -277,7 +286,7 @@ async function main() {
 
   // ── Restore baseline ─────────────────────────────────────────────────────
   await prisma.websiteSection.update({ where: { id: heroOriginal.id }, data: { content: heroOriginalContent as Prisma.InputJsonValue, publishedContent: Prisma.DbNull, publishedAt: null } });
-  await prisma.websitePage.update({ where: { id: homePage.id }, data: { status: originalPage.status, publishedAt: originalPage.publishedAt } });
+  await prisma.websitePage.update({ where: { id: homePage.id }, data: { status: "DRAFT", publishedData: Prisma.DbNull, publishedAt: null } });
   const restored = await getPublishedPage("home");
   const finalHtml = await html("/");
   check("baseline restored: home unpublished", restored === null, "");

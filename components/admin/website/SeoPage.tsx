@@ -31,10 +31,10 @@ export function SeoPage({ initial }: { initial: SerializedWebsiteSeo }) {
     const payload: Record<string, unknown> = {};
     if (form.globalTitle) payload.globalTitle = form.globalTitle;
     if (form.globalDescription) payload.globalDescription = form.globalDescription;
-    if (form.defaultOgImage) payload.defaultOgImage = form.defaultOgImage;
+    payload.defaultOgImage = form.defaultOgImage || null;
     if (form.twitterTitle) payload.twitterTitle = form.twitterTitle;
     if (form.twitterDescription) payload.twitterDescription = form.twitterDescription;
-    if (form.twitterImage) payload.twitterImage = form.twitterImage;
+    payload.twitterImage = form.twitterImage || null;
     if (form.canonicalUrl) payload.canonicalUrl = form.canonicalUrl;
     if (form.robotsSettings) payload.robotsSettings = form.robotsSettings;
     if (form.structuredData.trim()) {

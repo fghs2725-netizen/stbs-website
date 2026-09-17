@@ -54,7 +54,7 @@ export function PageEditor({ page }: { page: PageModel }) {
         metaDescription: form.metaDescription || undefined,
         ogTitle: form.ogTitle || undefined,
         ogDescription: form.ogDescription || undefined,
-        ogImage: form.ogImage || undefined,
+        ogImage: form.ogImage || null,
         hideFromNav: form.hideFromNav,
       });
       setNotice("Draft saved.");

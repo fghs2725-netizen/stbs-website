@@ -74,7 +74,7 @@ export function ClientsManager({ clients }: { clients: SerializedClient[] }) {
               </div>
             </div>
             <div className="space-y-3 p-4">
-              <ImageUpload label="Logo" value={client.logoUrl} onChange={async (url) => { await updateWebsiteClient(client.id, { logoUrl: url ?? undefined }); router.refresh(); }} hint="Self-hosted logo. Avoid third-party logo APIs." />
+                    <ImageUpload label="Logo" value={client.logoUrl} onChange={async (url) => { await updateWebsiteClient(client.id, { logoUrl: url }); router.refresh(); }} hint="Self-hosted logo. Avoid third-party logo APIs." />
               <div>
                 <label className="admin-label">Client name</label>
                 <input className="admin-input" defaultValue={client.name} onBlur={(e) => e.target.value !== client.name && updateWebsiteClient(client.id, { name: e.target.value })} />

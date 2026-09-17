@@ -9,7 +9,7 @@ import { Editable } from "@/components/website/editable";
 
 const DEFAULT_LINKS = ["About", "Services", "Clients", "Gallery", "Contact"];
 
-export function SiteHeader({ navLinks, businessName, logoUrl }: { navLinks?: Array<{ label: string; href: string }>; businessName?: string; logoUrl?: string }) {
+export function SiteHeader({ navLinks, businessName, logoUrl, mobileLogoUrl }: { navLinks?: Array<{ label: string; href: string }>; businessName?: string; logoUrl?: string; mobileLogoUrl?: string }) {
   const links = navLinks?.length
     ? navLinks.filter(l => !l.href.startsWith("/admin") && !l.href.startsWith("/quote")).map(l => l.label)
     : DEFAULT_LINKS;
@@ -24,7 +24,8 @@ export function SiteHeader({ navLinks, businessName, logoUrl }: { navLinks?: Arr
       <Link href="/" className="flex items-center gap-3" aria-label={businessName && businessName.length > 0 ? `${businessName} home` : "Home"}>
         <Editable target={{ kind: "settings" }} label="Edit Logo" className="block">
           <motion.span animate={{ scale: scrolled ? .94 : 1 }} transition={{ duration: .35 }} className="relative block h-[68px] w-44">
-            <Image src={logoUrl || "/stbs-logo-only.png"} alt="STBS logo" fill className="object-contain object-left" sizes="176px" priority />
+            <Image src={logoUrl || "/stbs-logo-only.png"} alt="STBS logo" fill className={`object-contain object-left ${mobileLogoUrl ? "hidden sm:block" : ""}`} sizes="176px" priority />
+            {mobileLogoUrl && <Image src={mobileLogoUrl} alt="STBS logo" fill className="object-contain object-left sm:hidden" sizes="176px" priority />}
           </motion.span>
         </Editable>
       </Link>

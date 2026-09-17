@@ -127,6 +127,9 @@ export function SettingsPage({ initial }: { initial: SerializedWebsiteSettings }
       for (const k of Object.keys(values)) {
         if (values[k] === "") values[k] = undefined;
       }
+      for (const key of ["primaryLogoUrl", "lightLogoUrl", "darkLogoUrl", "mobileLogoUrl", "faviconUrl", "defaultOgImage", "founderPhoto"]) {
+        if (values[key] === undefined) values[key] = null;
+      }
       await updateWebsiteSettings(values as never);
       setNotice("Draft saved.");
     } catch (e) {
@@ -146,6 +149,9 @@ export function SettingsPage({ initial }: { initial: SerializedWebsiteSettings }
       if (hours) values.businessHours = hours;
       for (const k of Object.keys(values)) {
         if (values[k] === "") values[k] = undefined;
+      }
+      for (const key of ["primaryLogoUrl", "lightLogoUrl", "darkLogoUrl", "mobileLogoUrl", "faviconUrl", "defaultOgImage", "founderPhoto"]) {
+        if (values[key] === undefined) values[key] = null;
       }
       await updateWebsiteSettings(values as never);
       await publishWebsiteSettings();

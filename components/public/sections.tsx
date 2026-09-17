@@ -154,6 +154,7 @@ function HeroSection({ owner, content }: { owner?: RenderableSection; content: R
   const secondaryCtaText = str(content, "secondaryCtaText", "Call now");
   const secondaryCtaUrl = str(content, "secondaryCtaUrl", `tel:+91${company.phones[0]}`);
   const heroImage = str(content, "heroImage", "/hero-industrial-cross-section.png");
+  const mobileImage = str(content, "mobileImage");
   const heroImageAlt = str(content, "heroImageAlt", "Industrial site with a borewell cross-section showing groundwater layers");
   const target = asSection(owner);
 
@@ -161,7 +162,8 @@ function HeroSection({ owner, content }: { owner?: RenderableSection; content: R
     <section className="relative flex min-h-[80vh] items-center overflow-hidden bg-black pt-24 lg:min-h-[85vh]">
       <Editable target={{ kind: "section-field", section: target, fieldKey: "heroImage" }} label="Edit Image" className="absolute inset-0">
         <div className="absolute inset-0">
-          <Image src={heroImage} alt={heroImageAlt} fill priority className="object-cover object-center opacity-[.58]" sizes="100vw" />
+          <Image src={heroImage} alt={heroImageAlt} fill priority className={`object-cover object-center opacity-[.58] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
+          {mobileImage && <Image src={mobileImage} alt={heroImageAlt} fill priority className="object-cover object-center opacity-[.58] sm:hidden" sizes="100vw" />}
         </div>
       </Editable>
       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
@@ -333,6 +335,11 @@ function ServicesSection({ owner, content, data }: { owner?: RenderableSection; 
             <Reveal key={s.title} delay={i * 0.08}>
               <Editable target={{ kind: "services" }} label="Edit service" className="h-full">
                 <Link href={s.slug} className="group flex h-full flex-col gap-6 border border-white/10 bg-white/5 p-8 transition-all hover:border-signal/30 hover:bg-white/8">
+                  {s.image && (
+                    <div className="relative -mx-8 -mt-8 h-48 overflow-hidden border-b border-white/10">
+                      <Image src={s.image} alt={`${s.title} service`} fill className="object-cover grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" sizes="(max-width:768px) 100vw, 50vw" />
+                    </div>
+                  )}
                   <div className="flex items-start justify-between">
                     <span className="font-display text-6xl text-white/5">0{i + 1}</span>
                   </div>
@@ -355,7 +362,7 @@ function TestimonialsSection({ owner, content, data }: { owner?: RenderableSecti
   const target = asSection(owner);
   const cms = data.testimonials;
   const items = cms && cms.length > 0
-    ? cms.map(t => ({ name: t.personName, quote: t.quote, rating: t.rating ?? 5, designation: t.designation, company: t.company, location: t.location, project: t.project }))
+    ? cms.map(t => ({ name: t.personName, quote: t.quote, rating: t.rating ?? 5, designation: t.designation, company: t.company, location: t.location, project: t.project, photo: t.photo }))
     : null;
 
   // No approved, visible testimonials → do not render fabricated social proof.
@@ -388,6 +395,7 @@ function TestimonialsSection({ owner, content, data }: { owner?: RenderableSecti
                 </div>
                 <blockquote className="text-base leading-7 text-white/80">&quot;{t.quote}&quot;</blockquote>
                 <div className="mt-auto">
+                  {t.photo && <Image src={t.photo} alt={t.name} width={48} height={48} className="mb-3 size-12 rounded-full object-cover" />}
                   <p className="font-bold text-white">{t.name}</p>
                   <p className="text-xs uppercase tracking-wider text-white/50">
                     {[t.location, t.project].filter(Boolean).join(" · ")}
@@ -556,12 +564,12 @@ function MissionVisionSection({ owner, content }: { owner?: RenderableSection; c
   );
 }
 
-function FounderSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
+function FounderSection({ owner, content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {
   const name = str(content, "name", "Rajesh Saini");
   const title = str(content, "title", "Founder & Managing Director");
   const bio = str(content, "bio");
   const additionalText = str(content, "additionalText");
-  const photo = str(content, "photo", "/founder/rajesh-saini.jpeg");
+  const photo = data.settings?.founderPhoto || str(content, "photo", "/founder/rajesh-saini.jpeg");
   const eyebrow = str(content, "eyebrow", "Leadership");
   const heading = str(content, "heading", "Field-First");
   const headingLine2 = str(content, "headingLine2", "Leadership");
@@ -892,7 +900,7 @@ export function SectionRenderer({
     case "cta": body = <CtaSection owner={section} content={content} />; break;
     case "text_image": body = <TextImageSection owner={section} content={content} />; break;
     case "mission_vision": body = <MissionVisionSection owner={section} content={content} />; break;
-    case "founder": body = <FounderSection owner={section} content={content} />; break;
+    case "founder": body = <FounderSection owner={section} content={content} data={data} />; break;
     case "why_stbs": body = <WhyStbsSection owner={section} content={content} />; break;
     case "experience_culture": body = <ExperienceCultureSection owner={section} content={content} />; break;
     case "sectors": body = <SectorsSection owner={section} content={content} />; break;

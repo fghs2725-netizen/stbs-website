@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getPublishedSeo } from "@/lib/website/queries";
+import { getPublishedSeo, getPublishedSettings } from "@/lib/website/queries";
 
 function str(c: Record<string, unknown>, key: string): string | undefined {
   const v = c[key];
@@ -14,13 +14,16 @@ function str(c: Record<string, unknown>, key: string): string | undefined {
  * controls the public site without changing any other route group.
  */
 export async function getPublicSeoMetadata(): Promise<Metadata> {
-  const seo = await getPublishedSeo();
-  if (!seo) return {};
+  const [seo, settings] = await Promise.all([getPublishedSeo(), getPublishedSettings()]);
+  if (!seo && !settings) return {};
 
-  const raw = seo as Record<string, unknown>;
+  const raw = (seo ?? {}) as Record<string, unknown>;
+  const settingsRaw = (settings ?? {}) as Record<string, unknown>;
   const title = str(raw, "globalTitle");
   const description = str(raw, "globalDescription");
-  const ogImage = str(raw, "defaultOgImage");
+  // A published SEO record owns this value, including an intentional clear.
+  // Settings provide the legacy/global fallback only while SEO is unconfigured.
+  const ogImage = seo ? str(raw, "defaultOgImage") : str(settingsRaw, "defaultOgImage");
   const twitterTitle = str(raw, "twitterTitle") ?? title;
   const twitterDescription = str(raw, "twitterDescription") ?? description;
   const twitterImage = str(raw, "twitterImage");

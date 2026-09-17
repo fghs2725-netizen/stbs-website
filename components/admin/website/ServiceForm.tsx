@@ -50,7 +50,7 @@ export function ServiceForm({ initial }: { initial?: SerializedService }) {
         shortDescription: form.shortDescription || undefined,
         fullDescription: form.fullDescription || undefined,
         icon: form.icon || undefined,
-        image: form.image || undefined,
+        image: form.image || null,
         ctaText: form.ctaText || undefined,
         ctaUrl: form.ctaUrl || undefined,
         seoTitle: form.seoTitle || undefined,

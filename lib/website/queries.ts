@@ -32,8 +32,8 @@ function livePosition(r: unknown): number {
 // ─── Pages & Sections ────────────────────────────────────────────────────────
 
 export async function getPublishedPage(slug: string) {
-  const page = await prisma.websitePage.findFirst({
-    where: { slug, publishedAt: { not: null }, deletedAt: null },
+  const pages = await prisma.websitePage.findMany({
+    where: { publishedAt: { not: null }, deletedAt: null },
     include: {
       sections: {
         where: { deletedAt: null, visible: true },
@@ -41,32 +41,45 @@ export async function getPublishedPage(slug: string) {
       },
     },
   });
+  const page = pages.find((candidate) => {
+    const snapshot = candidate.publishedData;
+    const liveSlug = snapshot && typeof snapshot === "object" && !Array.isArray(snapshot)
+      ? (snapshot as Record<string, unknown>).slug
+      : candidate.slug;
+    return liveSlug === slug;
+  });
   if (!page) return null;
 
   return serialize({
     ...page,
     sections: page.sections.map((s) => ({
       ...s,
-      // Use publishedContent if available, otherwise current draft
-      content: (s.publishedContent ?? s.content) as Record<string, unknown>,
+      // A published page only ever serves its immutable section snapshot.
+      // publishPage writes one for every non-deleted section in the same transaction.
+      content: (s.publishedContent ?? {}) as Record<string, unknown>,
     })),
   });
 }
 
 export async function getPublishedPageMeta(slug: string) {
-  const page = await prisma.websitePage.findFirst({
-    where: { slug, publishedAt: { not: null }, deletedAt: null },
-    select: {
-      seoTitle: true,
-      metaDescription: true,
-      ogTitle: true,
-      ogDescription: true,
-      ogImage: true,
-      title: true,
-      name: true,
-    },
+  const pages = await prisma.websitePage.findMany({
+    where: { publishedAt: { not: null }, deletedAt: null },
+    select: { name: true, slug: true, title: true, seoTitle: true, metaDescription: true, ogTitle: true, ogDescription: true, ogImage: true, publishedData: true },
   });
-  return page ? serialize(page) : null;
+  const page = pages.find((candidate) => {
+    const snapshot = candidate.publishedData;
+    const liveSlug = snapshot && typeof snapshot === "object" && !Array.isArray(snapshot)
+      ? (snapshot as Record<string, unknown>).slug
+      : candidate.slug;
+    return liveSlug === slug;
+  });
+  if (!page) return null;
+  const { publishedData, ...draft } = page;
+  return serialize(
+    publishedData && typeof publishedData === "object" && !Array.isArray(publishedData)
+      ? { ...draft, ...(publishedData as Record<string, unknown>) }
+      : draft
+  );
 }
 
 // ─── Services ────────────────────────────────────────────────────────────────
@@ -180,14 +193,12 @@ export async function getPublishedSettings() {
   const settings = await prisma.websiteSettings.findFirst();
   if (!settings) return null;
 
-  // If published, return the published snapshot; otherwise return raw data
+  // Settings are global public content. Draft rows must never be observable
+  // outside the editor, including image URLs used by the shared frame.
   if (settings.publishedData) {
     return serialize(settings.publishedData) as Record<string, unknown>;
   }
-
-  // Return the current values as a plain object (for pre-publish access)
-  const { id, publishedData, publishedAt, updatedAt, ...rest } = settings;
-  return serialize(rest) as Record<string, unknown>;
+  return null;
 }
 
 // ─── SEO ─────────────────────────────────────────────────────────────────────
@@ -199,7 +210,5 @@ export async function getPublishedSeo() {
   if (seo.publishedData) {
     return serialize(seo.publishedData) as Record<string, unknown>;
   }
-
-  const { id, publishedData, publishedAt, updatedAt, ...rest } = seo;
-  return serialize(rest) as Record<string, unknown>;
+  return null;
 }

@@ -6,7 +6,8 @@ import { getPublicSeoMetadata } from "@/lib/website/seo";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return getPublicSeoMetadata();
+  const [seo, { settings }] = await Promise.all([getPublicSeoMetadata(), getPublicSiteConfig()]);
+  return settings?.faviconUrl ? { ...seo, icons: { icon: settings.faviconUrl } } : seo;
 }
 
 export default async function PublicLayout({ children }: Readonly<{ children: React.ReactNode }>) {

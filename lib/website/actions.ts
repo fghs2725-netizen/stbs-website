@@ -138,7 +138,7 @@ export async function updatePage(
     metaDescription?: string;
     ogTitle?: string;
     ogDescription?: string;
-    ogImage?: string;
+    ogImage?: string | null;
     hideFromNav?: boolean;
   }
 ) {
@@ -180,6 +180,9 @@ export async function publishPage(id: string) {
     include: { sections: { where: { deletedAt: null } } },
   });
   if (!page) throw new Error("Page not found");
+  const publishedData = snapshotOf(page as unknown as Record<string, unknown>, [
+    "name", "slug", "title", "seoTitle", "metaDescription", "ogTitle", "ogDescription", "ogImage", "sortOrder", "hideFromNav",
+  ]);
   await prisma.$transaction([
     ...page.sections.map((s) =>
       prisma.websiteSection.update({
@@ -189,7 +192,7 @@ export async function publishPage(id: string) {
     ),
     prisma.websitePage.update({
       where: { id },
-      data: { status: "PUBLISHED", publishedAt: new Date() },
+      data: { status: "PUBLISHED", publishedAt: new Date(), publishedData },
     }),
   ]);
   revalidatePublic();
@@ -211,7 +214,7 @@ export async function unpublishPage(id: string) {
     ),
     prisma.websitePage.update({
       where: { id },
-      data: { status: "DRAFT", publishedAt: null },
+      data: { status: "DRAFT", publishedAt: null, publishedData: Prisma.DbNull },
     }),
   ]);
   revalidatePublic();
@@ -405,7 +408,7 @@ export async function updateService(
     faqs?: Array<{ question: string; answer: string }>;
     ctaText?: string;
     ctaUrl?: string;
-    image?: string;
+    image?: string | null;
     icon?: string;
     seoTitle?: string;
     seoDescription?: string;
@@ -499,7 +502,7 @@ export async function updateTestimonial(
     project?: string;
     quote?: string;
     rating?: number;
-    photo?: string;
+    photo?: string | null;
     sourceNote?: string;
     approvalNote?: string;
     visible?: boolean;
@@ -570,7 +573,7 @@ export async function getWebsiteClients() {
 
 export async function createWebsiteClient(data: {
   name: string;
-  logoUrl?: string;
+  logoUrl?: string | null;
   websiteUrl?: string;
   altText?: string;
   description?: string;
@@ -592,7 +595,7 @@ export async function updateWebsiteClient(
   id: string,
   data: {
     name?: string;
-    logoUrl?: string;
+    logoUrl?: string | null;
     websiteUrl?: string;
     altText?: string;
     description?: string;
@@ -1014,18 +1017,18 @@ export async function updateWebsiteSettings(data: {
   serviceArea?: string;
   businessHours?: object;
   websiteUrl?: string;
-  primaryLogoUrl?: string;
-  lightLogoUrl?: string;
-  darkLogoUrl?: string;
-  mobileLogoUrl?: string;
-  faviconUrl?: string;
-  defaultOgImage?: string;
+  primaryLogoUrl?: string | null;
+  lightLogoUrl?: string | null;
+  darkLogoUrl?: string | null;
+  mobileLogoUrl?: string | null;
+  faviconUrl?: string | null;
+  defaultOgImage?: string | null;
   footerContent?: string;
   copyrightText?: string;
   founderName?: string;
   founderTitle?: string;
   founderBio?: string;
-  founderPhoto?: string;
+  founderPhoto?: string | null;
   mission?: string;
   vision?: string;
 }) {
@@ -1069,10 +1072,10 @@ export async function getWebsiteSeo() {
 export async function updateWebsiteSeo(data: {
   globalTitle?: string;
   globalDescription?: string;
-  defaultOgImage?: string;
+  defaultOgImage?: string | null;
   twitterTitle?: string;
   twitterDescription?: string;
-  twitterImage?: string;
+  twitterImage?: string | null;
   canonicalUrl?: string;
   robotsSettings?: string;
   structuredData?: object;

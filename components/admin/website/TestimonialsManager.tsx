@@ -144,7 +144,7 @@ export function TestimonialsManager({ testimonials }: { testimonials: Serialized
                 <td className="px-5 py-3">
                   <div className="w-56 space-y-2">
                     <input className="admin-input min-h-10 !py-1 text-sm" placeholder="Source / internal note" defaultValue={t.sourceNote ?? ""} onBlur={(e) => { if (e.target.value !== t.sourceNote) void updateTestimonial(t.id, { sourceNote: e.target.value || undefined }); }} />
-                    <ImageUpload label="Photo" value={t.photo} onChange={(url) => updateTestimonial(t.id, { photo: url ?? undefined })} />
+                    <ImageUpload label="Photo" value={t.photo} onChange={(url) => updateTestimonial(t.id, { photo: url })} />
                   </div>
                 </td>
                 <td className="px-5 py-3 text-right">
