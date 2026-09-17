@@ -436,9 +436,12 @@ export async function deleteService(id: string) {
 
 export async function publishService(id: string) {
   await requireAuth();
+  const service = await prisma.websiteService.findUnique({ where: { id } });
+  if (!service) throw new Error("Service not found");
+  const publishedData = snapshotOf(service as unknown as Record<string, unknown>, ["title", "slug", "shortDescription", "fullDescription", "features", "faqs", "ctaText", "ctaUrl", "image", "icon", "seoTitle", "seoDescription", "position", "visible"]);
   await prisma.websiteService.update({
     where: { id },
-    data: { status: "PUBLISHED", publishedAt: new Date() },
+    data: { status: "PUBLISHED", publishedAt: new Date(), publishedData },
   });
   revalidatePublic();
 }
@@ -714,7 +717,7 @@ export async function updateGalleryItem(
   await requireAuth();
   const result = await prisma.websiteGalleryItem.update({
     where: { id },
-    data: { ...data, status: "DRAFT" },
+    data: { ...data, status: "DRAFT", deleteOnPublish: false },
   });
   revalidateAdmin();
   return serialize(result);
@@ -724,6 +727,13 @@ export async function publishGalleryItem(id: string) {
   await requireAuth();
   const item = await prisma.websiteGalleryItem.findUnique({ where: { id } });
   if (!item) throw new Error("Gallery item not found");
+  if (item.deleteOnPublish) {
+    await prisma.websiteGalleryItem.update({ where: { id }, data: { deletedAt: new Date(), deleteOnPublish: false } });
+    await deleteStoredMediaUrls([item.mediaUrl, item.thumbnailUrl]);
+    revalidateAdmin();
+    revalidatePath("/gallery");
+    return;
+  }
   const publishedData = snapshotOf(item as unknown as Record<string, unknown>, [
     "mediaUrl",
     "thumbnailUrl",
@@ -761,12 +771,18 @@ export async function unpublishGalleryItem(id: string) {
 export async function deleteGalleryItem(id: string) {
   await requireAuth();
   const item = await prisma.websiteGalleryItem.findUnique({ where: { id } });
-  if (item) {
-    await deleteStoredMediaUrls([item.mediaUrl, item.thumbnailUrl]);
+  if (!item) throw new Error("Gallery item not found");
+  // Published photos must keep their live snapshot (and blob) until the
+  // deletion is explicitly published. Unpublished drafts can be cleaned up.
+  if (item.publishedAt) {
+    await prisma.websiteGalleryItem.update({ where: { id }, data: { deleteOnPublish: true, status: "DRAFT" } });
+    revalidateAdmin();
+    return;
   }
+  await deleteStoredMediaUrls([item.mediaUrl, item.thumbnailUrl]);
   await prisma.websiteGalleryItem.update({
     where: { id },
-    data: { deletedAt: new Date() },
+    data: { deletedAt: new Date(), deleteOnPublish: false },
   });
   revalidateAdmin();
   revalidatePath("/gallery");
@@ -1119,10 +1135,10 @@ export async function publishWebsiteNow(pageId: string) {
   ]);
 
   await Promise.all([
-    ...nav.filter((n) => !n.publishedAt).map((n) => publishNavItem(n.id)),
-    ...services.filter((s) => s.status !== "PUBLISHED").map((s) => publishService(s.id)),
-    ...gallery.filter((g) => !g.publishedAt).map((g) => publishGalleryItem(g.id)),
-    ...clients.filter((c) => !c.publishedAt).map((c) => publishWebsiteClient(c.id)),
+    ...nav.map((n) => publishNavItem(n.id)),
+    ...services.map((s) => publishService(s.id)),
+    ...gallery.map((g) => publishGalleryItem(g.id)),
+    ...clients.map((c) => publishWebsiteClient(c.id)),
   ]);
 
   revalidatePath("/", "layout");

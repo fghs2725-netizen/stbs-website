@@ -153,7 +153,7 @@ export function DrawerHeader({ title, subtitle, onClose }: { title: string; subt
 
 /* ── Section content fields ───────────────────────────────────────────────── */
 
-export function SectionFieldsPanel({ section, onClose }: { section: SerializedSection; onClose: () => void }) {
+export function SectionFieldsPanel({ section, onClose, mediaUrls = [] }: { section: SerializedSection; onClose: () => void; mediaUrls?: string[] }) {
   const refresh = useRefresh();
   const def = SECTION_TYPE_DEFS[section.type];
   const [content, setContent] = useState<Record<string, unknown>>(section.content ?? {});
@@ -201,6 +201,8 @@ export function SectionFieldsPanel({ section, onClose }: { section: SerializedSe
       await updateSectionMeta(section.id, { name });
       setNotice("Draft saved. Publish this page to make it live.");
       refresh();
+    } catch (error) {
+      setNotice(error instanceof Error ? `Could not save draft: ${error.message}` : "Could not save draft. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -220,7 +222,7 @@ export function SectionFieldsPanel({ section, onClose }: { section: SerializedSe
             {(def.fields ?? []).map((field) => (
               <div key={field.key}>
                 <label className="admin-label">{field.label}</label>
-                <FieldInput field={field} value={content[field.key]} onChange={(v) => setField(field.key, v)} />
+                <FieldInput field={field} value={content[field.key]} onChange={(v) => setField(field.key, v)} mediaUrls={mediaUrls} />
               </div>
             ))}
             {def.lists?.map((list) => {
@@ -238,7 +240,7 @@ export function SectionFieldsPanel({ section, onClose }: { section: SerializedSe
                           {list.fields.map((field) => (
                             <div key={field.key}>
                               {list.fields.length > 1 && <label className="admin-label">{field.label}</label>}
-                              <FieldInput field={field} value={rowValue(list.key, i, field)} onChange={(v) => setList(i, list.key, field.key, v)} />
+                              <FieldInput field={field} value={rowValue(list.key, i, field)} onChange={(v) => setList(i, list.key, field.key, v)} mediaUrls={mediaUrls} />
                             </div>
                           ))}
                         </div>
@@ -263,7 +265,7 @@ export function SectionFieldsPanel({ section, onClose }: { section: SerializedSe
           <p className="text-xs text-zinc-500">This section type has no structured editor. Use the page editor for raw JSON.</p>
         )}
 
-        {notice && <p className="rounded-lg bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">{notice}</p>}
+        {notice && <p role="status" className={`rounded-lg px-4 py-3 text-sm ${notice.startsWith("Could not") ? "bg-red-500/10 text-red-400" : "bg-emerald-500/10 text-emerald-400"}`}>{notice}</p>}
       </div>
       <div className="border-t border-white/[.08] bg-[#141416] px-5 py-4">
         <div className="flex flex-wrap items-center gap-3">
@@ -283,7 +285,7 @@ export function SectionFieldsPanel({ section, onClose }: { section: SerializedSe
 
 /* ── Services ─────────────────────────────────────────────────────────────── */
 
-function DraftServiceForm({ existing, onDone }: { existing?: SerializedService; onDone: () => void }) {
+function DraftServiceForm({ existing, onDone, mediaUrls = [] }: { existing?: SerializedService; onDone: () => void; mediaUrls?: string[] }) {
   const refresh = useRefresh();
   const [title, setTitle] = useState(existing?.title ?? "");
   const [slug, setSlug] = useState(existing?.slug ?? "");
@@ -291,18 +293,20 @@ function DraftServiceForm({ existing, onDone }: { existing?: SerializedService; 
   const [image, setImage] = useState(existing?.image ?? "");
   const [visible, setVisible] = useState(existing?.visible ?? true);
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const save = async () => {
-    setBusy(true);
-    if (existing) {
-      await updateService(existing.id, { title, slug: slug || title, shortDescription: shortDescription || undefined, image: image || undefined, visible });
-    } else if (title.trim()) {
-      const created = (await createService({ title: title.trim(), slug: slug || title, shortDescription: shortDescription || undefined })) as unknown as SerializedService;
-      if (image) await updateService(created.id, { image: image || undefined });
-    }
-    setBusy(false);
-    onDone();
-    refresh();
+    setBusy(true); setNotice(null);
+    try {
+      if (existing) {
+        await updateService(existing.id, { title, slug: slug || title, shortDescription: shortDescription || undefined, image: image || undefined, visible });
+      } else if (title.trim()) {
+        const created = (await createService({ title: title.trim(), slug: slug || title, shortDescription: shortDescription || undefined })) as unknown as SerializedService;
+        if (image) await updateService(created.id, { image: image || undefined });
+      }
+      setNotice("Draft saved. Publish to update the live website."); onDone(); refresh();
+    } catch (error) { setNotice(error instanceof Error ? `Could not save draft: ${error.message}` : "Could not save draft."); }
+    finally { setBusy(false); }
   };
 
   return (
@@ -312,7 +316,7 @@ function DraftServiceForm({ existing, onDone }: { existing?: SerializedService; 
       <textarea className="admin-input min-h-20 resize-y" value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} placeholder="Short description shown on cards" />
       <div>
         <label className="admin-label">Card image</label>
-        <ImageUpload label="" value={image || null} onChange={(url) => setImage(url ?? "")} hint="Upload or paste a URL." />
+        <ImageUpload label="" value={image || null} onChange={(url) => setImage(url ?? "")} hint="Upload to Vercel Blob or choose a Website Photo." mediaUrls={mediaUrls} />
       </div>
       <label className="flex min-h-11 items-center gap-2 text-sm text-zinc-300">
         <input type="checkbox" checked={visible} onChange={(e) => setVisible(e.target.checked)} className="size-4 accent-signal" />
@@ -325,6 +329,7 @@ function DraftServiceForm({ existing, onDone }: { existing?: SerializedService; 
         </Button>
         {existing && <Button size="sm" variant="secondary" onClick={async () => { await publishService(existing.id); refresh(); }}><CheckCircle2 size={14} /> Publish</Button>}
       </div>
+      {notice && <p role="status" className={`text-xs ${notice.startsWith("Could not") ? "text-red-400" : "text-emerald-400"}`}>{notice}</p>}
     </div>
   );
 }
@@ -341,7 +346,7 @@ export function ServicesPanel({ items, onClose }: { items: SerializedService[]; 
           <RowShell key={s.id} item={s} name={s.title || s.slug} meta={`${s.visible ? "visible" : "hidden"} · position ${s.position + 1}`} onOpen={setOpenId}>
             {({ close }) => (
               <>
-                <DraftServiceForm existing={s} onDone={() => setOpenId(null)} />
+                <DraftServiceForm existing={s} onDone={() => setOpenId(null)} mediaUrls={items.map((item) => item.image).filter((url): url is string => Boolean(url))} />
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1">
                     <ReorderButtons list={items} onApply={reorderServices} />
@@ -353,7 +358,7 @@ export function ServicesPanel({ items, onClose }: { items: SerializedService[]; 
             )}
           </RowShell>
         ))}
-        {adding && <DraftServiceForm onDone={() => setAdding(false)} />}
+        {adding && <DraftServiceForm onDone={() => setAdding(false)} mediaUrls={items.map((item) => item.image).filter((url): url is string => Boolean(url))} />}
         {!adding && (
           <Button variant="secondary" className="w-full" onClick={() => setAdding(true)}><Plus size={15} /> Add service</Button>
         )}
@@ -368,7 +373,7 @@ export function ServicesPanel({ items, onClose }: { items: SerializedService[]; 
 
 /* ── Gallery ──────────────────────────────────────────────────────────────── */
 
-function DraftGalleryForm({ existing, onDone }: { existing?: SerializedGalleryItem; onDone: () => void }) {
+function DraftGalleryForm({ existing, onDone, mediaUrls = [] }: { existing?: SerializedGalleryItem; onDone: () => void; mediaUrls?: string[] }) {
   const refresh = useRefresh();
   const [mediaUrl, setMediaUrl] = useState(existing?.mediaUrl ?? "");
   const [caption, setCaption] = useState(existing?.caption ?? "");
@@ -377,26 +382,28 @@ function DraftGalleryForm({ existing, onDone }: { existing?: SerializedGalleryIt
   const [sourceType, setSourceType] = useState(existing?.sourceType ?? "REAL_PROJECT");
   const [visible, setVisible] = useState(existing?.visible ?? true);
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const save = async () => {
     if (!mediaUrl.trim()) return;
-    setBusy(true);
-    if (existing) {
-      await updateGalleryItem(existing.id, { mediaUrl: mediaUrl.trim(), caption: caption || undefined, altText: altText || undefined, category: category || undefined, sourceType, visible });
-    } else {
-      const created = (await createGalleryItem({ mediaUrl: mediaUrl.trim(), caption: caption || undefined, altText: altText || undefined, category: category || undefined, sourceType })) as unknown as SerializedGalleryItem;
-      if (visible === false) await updateGalleryItem(created.id, { visible: false });
-    }
-    setBusy(false);
-    onDone();
-    refresh();
+    setBusy(true); setNotice(null);
+    try {
+      if (existing) {
+        await updateGalleryItem(existing.id, { mediaUrl: mediaUrl.trim(), caption: caption || undefined, altText: altText || undefined, category: category || undefined, sourceType, visible });
+      } else {
+        const created = (await createGalleryItem({ mediaUrl: mediaUrl.trim(), caption: caption || undefined, altText: altText || undefined, category: category || undefined, sourceType })) as unknown as SerializedGalleryItem;
+        if (visible === false) await updateGalleryItem(created.id, { visible: false });
+      }
+      setNotice("Draft saved. Publish to update the live website."); onDone(); refresh();
+    } catch (error) { setNotice(error instanceof Error ? `Could not save draft: ${error.message}` : "Could not save draft."); }
+    finally { setBusy(false); }
   };
 
   return (
     <div className="space-y-2.5 rounded-lg border border-white/[.06] bg-black/20 p-3">
       <div>
         <label className="admin-label">Photo</label>
-        <ImageUpload label="" value={mediaUrl || null} onChange={(url) => setMediaUrl(url ?? "")} hint="Upload a new photo (stored in Vercel Blob) or paste a URL." />
+        <ImageUpload label="" value={mediaUrl || null} onChange={(url) => setMediaUrl(url ?? "")} hint="Upload a new photo to Vercel Blob or choose a Website Photo." mediaUrls={mediaUrls} />
         {mediaUrl && <img src={mediaUrl} alt="" className="mt-2 h-24 w-full rounded-md object-cover" />}
       </div>
       <input className="admin-input" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Caption (shown on the website)" />
@@ -421,15 +428,17 @@ function DraftGalleryForm({ existing, onDone }: { existing?: SerializedGalleryIt
         </Button>
         {existing && (
           <Button size="sm" variant="secondary" onClick={async () => {
-            if (existing.publishedAt) await unpublishGalleryItem(existing.id);
+            if (existing.deleteOnPublish) await publishGalleryItem(existing.id);
+            else if (existing.publishedAt) await unpublishGalleryItem(existing.id);
             else await publishGalleryItem(existing.id);
             refresh();
           }}>
-            {existing.publishedAt ? <EyeOff size={14} /> : <CheckCircle2 size={14} />}
-            {existing.publishedAt ? "Unpublish" : "Publish"}
+            {existing.publishedAt && !existing.deleteOnPublish ? <EyeOff size={14} /> : <CheckCircle2 size={14} />}
+            {existing.deleteOnPublish ? "Publish deletion" : existing.publishedAt ? "Unpublish" : "Publish"}
           </Button>
         )}
       </div>
+      {notice && <p role="status" className={`text-xs ${notice.startsWith("Could not") ? "text-red-400" : "text-emerald-400"}`}>{notice}</p>}
     </div>
   );
 }
@@ -446,7 +455,7 @@ export function GalleryPanel({ items, onClose }: { items: SerializedGalleryItem[
           <RowShell key={g.id} item={g} name={g.caption ?? g.altText ?? g.mediaUrl} meta={`${g.category ?? "Uncategorised"} · position ${g.position + 1}`} onOpen={setOpenId}>
             {({ close }) => (
               <>
-                <DraftGalleryForm existing={g} onDone={() => setOpenId(null)} />
+                <DraftGalleryForm existing={g} onDone={() => setOpenId(null)} mediaUrls={items.map((item) => item.mediaUrl)} />
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1">
                     <ReorderButtons list={items} onApply={reorderGalleryItems} />
@@ -458,7 +467,7 @@ export function GalleryPanel({ items, onClose }: { items: SerializedGalleryItem[
             )}
           </RowShell>
         ))}
-        {adding && <DraftGalleryForm onDone={() => setAdding(false)} />}
+        {adding && <DraftGalleryForm onDone={() => setAdding(false)} mediaUrls={items.map((item) => item.mediaUrl)} />}
         {!adding && (
           <Button variant="secondary" className="w-full" onClick={() => setAdding(true)}><Plus size={15} /> Add photo</Button>
         )}
@@ -473,7 +482,7 @@ export function GalleryPanel({ items, onClose }: { items: SerializedGalleryItem[
 
 /* ── Clients ──────────────────────────────────────────────────────────────── */
 
-function DraftClientForm({ existing, onDone }: { existing?: SerializedClient; onDone: () => void }) {
+function DraftClientForm({ existing, onDone, mediaUrls = [] }: { existing?: SerializedClient; onDone: () => void; mediaUrls?: string[] }) {
   const refresh = useRefresh();
   const [name, setName] = useState(existing?.name ?? "");
   const [logoUrl, setLogoUrl] = useState(existing?.logoUrl ?? "");
@@ -482,17 +491,19 @@ function DraftClientForm({ existing, onDone }: { existing?: SerializedClient; on
   const [featured, setFeatured] = useState(existing?.featured ?? false);
   const [visible, setVisible] = useState(existing?.visible ?? true);
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const save = async () => {
-    setBusy(true);
-    if (existing) {
-      await updateWebsiteClient(existing.id, { name, logoUrl: logoUrl || undefined, sector: sector || undefined, description: description || undefined, featured, visible });
-    } else if (name.trim()) {
-      await createWebsiteClient({ name: name.trim(), logoUrl: logoUrl || undefined, sector: sector || undefined, description: description || undefined, featured });
-    }
-    setBusy(false);
-    onDone();
-    refresh();
+    setBusy(true); setNotice(null);
+    try {
+      if (existing) {
+        await updateWebsiteClient(existing.id, { name, logoUrl: logoUrl || undefined, sector: sector || undefined, description: description || undefined, featured, visible });
+      } else if (name.trim()) {
+        await createWebsiteClient({ name: name.trim(), logoUrl: logoUrl || undefined, sector: sector || undefined, description: description || undefined, featured });
+      }
+      setNotice("Draft saved. Publish to update the live website."); onDone(); refresh();
+    } catch (error) { setNotice(error instanceof Error ? `Could not save draft: ${error.message}` : "Could not save draft."); }
+    finally { setBusy(false); }
   };
 
   return (
@@ -500,7 +511,7 @@ function DraftClientForm({ existing, onDone }: { existing?: SerializedClient; on
       <input className="admin-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Client / organisation name" />
       <div>
         <label className="admin-label">Logo</label>
-        <ImageUpload label="" value={logoUrl || null} onChange={(url) => setLogoUrl(url ?? "")} hint="Upload or paste a URL." />
+        <ImageUpload label="" value={logoUrl || null} onChange={(url) => setLogoUrl(url ?? "")} hint="Upload to Vercel Blob or choose a Website Photo." mediaUrls={mediaUrls} />
       </div>
       <input className="admin-input" value={sector} onChange={(e) => setSector(e.target.value)} placeholder="Sector (e.g. Institutional)" />
       <textarea className="admin-input min-h-16 resize-y" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short description (optional)" />
@@ -530,6 +541,7 @@ function DraftClientForm({ existing, onDone }: { existing?: SerializedClient; on
           </Button>
         )}
       </div>
+      {notice && <p role="status" className={`text-xs ${notice.startsWith("Could not") ? "text-red-400" : "text-emerald-400"}`}>{notice}</p>}
     </div>
   );
 }
@@ -544,7 +556,7 @@ export function ClientsPanel({ items, onClose }: { items: SerializedClient[]; on
           <RowShell key={c.id} item={c} name={c.name} meta={`${c.sector ?? "No sector"} · ${c.featured ? "featured" : "standard"} · position ${c.position + 1}`} onOpen={() => {}}>
             {({ close }) => (
               <>
-                <DraftClientForm existing={c} onDone={close} />
+                <DraftClientForm existing={c} onDone={close} mediaUrls={items.map((item) => item.logoUrl).filter((url): url is string => Boolean(url))} />
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1">
                     <ReorderButtons list={items} onApply={reorderWebsiteClients} />
@@ -556,7 +568,7 @@ export function ClientsPanel({ items, onClose }: { items: SerializedClient[]; on
             )}
           </RowShell>
         ))}
-        {adding && <DraftClientForm onDone={() => setAdding(false)} />}
+        {adding && <DraftClientForm onDone={() => setAdding(false)} mediaUrls={items.map((item) => item.logoUrl).filter((url): url is string => Boolean(url))} />}
         {!adding && (
           <Button variant="secondary" className="w-full" onClick={() => setAdding(true)}><Plus size={15} /> Add client</Button>
         )}
@@ -735,7 +747,7 @@ function NavItemEditor({ item, close }: { item: SerializedNavItem; close: () => 
 
 /* ── Settings + SEO ───────────────────────────────────────────────────────── */
 
-export function SettingsPanel({ settings, onClose }: { settings: SerializedWebsiteSettings | null; onClose: () => void }) {
+export function SettingsPanel({ settings, onClose, mediaUrls = [] }: { settings: SerializedWebsiteSettings | null; onClose: () => void; mediaUrls?: string[] }) {
   const refresh = useRefresh();
   const [form, setForm] = useState({
     businessName: settings?.businessName ?? "",
@@ -751,6 +763,7 @@ export function SettingsPanel({ settings, onClose }: { settings: SerializedWebsi
     founderName: settings?.founderName ?? "",
     founderTitle: settings?.founderTitle ?? "",
     founderBio: settings?.founderBio ?? "",
+    primaryLogoUrl: settings?.primaryLogoUrl ?? "",
   });
   const [busy, setBusy] = useState(false);
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -775,6 +788,10 @@ export function SettingsPanel({ settings, onClose }: { settings: SerializedWebsi
           <div className="col-span-2">
             <label className="admin-label">Business name</label>
             <input className="admin-input" value={form.businessName} onChange={set("businessName")} />
+          </div>
+          <div className="col-span-2">
+            <label className="admin-label">Website logo</label>
+            <ImageUpload label="" value={form.primaryLogoUrl || null} onChange={(url) => setForm((f) => ({ ...f, primaryLogoUrl: url ?? "" }))} mediaUrls={mediaUrls} hint="This logo is rendered in the shared public header and footer. Save Draft, then Publish settings." />
           </div>
           <div className="col-span-2">
             <label className="admin-label">Short description (footer tagline)</label>
@@ -884,7 +901,7 @@ export function DrawerContent({
   switch (signal.kind) {
     case "section":
     case "section-field":
-      return <SectionFieldsPanel section={signal.section} onClose={onClose} />;
+      return <SectionFieldsPanel section={signal.section} onClose={onClose} mediaUrls={[...new Set(gallery.map((item) => item.mediaUrl))]} />;
     case "services":
       return <ServicesPanel items={services} onClose={onClose} />;
     case "gallery":
@@ -896,7 +913,7 @@ export function DrawerContent({
     case "nav":
       return <NavPanel items={navItems} onClose={onClose} />;
     case "settings":
-      return <SettingsPanel settings={settings} onClose={onClose} />;
+      return <SettingsPanel settings={settings} onClose={onClose} mediaUrls={[...new Set(gallery.map((item) => item.mediaUrl))]} />;
     case "seo":
       return <SeoPanel seo={seo} onClose={onClose} />;
     default:

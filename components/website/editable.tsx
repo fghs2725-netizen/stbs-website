@@ -44,7 +44,7 @@ export function Editable({
       }}
       className={`group/editable relative cursor-pointer outline outline-2 outline-transparent outline-offset-2 transition outline-solid hover:outline-dashed hover:outline-signal/90 hover:outline-2 ${className ?? ""}`}
     >
-      <span className="pointer-events-none absolute -top-2.5 left-2 z-[75] hidden rounded-sm bg-signal px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black shadow-[0_2px_10px_rgba(0,0,0,.4)] group-hover/editable:block">
+      <span className="pointer-events-none absolute left-2 top-2 z-[75] inline-flex min-h-11 items-center rounded-md bg-signal px-3 text-[11px] font-bold uppercase tracking-wide text-black opacity-0 shadow-[0_2px_10px_rgba(0,0,0,.4)] transition-opacity group-hover/editable:opacity-100 group-focus/editable:opacity-100">
         {label}
       </span>
       {children}

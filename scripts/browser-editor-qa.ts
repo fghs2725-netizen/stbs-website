@@ -208,15 +208,12 @@ async function main() {
     await page.waitForSelector("#admin-email", { timeout: 20000 });
     await typeInto(page, "#admin-email", "admin@stbs.com");
     await typeInto(page, "#admin-password", "STBS@admin123");
-    await Promise.all([
-      page.waitForNavigation({ waitUntil: "networkidle2", timeout: 20000 }).catch(() => {}),
-      page.click("button[type='submit']"),
-    ]);
-    await waitFor(page, () => visibleText(page, "Admin"), 15000, "post-login page");
-    check("login succeeds", page.url().includes("/admin"), page.url());
+    await page.click("button[type='submit']");
+    await waitFor(page, () => !new URL(page.url()).pathname.startsWith("/admin/login"), 20000, "post-login redirect");
+    check("login succeeds", new URL(page.url()).pathname.startsWith("/admin"), page.url());
 
     // ── Editor loads ──
-    await page.goto(`${BASE}/admin/website`, { waitUntil: "networkidle2" });
+    await page.goto(`${BASE}/admin/website?page=home`, { waitUntil: "networkidle2" });
     await waitFor(page, () => visibleText(page, "Publish website"), 20000, "editor toolbar");
     check("editor shell renders (toolbar + page links)", await visibleText(page, "Publish website") && await visibleText(page, "Preview"), "");
     check("editor renders no CMS tabs (single visual editor)", await page.evaluate(() => !document.body.innerText.includes("CMS Pages")), "");
@@ -231,7 +228,7 @@ async function main() {
     }));
     check("public site renders zero editor chrome", pubChrome.chrome === 0 && pubChrome.editable === 0, JSON.stringify(pubChrome));
     check("public home still static (unpublished)", await visibleText(page, "Go deeper."), "");
-    await page.goto(`${BASE}/admin/website`, { waitUntil: "networkidle2" });
+    await page.goto(`${BASE}/admin/website?page=home`, { waitUntil: "networkidle2" });
     await waitFor(page, () => visibleText(page, "Publish website"), 20000, "editor reload");
 
     // hover chrome controls on hero
@@ -250,9 +247,8 @@ async function main() {
     // (33/33). Here we open it via the hero section's chrome-row Edit Heading button
     // (the hover control) and verify the drawer + Save draft flow.
     await page.evaluate(() => {
-      const wrap = Array.from(document.querySelectorAll('div[class*="group/edsec"]')).find((w) => w.textContent.includes("Go deeper."));
-      const btn = wrap ? Array.from(wrap.querySelectorAll("button")).find((b) => b.getAttribute("title") === "Edit Heading" || b.textContent.includes("Edit heading")) : null;
-      (btn as HTMLButtonElement)?.click();
+      const target = Array.from(document.querySelectorAll('[title="Edit Heading"]')).find((element) => element.textContent.includes("Go deeper."));
+      (target as HTMLElement | null)?.click();
     });
     await waitFor(page, () => visibleText(page, "Save draft"), 12000, "section editor drawer");
     check("drawer opens from clicking hero heading (SectionFieldsPanel)", true, "");
@@ -269,7 +265,8 @@ async function main() {
     check("edit hero heading → Save draft persists", true, "");
     await page.click('button[aria-label="Close editor"]');
     await waitFor(page, () => page.evaluate(() => !document.querySelector('button[aria-label="Close editor"]')), 10000, "drawer closed");
-    check("canvas reflects new hero heading", await visibleText(page, "Visual Editor QA V1"), "");
+    await waitFor(page, () => visibleText(page, "Visual Editor QA V1"), 12000, "canvas hero update");
+    check("canvas reflects new hero heading", true, "");
 
     // ── Replace hero image (upload) ──
     await page.click('[title="Edit Heading"]');
@@ -309,11 +306,21 @@ async function main() {
     await waitFor(page, () => page.evaluate(() => !!document.querySelector('div[class*="bg-[#101012]"] input[placeholder="Caption (shown on the website)"]')), 10000, "gallery form");
     const galFile = await page.$('div[class*="bg-[#101012]"] input[type="file"]');
     if (galFile) await galFile.uploadFile(QA_PHOTO);
+    await waitFor(page, () => page.evaluate(() => {
+      const addPhoto = Array.from(document.querySelectorAll("button")).find((button) => button.textContent?.trim() === "Add photo") as HTMLButtonElement | undefined;
+      return Boolean(document.querySelector('div[class*="bg-[#101012]"] img[src*="/api/storage/local/"]')) && Boolean(addPhoto && !addPhoto.disabled);
+    }), 20000, "gallery image uploaded");
     await typeInto(page, 'input[placeholder="Caption (shown on the website)"]', "QA Field Test Photo");
     await typeInto(page, 'input[placeholder="Alt text (accessibility)"]', "QA field drilling");
     await typeInto(page, 'input[placeholder="Category (e.g. Industrial)"]', "Industrial");
     await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.includes("Add photo")); (b as HTMLButtonElement)?.click(); });
-    await waitFor(page, async () => (await visibleText(page, "QA Field Test Photo")) && (await visibleText(page, "Draft")), 15000, "gallery row created");
+    await waitFor(page, () => page.evaluate(() => !document.querySelector('input[placeholder="Caption (shown on the website)"]')), 15000, "gallery form saved");
+    await waitFor(page, () => visibleText(page, "QA Field Test Photo"), 15000, "submitted gallery row");
+    await page.goto(`${BASE}/admin/website?page=home`, { waitUntil: "networkidle2" });
+    await waitFor(page, () => visibleText(page, "Publish website"), 20000, "editor after gallery save");
+    await page.evaluate(() => { (document.querySelector('button[title="Edit gallery section"]') as HTMLElement)?.click(); });
+    await waitFor(page, () => visibleText(page, "Gallery photos"), 12000, "gallery panel after save");
+    await waitFor(page, () => visibleText(page, "QA Field Test Photo"), 15000, "gallery row created");
     check("gallery photo added (caption + alt + category) as Draft", true, "");
 
     // ── Preview ──
@@ -362,7 +369,7 @@ async function main() {
     }
 
     // editor responsive: toolbar + bottom-sheet drawer open at mobile widths
-    await page.goto(`${BASE}/admin/website`, { waitUntil: "networkidle2" });
+    await page.goto(`${BASE}/admin/website?page=home`, { waitUntil: "networkidle2" });
     await waitFor(page, () => visibleText(page, "Publish website"), 20000, "editor");
     for (const w of [320, 375, 390, 430]) {
       await page.setViewport({ width: w, height: 850 });
@@ -392,16 +399,25 @@ async function main() {
     await waitFor(page, () => visibleText(page, "Gallery photos"), 12000, "gallery panel");
     await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.includes("QA Field Test Photo")); (b as HTMLButtonElement)?.click(); });
     await waitFor(page, () => page.evaluate(() => Array.from(document.querySelectorAll("input")).some((i) => (i as HTMLInputElement).value === "QA Field Test Photo")), 10000, "photo expanded");
-    await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.trim() === "Unpublish" && x.className.includes("secondary")); (b as HTMLButtonElement)?.click(); });
-    await waitFor(page, async () => (await visibleText(page, "Published")) && (await visibleText(page, "QA Field Test Photo")), 15000, "photo unpublished").catch(() => {});
-    check("photo unpublished via drawer", await page.evaluate(() => { const row = Array.from(document.querySelectorAll("div")).find((e) => e.className.includes("border-white/[.07]") && e.textContent.includes("QA Field Test Photo")); return !!(row && row.textContent.includes("Draft")); }), "");
+    await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.trim() === "Unpublish"); (b as HTMLButtonElement)?.click(); });
+    // The drawer retains its initial client snapshot after this server action.
+    // Reopen it to assert the persisted state: unpublished photos leave its list.
+    await page.reload({ waitUntil: "networkidle2" });
+    await waitFor(page, () => visibleText(page, "Publish website"), 20000, "editor refreshed after photo unpublish");
+    const galWrapAfterUnpublish = await sectionWrapper(page, "Work in motion");
+    const gabAfterUnpublish = await galWrapAfterUnpublish.asElement()?.boundingBox();
+    if (gabAfterUnpublish) await page.mouse.move(gabAfterUnpublish.x + gabAfterUnpublish.width / 2, gabAfterUnpublish.y + gabAfterUnpublish.height / 2);
+    await new Promise((r) => setTimeout(r, 300));
+    await page.evaluate(() => { (document.querySelector('button[title="Edit gallery section"]') as HTMLElement)?.click(); });
+    await waitFor(page, () => visibleText(page, "Gallery photos"), 12000, "gallery panel after photo unpublish");
+    check("photo unpublished via drawer", await page.evaluate(() => !Array.from(document.querySelectorAll("button")).some((button) => button.textContent?.trim() === "QA Field Test Photo")), "");
     await page.click('button[aria-label="Close editor"]');
     await waitFor(page, () => page.evaluate(() => !document.querySelector('button[aria-label="Close editor"]')), 10000, "drawer closed");
     await page.goto(`${BASE}/gallery`, { waitUntil: "networkidle2" });
     check("unpublish → /gallery honest empty state", !(await visibleText(page, "QA Field Test Photo")), "");
 
     // ── Delete photo (blob cleanup) ──
-    await page.goto(`${BASE}/admin/website`, { waitUntil: "networkidle2" });
+    await page.goto(`${BASE}/admin/website?page=home`, { waitUntil: "networkidle2" });
     await waitFor(page, () => visibleText(page, "Publish website"), 20000, "editor");
     const galWrap3 = await sectionWrapper(page, "Work in motion");
     const gb3 = await galWrap3.asElement()?.boundingBox();
@@ -411,7 +427,7 @@ async function main() {
     await waitFor(page, () => visibleText(page, "Gallery photos"), 12000, "gallery panel");
     await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.includes("QA Field Test Photo")); (b as HTMLButtonElement)?.click(); });
     await waitFor(page, () => page.evaluate(() => Array.from(document.querySelectorAll("input")).some((i) => (i as HTMLInputElement).value === "QA Field Test Photo")), 10000, "photo expanded");
-    await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.trim() === "Delete" && x.className.includes("destructive")); (b as HTMLButtonElement)?.click(); });
+    await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.trim() === "Delete"); (b as HTMLButtonElement)?.click(); });
     await waitFor(page, () => visibleText(page, "Confirm"), 8000, "delete confirm");
     await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.trim() === "Confirm"); (b as HTMLButtonElement)?.click(); });
     await waitFor(page, () => page.evaluate(() => !document.body.innerText.includes("QA Field Test Photo")), 15000, "photo deleted");

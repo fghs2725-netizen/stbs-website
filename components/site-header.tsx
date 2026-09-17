@@ -5,10 +5,11 @@ import { Menu, X, ArrowUpRight } from "lucide-react";
 import { useState } from "react";
 import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { Editable } from "@/components/website/editable";
 
 const DEFAULT_LINKS = ["About", "Services", "Clients", "Gallery", "Contact"];
 
-export function SiteHeader({ navLinks, businessName }: { navLinks?: Array<{ label: string; href: string }>; businessName?: string }) {
+export function SiteHeader({ navLinks, businessName, logoUrl }: { navLinks?: Array<{ label: string; href: string }>; businessName?: string; logoUrl?: string }) {
   const links = navLinks?.length
     ? navLinks.filter(l => !l.href.startsWith("/admin") && !l.href.startsWith("/quote")).map(l => l.label)
     : DEFAULT_LINKS;
@@ -21,9 +22,11 @@ export function SiteHeader({ navLinks, businessName }: { navLinks?: Array<{ labe
   return <motion.header initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: .6, ease: [0.22, 1, 0.36, 1] }} className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-500 ${scrolled || open ? "border-white/10 bg-black/85 shadow-[0_18px_70px_rgba(0,0,0,.35)] backdrop-blur-xl" : "border-white/0 bg-black/25 backdrop-blur-sm"}`}>
     <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
       <Link href="/" className="flex items-center gap-3" aria-label={businessName && businessName.length > 0 ? `${businessName} home` : "Home"}>
-        <motion.span animate={{ scale: scrolled ? .94 : 1 }} transition={{ duration: .35 }} className="relative block h-[68px] w-44">
-          <Image src="/stbs-logo-only.png" alt="STBS logo" fill className="object-contain object-left" sizes="176px" priority />
-        </motion.span>
+        <Editable target={{ kind: "settings" }} label="Edit Logo" className="block">
+          <motion.span animate={{ scale: scrolled ? .94 : 1 }} transition={{ duration: .35 }} className="relative block h-[68px] w-44">
+            <Image src={logoUrl || "/stbs-logo-only.png"} alt="STBS logo" fill className="object-contain object-left" sizes="176px" priority />
+          </motion.span>
+        </Editable>
       </Link>
       <nav className="hidden items-center gap-7 lg:flex" aria-label="Main navigation">
         <div className="flex items-center gap-1">
@@ -39,7 +42,7 @@ export function SiteHeader({ navLinks, businessName }: { navLinks?: Array<{ labe
         </div>
         <Link href="/quote" className="flex h-11 items-center gap-2 bg-signal px-5 text-xs font-extrabold uppercase tracking-wider text-black transition hover:-translate-y-0.5 hover:bg-white">Request Quote <ArrowUpRight size={16}/></Link>
       </nav>
-      <button className="text-white lg:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu">{open ? <X/> : <Menu/>}</button>
+      <button className="inline-flex min-h-11 min-w-11 items-center justify-center text-white lg:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu">{open ? <X/> : <Menu/>}</button>
     </div>
     {open && <nav className="border-t border-white/10 bg-black px-5 py-6 lg:hidden">{[...links, "Quote", "Admin"].map(link => {
       const href = navLinks?.length ? (navLinks.find(l => l.label === link)?.href ?? `/${link.toLowerCase()}`) : `/${link.toLowerCase()}`;

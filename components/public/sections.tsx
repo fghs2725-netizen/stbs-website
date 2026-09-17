@@ -50,7 +50,7 @@ export interface CmsSettings {
   phone?: string | null; phone2?: string | null; whatsapp?: string | null;
   email?: string | null; address?: string | null;
   city?: string | null; state?: string | null; pincode?: string | null;
-  logoUrl?: string | null; faviconUrl?: string | null;
+  logoUrl?: string | null; primaryLogoUrl?: string | null; lightLogoUrl?: string | null; darkLogoUrl?: string | null; mobileLogoUrl?: string | null; faviconUrl?: string | null;
   founderName?: string | null; founderTitle?: string | null; founderBio?: string | null;
   founderPhoto?: string | null;
   businessHours?: unknown;
@@ -159,7 +159,7 @@ function HeroSection({ owner, content }: { owner?: RenderableSection; content: R
 
   return (
     <section className="relative flex min-h-[80vh] items-center overflow-hidden bg-black pt-24 lg:min-h-[85vh]">
-      <Editable target={{ kind: "section", section: target }} label="Hero image" className="absolute inset-0">
+      <Editable target={{ kind: "section-field", section: target, fieldKey: "heroImage" }} label="Edit Image" className="absolute inset-0">
         <div className="absolute inset-0">
           <Image src={heroImage} alt={heroImageAlt} fill priority className="object-cover object-center opacity-[.58]" sizes="100vw" />
         </div>
@@ -437,7 +437,7 @@ function GallerySection({ owner, content, data }: { owner?: RenderableSection; c
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" style={{ gridAutoRows: "240px" }}>
           {items.map((item, i) => (
             <Reveal key={i} delay={i * 0.05}>
-              <Editable target={{ kind: "gallery" }} label="Edit photo" className="h-full">
+              <Editable target={{ kind: "gallery" }} label="Edit Image" className="h-full">
                 <Link href="/gallery" className="group relative block h-full overflow-hidden">
                   <Image src={item.src} alt={item.alt} fill className="object-cover grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" sizes="(max-width:768px) 100vw,33vw" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
@@ -490,7 +490,7 @@ function TextImageSection({ owner, content }: { owner?: RenderableSection; conte
 
   const imageCol = image ? (
     <Reveal className="group relative h-[400px] lg:h-[500px]">
-      <Editable target={{ kind: "section", section: target }} label="Image" className="absolute inset-0">
+      <Editable target={{ kind: "section-field", section: target, fieldKey: "image" }} label="Edit Image" className="absolute inset-0">
         <Image src={image} alt={imageAlt} fill className="object-cover grayscale transition duration-700 group-hover:grayscale-0 group-hover:scale-105" sizes="(max-width:1024px) 100vw,50vw" />
       </Editable>
       {badgeText && (
@@ -572,7 +572,7 @@ function FounderSection({ owner, content }: { owner?: RenderableSection; content
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-14 lg:grid-cols-[1.2fr_1.8fr] lg:items-center">
           <Reveal className="group relative h-[480px]">
-            <Editable target={{ kind: "section", section: target }} label="Photo" className="absolute inset-0">
+            <Editable target={{ kind: "section-field", section: target, fieldKey: "photo" }} label="Edit Image" className="absolute inset-0">
               <Image src={photo} alt={name} fill className="object-cover grayscale transition duration-700 group-hover:grayscale-0 group-hover:scale-105" sizes="(max-width:1024px) 100vw, 40vw" />
             </Editable>
             <div className="absolute -bottom-5 -right-5 z-10 bg-signal p-6 text-black">
@@ -669,7 +669,7 @@ function ExperienceCultureSection({ owner, content }: { owner?: RenderableSectio
           </div>
           <div className="relative h-full min-h-[400px] lg:min-h-[500px]">
             <div className="group relative h-full">
-              <Image src={image} alt={imageAlt} fill className="object-cover grayscale transition duration-700 group-hover:grayscale-0 group-hover:scale-105" sizes="(max-width:1024px) 100vw,40vw" />
+              <Editable target={{ kind: "section-field", section: target, fieldKey: "image" }} label="Edit Image" className="absolute inset-0"><Image src={image} alt={imageAlt} fill className="object-cover grayscale transition duration-700 group-hover:grayscale-0 group-hover:scale-105" sizes="(max-width:1024px) 100vw,40vw" /></Editable>
               <div className="absolute -bottom-8 -left-8 bg-signal p-8">
                 <span className="font-display text-6xl font-bold">{badgeText}</span>
                 <p className="text-sm font-bold uppercase tracking-wider">{badgeSubtext}</p>
@@ -740,7 +740,7 @@ function FeaturedClientsSection({ owner, content, data }: { owner?: RenderableSe
         <div className="mt-12 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {items.map((c, i) => (
             <Reveal key={i} delay={i * 0.05}>
-              <Editable target={{ kind: "clients" }} label="Edit client" className="h-full">
+              <Editable target={{ kind: "clients" }} label="Edit Logo" className="h-full">
                 <article className="group relative flex min-h-48 flex-col justify-between overflow-hidden border border-white/10 bg-white/[.035] p-7 transition duration-300 hover:-translate-y-1 hover:border-signal/60 hover:bg-white/[.07]">
                 <div>
                   {c.logoUrl && <div className="flex h-14 items-center"><Image src={c.logoUrl} alt={c.name} width={120} height={48} className="object-contain brightness-0 invert opacity-80" /></div>}

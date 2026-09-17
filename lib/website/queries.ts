@@ -72,17 +72,16 @@ export async function getPublishedPageMeta(slug: string) {
 // ─── Services ────────────────────────────────────────────────────────────────
 
 export async function getPublishedServices() {
-  const services = await prisma.websiteService.findMany({
-    where: { status: "PUBLISHED", deletedAt: null, visible: true },
-    orderBy: { position: "asc" },
-  });
+  const rows = await prisma.websiteService.findMany({ where: { publishedAt: { not: null }, deletedAt: null } });
+  const services = rows.map((row) => applySnapshot(row)).filter((service) => (service as Record<string, unknown>).visible !== false).sort((a, b) => livePosition(a) - livePosition(b));
   return services.length > 0 ? serialize(services) : null;
 }
 
 export async function getPublishedService(slug: string) {
-  const service = await prisma.websiteService.findFirst({
-    where: { slug, status: "PUBLISHED", deletedAt: null },
-  });
+  // A draft slug can change before publish; route lookups must use the live
+  // snapshot's slug, never the current draft field.
+  const rows = await prisma.websiteService.findMany({ where: { publishedAt: { not: null }, deletedAt: null } });
+  const service = rows.map((row) => applySnapshot(row)).find((row) => row.slug === slug);
   return service ? serialize(service) : null;
 }
 

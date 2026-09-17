@@ -77,6 +77,7 @@ export interface SerializedGalleryItem {
   position: number;
   visible: boolean;
   status: "DRAFT" | "PUBLISHED";
+  deleteOnPublish: boolean;
   publishedData: Record<string, unknown> | null;
   publishedAt: string | null;
   width: number | null;

@@ -76,6 +76,10 @@ export function resolveSettings(raw: Record<string, unknown> | null): CmsSetting
     founderName: field(raw, "founderName", company.managingDirector),
     founderTitle: field(raw, "founderTitle", "Founder & Managing Director"),
     founderBio: field(raw, "founderBio", ""),
+    primaryLogoUrl: field(raw, "primaryLogoUrl", ""),
+    lightLogoUrl: field(raw, "lightLogoUrl", ""),
+    darkLogoUrl: field(raw, "darkLogoUrl", ""),
+    mobileLogoUrl: field(raw, "mobileLogoUrl", ""),
   };
 }
 

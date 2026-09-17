@@ -802,6 +802,7 @@ model WebsiteService {
   position         Int               @default(0)
   visible          Boolean           @default(true)
   status           WebsitePageStatus @default(DRAFT)
+  publishedData    Json?
   publishedAt      DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
@@ -871,6 +872,7 @@ model WebsiteGalleryItem {
   position     Int               @default(0)
   visible      Boolean           @default(true)
   status       WebsitePageStatus @default(DRAFT)
+  deleteOnPublish Boolean         @default(false)
   publishedData Json?
   publishedAt  DateTime?
   width        Int?

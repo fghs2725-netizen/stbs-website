@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type MouseEvent } from "react";
+import { useMemo, useState, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Compass, Eye, EyeOff, Globe, Pencil, Settings2, SearchCheck } from "lucide-react";
@@ -9,7 +9,7 @@ import { SectionRenderer, type RenderableSection, type SectionData } from "@/com
 import { WebsiteEditorProvider, useWebsiteEditor } from "@/lib/website/editor-context";
 import { DrawerContent } from "./panel";
 import { resolveSettings, primaryPhone } from "@/lib/website/public-config";
-import { publishWebsiteNow } from "@/lib/website/actions";
+import { publishWebsiteNow, unpublishPage } from "@/lib/website/actions";
 import type {
   SerializedClient,
   SerializedGalleryItem,
@@ -68,6 +68,8 @@ function EditorToolbar({ data }: { data: WebsiteEditorData }) {
   const router = useRouter();
   const editor = useWebsiteEditor();
   const { page, pages } = data;
+  const [publishState, setPublishState] = useState<string | null>(null);
+  const busy = publishState === "Publishing…" || publishState === "Unpublishing…";
 
   return (
     <div className="sticky top-14 z-[85] -mx-4 border-b border-white/[.08] bg-[#101012]/95 px-4 py-2.5 backdrop-blur-xl lg:-mx-6 lg:px-6">
@@ -125,21 +127,48 @@ function EditorToolbar({ data }: { data: WebsiteEditorData }) {
         <button
           type="button"
           onClick={async () => {
-            await publishWebsiteNow(page.id);
-            router.refresh();
+            setPublishState("Publishing…");
+            try {
+              await publishWebsiteNow(page.id);
+              setPublishState("Published. The live website now uses this draft.");
+              router.refresh();
+            } catch (error) {
+              setPublishState(error instanceof Error ? error.message : "Publishing failed. Please try again.");
+            }
           }}
+          disabled={busy}
           className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-signal px-4 text-xs font-extrabold uppercase tracking-wider text-black transition hover:-translate-y-px hover:bg-white"
           title="Publish this page's draft sections plus draft nav, settings, SEO, services, gallery photos and clients"
         >
-          <CheckCircle2 size={15} /> Publish website
+          <CheckCircle2 size={15} /> {publishState === "Publishing…" ? "Publishing…" : "Publish website"}
         </button>
       </div>
+      {page.publishedAt && (
+        <button
+          type="button"
+          onClick={async () => {
+            setPublishState("Unpublishing…");
+            try {
+              await unpublishPage(page.id);
+              setPublishState("Unpublished. The public page now uses its fallback.");
+              router.refresh();
+            } catch (error) {
+              setPublishState(error instanceof Error ? error.message : "Unpublishing failed. Please try again.");
+            }
+          }}
+          disabled={busy}
+          className="mt-2 inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/15 px-4 text-xs font-extrabold uppercase tracking-wider text-zinc-300 transition hover:bg-white/[.06] disabled:opacity-50"
+        >
+          <EyeOff size={15} /> {publishState === "Unpublishing…" ? "Unpublishing…" : "Unpublish page"}
+        </button>
+      )}
       <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-500">
         <span>
           {page.name}: {page.status === "PUBLISHED" ? "live (past version)" : "draft"} · {page.publishedAt ? `published ${new Date(page.publishedAt).toLocaleDateString()}` : "never published"}
         </span>
         <span>Editor shows DRAFT content. Public visitors only ever see published content.</span>
       </p>
+      {publishState && !busy && <p role="status" className={`mt-2 text-xs ${publishState.startsWith("Published") || publishState.startsWith("Unpublished") ? "text-emerald-400" : "text-red-400"}`}>{publishState}</p>}
     </div>
   );
 }
@@ -193,7 +222,7 @@ function EditorCanvas({ data }: { data: WebsiteEditorData }) {
       {editor.signal && (
         <div className="fixed inset-0 z-[120]">
           <div className="absolute inset-0 bg-black/60" onClick={editor.closeEditor} />
-          <div className="absolute inset-x-0 bottom-0 h-[84vh] overflow-hidden rounded-t-2xl border-t border-white/10 bg-[#101012] shadow-2xl lg:inset-x-auto lg:right-0 lg:top-0 lg:h-full lg:w-[440px] lg:rounded-none lg:border-l lg:border-t-0">
+          <div data-editor-safe className="absolute inset-x-0 bottom-0 h-[84vh] overflow-hidden rounded-t-2xl border-t border-white/10 bg-[#101012] shadow-2xl lg:inset-x-auto lg:right-0 lg:top-0 lg:h-full lg:w-[440px] lg:rounded-none lg:border-l lg:border-t-0">
             <DrawerContent
               signal={editor.signal}
               services={data.services}

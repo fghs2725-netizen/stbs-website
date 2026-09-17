@@ -3,14 +3,14 @@
 import type { SectionField } from "@/lib/website/section-types";
 import { ImageUpload } from "./ImageUpload";
 
-export function ImageInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return <ImageUpload label="" value={value || null} onChange={(url) => onChange(url ?? "")} hint="Upload an image or paste a URL." />;
+export function ImageInput({ value, onChange, mediaUrls }: { value: string; onChange: (v: string) => void; mediaUrls?: string[] }) {
+  return <ImageUpload label="" value={value || null} onChange={(url) => onChange(url ?? "")} hint="Upload an image to Vercel Blob or choose a Website Photo." mediaUrls={mediaUrls} />;
 }
 
-export function FieldInput({ field, value, onChange }: { field: SectionField; value: unknown; onChange: (v: string) => void }) {
+export function FieldInput({ field, value, onChange, mediaUrls }: { field: SectionField; value: unknown; onChange: (v: string) => void; mediaUrls?: string[] }) {
   const str = typeof value === "string" ? value : "";
   if (field.type === "image") {
-    return <ImageInput value={str} onChange={onChange} />;
+    return <ImageInput value={str} onChange={onChange} mediaUrls={mediaUrls} />;
   }
   if (field.type === "textarea") {
     return <textarea className="admin-input min-h-28 resize-y" value={str} placeholder={field.placeholder} onChange={(e) => onChange(e.target.value)} />;

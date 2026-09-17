@@ -23,7 +23,7 @@ export function WebsiteFrame({
 }) {
   return (
     <>
-      <SiteHeader navLinks={navLinks} businessName={settings?.businessName ?? undefined} />
+      <SiteHeader navLinks={navLinks} businessName={settings?.businessName ?? undefined} logoUrl={settings?.primaryLogoUrl ?? settings?.logoUrl ?? undefined} />
       <main>{children}</main>
       <SiteFooter settings={settings} navLinks={navLinks} />
       <WhatsAppFloat phone={phone} />
