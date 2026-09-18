@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getPublishedSeo, getPublishedSettings } from "@/lib/website/queries";
+import { SITE_OG_IMAGE } from "@/lib/site-url";
 
 function str(c: Record<string, unknown>, key: string): string | undefined {
   const v = c[key];
@@ -23,16 +24,16 @@ export async function getPublicSeoMetadata(): Promise<Metadata> {
   const description = str(raw, "globalDescription");
   // A published SEO record owns this value, including an intentional clear.
   // Settings provide the legacy/global fallback only while SEO is unconfigured.
-  const ogImage = seo ? str(raw, "defaultOgImage") : str(settingsRaw, "defaultOgImage");
+  const ogImage = (seo ? str(raw, "defaultOgImage") : str(settingsRaw, "defaultOgImage"))?.replace("sainitubewell.com", "stbs.in");
   const twitterTitle = str(raw, "twitterTitle") ?? title;
   const twitterDescription = str(raw, "twitterDescription") ?? description;
-  const twitterImage = str(raw, "twitterImage");
+  const twitterImage = str(raw, "twitterImage")?.replace("sainitubewell.com", "stbs.in");
 
   const meta: Metadata = {};
   if (title) meta.title = title;
   if (description) meta.description = description;
-  if (ogImage) meta.openGraph = { title: twitterTitle, description: twitterDescription, images: [ogImage] };
-  if (twitterImage) meta.twitter = { title: twitterTitle, description: twitterDescription, images: [twitterImage] };
+  meta.openGraph = { title: twitterTitle, description: twitterDescription, images: [ogImage || SITE_OG_IMAGE] };
+  meta.twitter = { card: "summary", title: twitterTitle, description: twitterDescription, images: [twitterImage || ogImage || SITE_OG_IMAGE] };
 
   return meta;
 }

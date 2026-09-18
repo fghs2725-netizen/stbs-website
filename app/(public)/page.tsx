@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { HomePage } from "@/components/home-page";
+import { Testimonials } from "@/components/public/site-additions";
 import { PageRenderer } from "@/components/public/page-renderer";
 import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
 import { absolutePath } from "@/lib/site-url";
@@ -25,5 +26,5 @@ export default async function Home() {
   if (cmsPage && cmsPage.sections.length > 0) {
     return <PageRenderer sections={cmsPage.sections.map((s) => ({ type: s.type, content: s.content as Record<string, unknown> }))} />;
   }
-  return <HomePage />;
+  return <><HomePage /><Testimonials /></>;
 }

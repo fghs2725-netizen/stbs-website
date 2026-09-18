@@ -159,14 +159,15 @@ function HeroSection({ owner, content }: { owner?: RenderableSection; content: R
   const target = asSection(owner);
 
   return (
-    <section className="relative flex min-h-[80vh] items-center overflow-hidden bg-black pt-24 lg:min-h-[85vh]">
+    <section className="water-hero relative flex min-h-[80vh] items-center overflow-hidden pt-24 lg:min-h-[85vh]">
       <Editable target={{ kind: "section-field", section: target, fieldKey: "heroImage" }} label="Edit Image" className="absolute inset-0">
         <div className="absolute inset-0">
           <Image src={heroImage} alt={heroImageAlt} fill priority className={`object-cover object-center opacity-[.58] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
           {mobileImage && <Image src={mobileImage} alt={heroImageAlt} fill priority className="object-cover object-center opacity-[.58] sm:hidden" sizes="100vw" />}
         </div>
       </Editable>
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,19,31,.25),rgba(7,19,31,.2)_42%,rgba(7,19,31,.9))]" />
+      <div className="pointer-events-none absolute -right-24 top-24 h-72 w-[58rem] rotate-[-10deg] rounded-[50%] border border-cyan-200/15" />
       <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-16 pt-24 lg:px-8 lg:pb-24">
         <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
           <p className="mb-8 flex items-center gap-3 text-xs font-bold uppercase tracking-[.25em] text-signal">
@@ -184,11 +185,11 @@ function HeroSection({ owner, content }: { owner?: RenderableSection; content: R
         </Editable>
         <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center">
           <Editable target={{ kind: "section", section: target }} label="Primary CTA">
-            <Link href={primaryCtaUrl} className="inline-flex h-12 items-center gap-2 bg-signal px-6 text-sm font-bold uppercase tracking-wider text-black transition hover:-translate-y-0.5 hover:bg-white">
+            <Link href={primaryCtaUrl} className="public-cta">
               {primaryCtaText} <ArrowRight size={16} />
             </Link>
           </Editable>
-          <Link href={secondaryCtaUrl} className="inline-flex h-12 items-center gap-2 border border-white/20 px-6 text-sm font-bold uppercase tracking-wider text-white transition hover:border-signal/60 hover:text-white">
+          <Link href={secondaryCtaUrl} className="public-cta-secondary">
             {secondaryCtaText}
           </Link>
         </div>
@@ -200,17 +201,18 @@ function HeroSection({ owner, content }: { owner?: RenderableSection; content: R
 function PageHeroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
   const target = asSection(owner);
   return (
-    <section className="relative overflow-hidden bg-black bg-industrial-grid bg-[size:42px_42px] px-5 pb-20 pt-40 lg:px-8 lg:pb-28">
-      <div className="absolute left-0 top-20 h-1 w-1/3 bg-signal" />
-      <Reveal className="mx-auto max-w-7xl">
+    <section className="water-page-hero relative overflow-hidden px-5 pb-20 pt-40 lg:px-8 lg:pb-28">
+      <div className="absolute left-0 top-20 h-px w-1/3 bg-water-accent" />
+      <div className="pointer-events-none absolute -bottom-36 right-[8%] size-[34rem] rounded-full border border-cyan-100/10" />
+      <Reveal className="relative mx-auto max-w-7xl">
         <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
           <p className="mb-5 text-xs font-bold uppercase tracking-[.24em] text-signal">{str(content, "eyebrow")}</p>
         </Editable>
         <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-          <h1 className="max-w-5xl font-display text-6xl font-bold uppercase leading-[.9] sm:text-8xl">{str(content, "heading")}</h1>
+          <h1 className="max-w-5xl font-display text-5xl font-bold leading-[.95] sm:text-7xl">{str(content, "heading")}</h1>
         </Editable>
         <Editable target={{ kind: "section", section: target }} label="Intro text" className="max-w-fit">
-          <p className="mt-8 max-w-2xl text-base leading-8 text-white/55">{str(content, "text")}</p>
+          <p className="mt-8 max-w-2xl text-base leading-8 text-white/80">{str(content, "text")}</p>
         </Editable>
       </Reveal>
     </section>
@@ -221,12 +223,12 @@ function StatsSection({ _owner, content }: { _owner?: RenderableSection; content
   const items = arr(content, "items");
   const stats = items.length > 0 ? items : trustItems;
   return (
-    <section className="bg-signal text-black">
+    <section className="water-surface-dark waterline text-white">
       <div className="mx-auto grid max-w-7xl grid-cols-2 lg:grid-cols-4">
         {stats.map((s, i) => (
-          <div key={i} className="border-b border-black/15 p-6 last:border-r-0 sm:p-8 lg:border-b-0 lg:border-r">
-            <p className="font-display text-4xl font-bold sm:text-5xl">{str(s, "value")}</p>
-            <p className="mt-1 text-[10px] font-extrabold uppercase tracking-[.16em] opacity-60">{str(s, "label")}</p>
+          <div key={i} className="border-b border-cyan-100/10 p-6 last:border-r-0 sm:p-8 lg:border-b-0 lg:border-r">
+            <p className="font-display text-4xl font-bold text-water-accent sm:text-5xl">{str(s, "value")}</p>
+            <p className="mt-1 text-[10px] font-extrabold uppercase tracking-[.16em] text-white/60">{str(s, "label")}</p>
           </div>
         ))}
       </div>
@@ -240,14 +242,14 @@ function WhyChooseSection({ owner, content }: { owner?: RenderableSection; conte
   const display = items.length > 0 ? items : whyChoose.map(w => ({ title: w.title, text: w.text }));
   const target = asSection(owner);
   return (
-    <section className="bg-black px-5 py-16 lg:px-8 lg:py-20">
+    <section className="water-surface-dark px-5 py-16 lg:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
         <Editable target={{ kind: "section", section: target }} label="Heading" className="mx-auto w-fit">
-          <h2 className="text-center font-display text-5xl font-semibold uppercase tracking-[.24em] text-white/40 sm:text-6xl lg:text-7xl">{heading}</h2>
+          <h2 className="text-center font-display text-5xl font-semibold tracking-[.08em] text-white/70 sm:text-6xl lg:text-7xl">{heading}</h2>
         </Editable>
         <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:mt-16">
           {display.map((item, i) => (
-            <div key={i} className="h-full border border-white/10 bg-white/5 p-7 transition-all hover:border-signal/30 hover:bg-white/8 sm:p-8">
+            <div key={i} className="water-card h-full p-7 transition-all hover:-translate-y-1 hover:border-signal/60 sm:p-8">
               <p className="font-display text-2xl font-bold uppercase leading-tight text-signal">{str(item, "title")}</p>
               <p className="mt-3 text-sm leading-7 text-white/65">{str(item, "text")}</p>
             </div>
@@ -267,7 +269,7 @@ function ProcessSection({ owner, content }: { owner?: RenderableSection; content
   const display = steps.length > 0 ? steps : processSteps.map(p => ({ step: p.step, title: p.title, text: p.text }));
   const target = asSection(owner);
   return (
-    <section className="bg-black px-5 py-24 lg:px-8 lg:py-32">
+    <section className="water-surface-dark px-5 py-24 lg:px-8 lg:py-32">
       <div className="mx-auto w-full max-w-[88rem]">
         <Reveal>
           <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end">
@@ -282,14 +284,14 @@ function ProcessSection({ owner, content }: { owner?: RenderableSection; content
             {description && <p className="max-w-md text-sm leading-7 text-white/50">{description}</p>}
           </div>
         </Reveal>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12 mt-16">
+        <div className="relative mt-16 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-5">
           {display.map((step, i) => (
-            <div key={i} className="flex flex-col group relative">
-              <div className="font-display text-8xl lg:text-[7rem] xl:text-[8rem] font-bold leading-none select-none outline-text opacity-40 transition-all duration-300 group-hover:opacity-90 group-hover:text-signal/10 group-hover:-translate-y-1">
+            <div key={i} className="water-card group relative flex flex-col p-6">
+              <div className="font-display text-5xl font-bold leading-none select-none text-water-accent/45 transition-all duration-300 group-hover:text-water-accent group-hover:-translate-y-1">
                 {str(step, "step")}
               </div>
-              <div className="w-10 h-[2px] bg-signal mt-2 mb-4 transition-all duration-300 group-hover:w-20" />
-              <h3 className="font-display text-xl font-bold uppercase tracking-wider text-white">{str(step, "title")}</h3>
+              <div className="mt-5 mb-4 h-px w-10 bg-signal transition-all duration-300 group-hover:w-16" />
+              <h3 className="font-display text-xl font-bold tracking-wide text-white">{str(step, "title")}</h3>
               <p className="mt-3 text-sm leading-[1.7] text-white/55">{str(step, "text")}</p>
             </div>
           ))}
@@ -313,7 +315,7 @@ function ServicesSection({ owner, content, data }: { owner?: RenderableSection; 
     : staticServices.map(s => ({ title: s.title, text: s.text, image: null, slug: "/services" }));
 
   return (
-    <section className="bg-[#0b0b0b] px-5 py-24 lg:px-8 lg:py-32">
+    <section className="water-surface-dark px-5 py-24 lg:px-8 lg:py-32">
       <div className="mx-auto max-w-7xl">
         <Reveal>
           <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end">
@@ -334,14 +336,14 @@ function ServicesSection({ owner, content, data }: { owner?: RenderableSection; 
           {displayServices.map((s, i) => (
             <Reveal key={s.title} delay={i * 0.08}>
               <Editable target={{ kind: "services" }} label="Edit service" className="h-full">
-                <Link href={s.slug} className="group flex h-full flex-col gap-6 border border-white/10 bg-white/5 p-8 transition-all hover:border-signal/30 hover:bg-white/8">
+                <Link href={s.slug} className="water-card group flex h-full flex-col gap-6 p-8 transition-all hover:-translate-y-1 hover:border-signal/60">
                   {s.image && (
                     <div className="relative -mx-8 -mt-8 h-48 overflow-hidden border-b border-white/10">
                       <Image src={s.image} alt={`${s.title} service`} fill className="object-cover grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" sizes="(max-width:768px) 100vw, 50vw" />
                     </div>
                   )}
                   <div className="flex items-start justify-between">
-                    <span className="font-display text-6xl text-white/5">0{i + 1}</span>
+                    <span className="font-display text-6xl text-water-accent/20">0{i + 1}</span>
                   </div>
                   <h3 className="font-display text-3xl font-semibold uppercase">{s.title}</h3>
                   <p className="text-sm leading-7 text-white/60">{s.text}</p>

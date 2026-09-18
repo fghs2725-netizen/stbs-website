@@ -8,6 +8,7 @@ import { company } from "@/lib/company";
 import { PageRenderer } from "@/components/public/page-renderer";
 import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
 import { absolutePath } from "@/lib/site-url";
+import { VisualSlot } from "@/components/public/site-additions";
 
 export const dynamic = "force-dynamic";
 
@@ -85,6 +86,7 @@ function ContactStatic() {
         <div className="mx-auto max-w-7xl">
           <Reveal>
             <p className="mb-6 text-xs font-bold uppercase tracking-[.24em] text-signal">Find us</p>
+            <div className="mb-6 max-w-md"><VisualSlot label="Service coverage map: Sonipat, Panipat, Kundli, Rohtak, Haryana and Delhi NCR" /></div>
             <div className="overflow-hidden border border-white/10">
               <iframe
                 title="Saini Tubewell Boring Service location"

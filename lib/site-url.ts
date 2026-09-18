@@ -19,3 +19,6 @@ export function absolutePath(path: string): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;
   return `${base}${normalized}`;
 }
+
+/** Shared canonical social image; never point social crawlers at a legacy domain. */
+export const SITE_OG_IMAGE = "https://stbs.in/logo.png";

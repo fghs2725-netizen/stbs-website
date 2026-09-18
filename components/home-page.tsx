@@ -64,7 +64,7 @@ export function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative flex min-h-[80vh] items-center overflow-hidden bg-black pt-24 lg:min-h-[85vh]">
+      <section className="water-hero relative flex min-h-[80vh] items-center overflow-hidden pt-24 lg:min-h-[85vh]">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -80,7 +80,8 @@ export function HomePage() {
             sizes="100vw"
           />
         </motion.div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,19,31,.3),rgba(7,19,31,.18)_42%,rgba(7,19,31,.92))]" />
+        <div className="pointer-events-none absolute -right-24 top-24 h-72 w-[58rem] rotate-[-10deg] rounded-[50%] border border-cyan-200/15" />
 
         <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-16 pt-24 lg:px-8 lg:pb-24">
           <motion.p
@@ -147,7 +148,7 @@ export function HomePage() {
       </section>
 
       {/* Stats */}
-      <section className="bg-signal text-black">
+      <section className="water-surface-dark waterline text-white">
         <div className="mx-auto grid max-w-7xl grid-cols-2 lg:grid-cols-4">
           {trustItems.map((s) => (
             <div key={s.label} className="border-b border-black/15 p-6 last:border-r-0 sm:p-8 lg:border-b-0 lg:border-r">
@@ -159,7 +160,7 @@ export function HomePage() {
       </section>
 
       {/* Process Timeline */}
-      <section className="bg-black px-5 py-24 lg:px-8 lg:py-32">
+      <section className="water-surface-dark px-5 py-24 lg:px-8 lg:py-32">
         <div className="mx-auto w-full max-w-[88rem]">
           <Reveal>
             <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end">
@@ -180,7 +181,7 @@ export function HomePage() {
       </section>
 
       {/* Services */}
-      <section className="bg-[#0b0b0b] px-5 py-24 lg:px-8 lg:py-32">
+      <section className="water-surface-dark px-5 py-24 lg:px-8 lg:py-32">
         <div className="mx-auto max-w-7xl">
           <Reveal>
             <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end">
@@ -199,7 +200,7 @@ export function HomePage() {
           <div className="grid gap-6 md:grid-cols-2">
             {services.map((s, i) => (
               <Reveal key={s.title} delay={i * 0.08}>
-                <Link href="/services" className="group flex flex-col gap-6 border border-white/10 bg-white/5 p-8 transition-all hover:border-signal/30 hover:bg-white/8">
+              <Link href={["/borewell-drilling", "/rainwater-harvesting", "/borewell-material-supply", "/tubewell-construction"][i]} className="water-card group flex flex-col gap-6 p-8 transition-all hover:-translate-y-1 hover:border-signal/60">
                   <div className="flex items-start justify-between">
                     <div className="grid size-14 place-items-center bg-signal/10 text-signal transition group-hover:bg-signal group-hover:text-black">
                       <s.icon size={24} />

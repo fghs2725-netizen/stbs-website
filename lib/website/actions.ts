@@ -486,7 +486,7 @@ export async function createTestimonial(data: {
     _max: { position: true },
   });
   const result = await prisma.websiteTestimonial.create({
-    data: { ...data, position: (maxPos._max.position ?? -1) + 1 },
+    data: { ...data, sourceType: "REAL_PROJECT", position: (maxPos._max.position ?? -1) + 1 },
   });
   revalidateAdmin();
   return serialize(result);
@@ -720,7 +720,7 @@ export async function updateGalleryItem(
   await requireAuth();
   const result = await prisma.websiteGalleryItem.update({
     where: { id },
-    data: { ...data, status: "DRAFT", deleteOnPublish: false },
+    data: { ...data, sourceType: "REAL_PROJECT", status: "DRAFT", deleteOnPublish: false },
   });
   revalidateAdmin();
   return serialize(result);
@@ -730,6 +730,7 @@ export async function publishGalleryItem(id: string) {
   await requireAuth();
   const item = await prisma.websiteGalleryItem.findUnique({ where: { id } });
   if (!item) throw new Error("Gallery item not found");
+  if (item.sourceType !== "REAL_PROJECT") throw new Error("Gallery accepts real project photos only.");
   if (item.deleteOnPublish) {
     await prisma.websiteGalleryItem.update({ where: { id }, data: { deletedAt: new Date(), deleteOnPublish: false } });
     await deleteStoredMediaUrls([item.mediaUrl, item.thumbnailUrl]);

@@ -11,7 +11,7 @@ const DEFAULT_LINKS = ["About", "Services", "Clients", "Gallery", "Contact"];
 
 export function SiteHeader({ navLinks, businessName, logoUrl, mobileLogoUrl }: { navLinks?: Array<{ label: string; href: string }>; businessName?: string; logoUrl?: string; mobileLogoUrl?: string }) {
   const links = navLinks?.length
-    ? navLinks.filter(l => !l.href.startsWith("/admin") && !l.href.startsWith("/quote")).map(l => l.label)
+    ? navLinks.filter(l => !l.href.startsWith("/admin") && !l.href.startsWith("/quote") && l.label.toLowerCase() !== "admin").map(l => l.label)
     : DEFAULT_LINKS;
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -39,13 +39,12 @@ export function SiteHeader({ navLinks, businessName, logoUrl, mobileLogoUrl }: {
             <span className={`absolute bottom-0 left-1/2 h-px -translate-x-1/2 bg-signal transition-all duration-300 ease-out ${active ? "w-3/5 opacity-90" : "w-0 opacity-0 group-hover:w-3/5 group-hover:opacity-100"}`} />
             </Link>;
           })}
-          <Link href="/admin" className="group relative px-3 py-2 text-[11px] font-semibold uppercase tracking-[.13em] text-white/55 transition-colors hover:text-white">Admin<span className="absolute bottom-0 left-1/2 h-px w-0 -translate-x-1/2 bg-signal transition-all group-hover:w-3/5" /></Link>
         </div>
-        <Link href="/quote" className="flex h-11 items-center gap-2 bg-signal px-5 text-xs font-extrabold uppercase tracking-wider text-black transition hover:-translate-y-0.5 hover:bg-white">Request Quote <ArrowUpRight size={16}/></Link>
+        <Link href="/quote" className="flex h-11 items-center gap-2 rounded-xl bg-signal px-5 text-xs font-extrabold uppercase tracking-wider text-white transition hover:-translate-y-0.5 hover:bg-water-dark">Request Quote <ArrowUpRight size={16}/></Link>
       </nav>
       <button className="inline-flex min-h-11 min-w-11 items-center justify-center text-white lg:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu">{open ? <X/> : <Menu/>}</button>
     </div>
-    {open && <nav className="border-t border-white/10 bg-black px-5 py-6 lg:hidden">{[...links, "Quote", "Admin"].map(link => {
+    {open && <nav className="border-t border-white/10 bg-black px-5 py-6 lg:hidden">{[...links, "Quote"].map(link => {
       const href = navLinks?.length ? (navLinks.find(l => l.label === link)?.href ?? `/${link.toLowerCase()}`) : `/${link.toLowerCase()}`;
       return <Link onClick={() => setOpen(false)} key={link} href={href} className="block border-b border-white/10 py-4 font-display text-2xl uppercase text-white">{link}</Link>;
     })}</nav>}

@@ -76,7 +76,10 @@ function EditorToolbar({ data }: { data: WebsiteEditorData }) {
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <Globe size={16} className="shrink-0 text-signal" />
-          <div className="flex max-w-full items-center gap-1 overflow-x-auto py-1">
+          <select aria-label="Switch edited page" value={page.slug} onChange={(e) => { editor.closeEditor(); router.push(`/admin/website?page=${e.target.value}`); }} className="min-h-10 max-w-[150px] rounded-lg border border-white/10 bg-black/40 px-2 text-xs text-white lg:hidden">
+            {pages.map((p) => <option key={p.id} value={p.slug}>{p.name}</option>)}
+          </select>
+          <div className="hidden max-w-full items-center gap-1 overflow-x-auto py-1 lg:flex">
             {pages.map((p) => (
               <Link
                 key={p.id}
@@ -119,8 +122,8 @@ function EditorToolbar({ data }: { data: WebsiteEditorData }) {
         <ToolbarQuickLinks data={data} />
 
         <div className="flex items-center gap-1">
-          <Link href="/" target="_blank" rel="noopener noreferrer" title="Open live website" className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-zinc-400 hover:bg-white/[.06] hover:text-white">
-            <Globe size={15} />
+          <Link href="/" target="_blank" rel="noopener noreferrer" title="View website" className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-zinc-400 hover:bg-white/[.06] hover:text-white">
+            <Globe size={15} /><span className="text-[11px]">View</span>
           </Link>
         </div>
 

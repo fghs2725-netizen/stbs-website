@@ -11,12 +11,7 @@ import { createGalleryItem, updateGalleryItem, deleteGalleryItem, reorderGallery
 
 type UsageMap = Record<string, { sections: string[]; services: string[] }>;
 
-const SOURCE_LABELS: Record<string, string> = {
-  REAL_PROJECT: "Real project",
-  STOCK: "Stock",
-  GENERATED: "Generated",
-  ILLUSTRATION: "Illustration",
-};
+const SOURCE_LABELS: Record<string, string> = { REAL_PROJECT: "Real project photo" };
 
 export function PhotosManager({ items, categories, usage }: { items: SerializedGalleryItem[]; categories: string[]; usage: UsageMap }) {
   const router = useRouter();
@@ -140,12 +135,7 @@ export function PhotosManager({ items, categories, usage }: { items: SerializedG
                     <input className="admin-input min-h-10 !py-1.5 text-sm" placeholder="Caption" defaultValue={item.caption ?? ""} onBlur={(e) => e.target.value !== item.caption && update(item.id, { caption: e.target.value || undefined })} />
                     <input className="admin-input min-h-10 !py-1.5 text-sm" placeholder="Alt text" defaultValue={item.altText ?? ""} onBlur={(e) => e.target.value !== item.altText && update(item.id, { altText: e.target.value || undefined })} />
                     <input className="admin-input min-h-10 !py-1.5 text-sm" placeholder="Category" defaultValue={item.category ?? ""} onBlur={(e) => e.target.value !== item.category && update(item.id, { category: e.target.value || undefined })} />
-                    <select className="admin-input min-h-10 !py-1.5 text-sm" defaultValue={item.sourceType} onChange={(e) => update(item.id, { sourceType: e.target.value as SerializedGalleryItem["sourceType"] })}>
-                      <option value="REAL_PROJECT">Real project</option>
-                      <option value="STOCK">Stock</option>
-                      <option value="GENERATED">Generated</option>
-                      <option value="ILLUSTRATION">Illustration</option>
-                    </select>
+                    <p className="rounded-md bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">Gallery policy: real project photos only. Stock, generated and illustration assets are not accepted.</p>
                   </div>
 
                   {usedCount > 0 && (

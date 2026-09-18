@@ -5,11 +5,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Existing brand colors
-        ink: "#090909",
-        signal: "#f7c600",
-        steel: "#141416",
-        surface: "#1b1d1f",
+        // Water theme aliases. `signal` remains as a compatibility name for
+        // existing components, so all current CTAs and accents share one token.
+        ink: "#102235",
+        signal: "#1677a8",
+        steel: "#123b59",
+        surface: "#0b1f33",
+        water: { primary: "#1677a8", dark: "#0d537a", accent: "#56c5d5", light: "#edf4f3", text: "#102235", deep: "#07131f" },
 
         // Document system colors
         navy: {
@@ -75,7 +77,7 @@ export default {
         "glass-gradient":
           "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
         "accent-gradient":
-          "linear-gradient(135deg, #f7c600 0%, #fde047 100%)",
+          "linear-gradient(135deg, #0d537a 0%, #56c5d5 100%)",
         "navy-gradient":
           "linear-gradient(135deg, #1e3a5f 0%, #0f1b2e 100%)",
       },
