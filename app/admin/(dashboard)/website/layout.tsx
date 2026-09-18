@@ -5,7 +5,6 @@ export default function WebsiteLayout({ children }: { children: ReactNode }) {
   return (
     <div className="admin-page">
       <WebsiteCmsTabs />
-      <div className="pb-4" />
       {children}
     </div>
   );

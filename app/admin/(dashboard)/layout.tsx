@@ -48,11 +48,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto px-4 py-6 pb-[calc(24px+env(safe-area-inset-bottom))] lg:px-6 lg:py-8 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        {/* Page Content — overflow-x-hidden prevents horizontal scroll from editor canvas */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 pb-[calc(24px+env(safe-area-inset-bottom))] lg:px-6 lg:py-8 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
           {children}
         </main>
       </div>
     </div>
+
   );
 }

@@ -13,7 +13,7 @@ export function GalleryClient() {
 
       <section className="bg-black px-5 py-24 lg:px-8 lg:py-32">
         <div className="mx-auto max-w-7xl text-center">
-          <p className="font-display text-4xl font-bold uppercase text-white/60 sm:text-6xl">
+          <p className="font-display text-3xl font-bold uppercase text-white/60 sm:text-4xl lg:text-6xl">
             Gallery coming soon
           </p>
           <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-white/45">

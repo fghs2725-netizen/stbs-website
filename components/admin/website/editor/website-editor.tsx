@@ -64,6 +64,27 @@ function buildPreviewData(input: WebsiteEditorData): { data: SectionData; navLin
   };
 }
 
+function ToolbarQuickLinks({ data, mobile = false }: { data: WebsiteEditorData; mobile?: boolean }) {
+  const editor = useWebsiteEditor();
+  const btnClass = mobile
+    ? "inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-white/10 bg-black/40 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white active:bg-white/20"
+    : "inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-zinc-400 hover:bg-white/[.06] hover:text-white";
+
+  return (
+    <div className="flex items-center gap-1">
+      <button type="button" onClick={() => editor.openEditor({ kind: "nav" })} className={btnClass} title="Edit navigation" aria-label="Edit navigation">
+        <Compass size={15} />
+      </button>
+      <button type="button" onClick={() => editor.openEditor({ kind: "settings" })} className={btnClass} title="Global settings" aria-label="Global settings">
+        <Settings2 size={15} />
+      </button>
+      <button type="button" onClick={() => editor.openEditor({ kind: "seo" })} className={btnClass} title="SEO settings" aria-label="SEO settings">
+        <SearchCheck size={15} />
+      </button>
+    </div>
+  );
+}
+
 function EditorToolbar({ data }: { data: WebsiteEditorData }) {
   const router = useRouter();
   const editor = useWebsiteEditor();
@@ -71,15 +92,129 @@ function EditorToolbar({ data }: { data: WebsiteEditorData }) {
   const [publishState, setPublishState] = useState<string | null>(null);
   const busy = publishState === "Publishing…" || publishState === "Unpublishing…";
 
+  const handlePublish = async () => {
+    setPublishState("Publishing…");
+    try {
+      await publishWebsiteNow(page.id);
+      setPublishState("Published. The live website now uses this draft.");
+      router.refresh();
+    } catch (error) {
+      setPublishState(error instanceof Error ? error.message : "Publishing failed. Please try again.");
+    }
+  };
+
+  const handleUnpublish = async () => {
+    setPublishState("Unpublishing…");
+    try {
+      await unpublishPage(page.id);
+      setPublishState("Unpublished. The public page now uses its fallback.");
+      router.refresh();
+    } catch (error) {
+      setPublishState(error instanceof Error ? error.message : "Unpublishing failed. Please try again.");
+    }
+  };
+
   return (
-    <div className="sticky top-14 z-[85] -mx-4 border-b border-white/[.08] bg-[#101012]/95 px-4 py-2.5 backdrop-blur-xl lg:-mx-6 lg:px-6">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="sticky top-0 z-[85] border-b border-white/[.08] bg-[#101012]/95 px-3 py-2 sm:px-4 sm:py-2.5 backdrop-blur-xl">
+      {/* Mobile / Compact Layout (<1024px) */}
+      <div className="flex flex-col gap-2 lg:hidden">
+        {/* Row 1: Page Select + Mode Switcher + View Website */}
+        <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            <Globe size={14} className="shrink-0 text-signal" />
+            <select
+              aria-label="Switch edited page"
+              value={page.slug}
+              onChange={(e) => {
+                editor.closeEditor();
+                router.push(`/admin/website?page=${e.target.value}`);
+              }}
+              className="h-11 w-full min-w-0 rounded-lg border border-white/10 bg-black/50 px-2 text-[16px] text-white focus:border-signal outline-none"
+            >
+              {pages.map((p) => (
+                <option key={p.id} value={p.slug}>
+                  {p.name} ({p.status === "PUBLISHED" ? "Live" : "Draft"})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex shrink-0 items-center rounded-lg border border-white/10 bg-black/40 p-0.5">
+            <button
+              type="button"
+              onClick={() => editor.setMode("edit")}
+              className={`inline-flex min-h-11 items-center gap-1 rounded-md px-2.5 text-xs font-bold uppercase tracking-wider transition ${
+                editor.mode === "edit" ? "bg-white/15 text-white" : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Pencil size={12} /> Edit
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.setMode("preview")}
+              className={`inline-flex min-h-11 items-center gap-1 rounded-md px-2.5 text-xs font-bold uppercase tracking-wider transition ${
+                editor.mode === "preview" ? "bg-white/15 text-white" : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Eye size={12} /> Preview
+            </button>
+          </div>
+
+          {/* View Website — always data-editor-safe so tap isn't intercepted */}
+          <a
+            href="/"
+            data-editor-safe
+            target="_blank"
+            rel="noopener noreferrer"
+            title="View live website"
+            className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/40 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white active:bg-white/20"
+          >
+            <Globe size={16} />
+            <span className="sr-only">View website</span>
+          </a>
+        </div>
+
+        {/* Row 2: Publish + Quick Drawer Links */}
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={handlePublish}
+            disabled={busy}
+            className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-signal px-3 text-xs font-extrabold uppercase tracking-wider text-black transition hover:bg-white disabled:opacity-50 active:scale-95"
+            title="Publish this page's draft sections plus draft nav, settings, SEO, services, gallery photos and clients"
+          >
+            <CheckCircle2 size={15} /> {publishState === "Publishing…" ? "Publishing…" : "Publish website"}
+          </button>
+
+          <div className="flex shrink-0 items-center gap-1">
+            <ToolbarQuickLinks data={data} mobile />
+          </div>
+        </div>
+
+        {/* Row 3: Compact Status */}
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[11px] text-zinc-400">
+          <span>
+            {page.name}: <span className={page.status === "PUBLISHED" ? "text-emerald-400 font-semibold" : "text-amber-400 font-semibold"}>{page.status === "PUBLISHED" ? "Live" : "Draft"}</span>
+            {page.publishedAt ? ` · ${new Date(page.publishedAt).toLocaleDateString()}` : " · not published"}
+          </span>
+          {page.publishedAt && (
+            <button
+              type="button"
+              onClick={handleUnpublish}
+              disabled={busy}
+              className="text-[11px] text-zinc-400 underline hover:text-zinc-200 disabled:opacity-50"
+            >
+              {publishState === "Unpublishing…" ? "Unpublishing…" : "Unpublish"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Desktop Layout (>=1024px) - unchanged desktop layout */}
+      <div className="hidden lg:flex lg:flex-wrap lg:items-center lg:gap-2">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <Globe size={16} className="shrink-0 text-signal" />
-          <select aria-label="Switch edited page" value={page.slug} onChange={(e) => { editor.closeEditor(); router.push(`/admin/website?page=${e.target.value}`); }} className="min-h-10 max-w-[150px] rounded-lg border border-white/10 bg-black/40 px-2 text-xs text-white lg:hidden">
-            {pages.map((p) => <option key={p.id} value={p.slug}>{p.name}</option>)}
-          </select>
-          <div className="hidden max-w-full items-center gap-1 overflow-x-auto py-1 lg:flex">
+          <div className="flex max-w-full items-center gap-1 overflow-x-auto py-1">
             {pages.map((p) => (
               <Link
                 key={p.id}
@@ -122,23 +257,21 @@ function EditorToolbar({ data }: { data: WebsiteEditorData }) {
         <ToolbarQuickLinks data={data} />
 
         <div className="flex items-center gap-1">
-          <Link href="/" target="_blank" rel="noopener noreferrer" title="View website" className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-zinc-400 hover:bg-white/[.06] hover:text-white">
+          <a
+            href="/"
+            data-editor-safe
+            target="_blank"
+            rel="noopener noreferrer"
+            title="View website"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-zinc-400 hover:bg-white/[.06] hover:text-white"
+          >
             <Globe size={15} /><span className="text-[11px]">View</span>
-          </Link>
+          </a>
         </div>
 
         <button
           type="button"
-          onClick={async () => {
-            setPublishState("Publishing…");
-            try {
-              await publishWebsiteNow(page.id);
-              setPublishState("Published. The live website now uses this draft.");
-              router.refresh();
-            } catch (error) {
-              setPublishState(error instanceof Error ? error.message : "Publishing failed. Please try again.");
-            }
-          }}
+          onClick={handlePublish}
           disabled={busy}
           className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-signal px-4 text-xs font-extrabold uppercase tracking-wider text-black transition hover:-translate-y-px hover:bg-white"
           title="Publish this page's draft sections plus draft nav, settings, SEO, services, gallery photos and clients"
@@ -146,49 +279,32 @@ function EditorToolbar({ data }: { data: WebsiteEditorData }) {
           <CheckCircle2 size={15} /> {publishState === "Publishing…" ? "Publishing…" : "Publish website"}
         </button>
       </div>
+
       {page.publishedAt && (
-        <button
-          type="button"
-          onClick={async () => {
-            setPublishState("Unpublishing…");
-            try {
-              await unpublishPage(page.id);
-              setPublishState("Unpublished. The public page now uses its fallback.");
-              router.refresh();
-            } catch (error) {
-              setPublishState(error instanceof Error ? error.message : "Unpublishing failed. Please try again.");
-            }
-          }}
-          disabled={busy}
-          className="mt-2 inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/15 px-4 text-xs font-extrabold uppercase tracking-wider text-zinc-300 transition hover:bg-white/[.06] disabled:opacity-50"
-        >
-          <EyeOff size={15} /> {publishState === "Unpublishing…" ? "Unpublishing…" : "Unpublish page"}
-        </button>
+        <div className="hidden lg:block">
+          <button
+            type="button"
+            onClick={handleUnpublish}
+            disabled={busy}
+            className="mt-2 inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/15 px-4 text-xs font-extrabold uppercase tracking-wider text-zinc-300 transition hover:bg-white/[.06] disabled:opacity-50"
+          >
+            <EyeOff size={15} /> {publishState === "Unpublishing…" ? "Unpublishing…" : "Unpublish page"}
+          </button>
+        </div>
       )}
-      <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-500">
+
+      <p className="mt-1 hidden lg:flex lg:flex-wrap lg:items-center lg:gap-x-3 lg:gap-y-1 text-[11px] text-zinc-500">
         <span>
           {page.name}: {page.status === "PUBLISHED" ? "live (past version)" : "draft"} · {page.publishedAt ? `published ${new Date(page.publishedAt).toLocaleDateString()}` : "never published"}
         </span>
         <span>Editor shows DRAFT content. Public visitors only ever see published content.</span>
       </p>
-      {publishState && !busy && <p role="status" className={`mt-2 text-xs ${publishState.startsWith("Published") || publishState.startsWith("Unpublished") ? "text-emerald-400" : "text-red-400"}`}>{publishState}</p>}
-    </div>
-  );
-}
 
-function ToolbarQuickLinks({ data }: { data: WebsiteEditorData }) {
-  const editor = useWebsiteEditor();
-  return (
-    <div className="flex flex-wrap items-center gap-1">
-      <button type="button" onClick={() => editor.openEditor({ kind: "nav" })} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-zinc-400 hover:bg-white/[.06] hover:text-white" title="Edit navigation">
-        <Compass size={15} />
-      </button>
-      <button type="button" onClick={() => editor.openEditor({ kind: "settings" })} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-zinc-400 hover:bg-white/[.06] hover:text-white" title="Global settings">
-        <Settings2 size={15} />
-      </button>
-      <button type="button" onClick={() => editor.openEditor({ kind: "seo" })} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-zinc-400 hover:bg-white/[.06] hover:text-white" title="SEO settings">
-        <SearchCheck size={15} />
-      </button>
+      {publishState && !busy && (
+        <p role="status" className={`mt-1 text-xs ${publishState.startsWith("Published") || publishState.startsWith("Unpublished") ? "text-emerald-400" : "text-red-400"}`}>
+          {publishState}
+        </p>
+      )}
     </div>
   );
 }
@@ -204,7 +320,9 @@ function EditorCanvas({ data }: { data: WebsiteEditorData }) {
 
   const intercept = (e: MouseEvent<HTMLDivElement>) => {
     const target = e.target as Element;
+    // Always allow data-editor-safe elements (logos, drawer triggers, etc.)
     if (target.closest("[data-editor-safe]")) return;
+    // Block non-editor interactive elements from performing their default action
     const interactive = target.closest("a, button, [role='button'], input, textarea, select");
     if (interactive) {
       e.preventDefault();
@@ -213,9 +331,10 @@ function EditorCanvas({ data }: { data: WebsiteEditorData }) {
   };
 
   return (
-    <div data-editor-context onClickCapture={intercept}>
+    // No negative margins — just full-width, clips overflow on mobile
+    <div data-editor-context onClickCapture={intercept} className="w-full min-w-0 overflow-x-clip">
       <WebsiteFrame navLinks={navLinks} settings={settings} phone={phone}>
-        <div>
+        <div className="w-full min-w-0">
           {sections.map((section) => (
             <SectionRenderer key={section.id ?? section.type} section={section} data={sectionData} />
           ))}
@@ -225,7 +344,10 @@ function EditorCanvas({ data }: { data: WebsiteEditorData }) {
       {editor.signal && (
         <div className="fixed inset-0 z-[120]">
           <div className="absolute inset-0 bg-black/60" onClick={editor.closeEditor} />
-          <div data-editor-safe className="absolute inset-x-0 bottom-0 h-[84vh] overflow-hidden rounded-t-2xl border-t border-white/10 bg-[#101012] shadow-2xl lg:inset-x-auto lg:right-0 lg:top-0 lg:h-full lg:w-[440px] lg:rounded-none lg:border-l lg:border-t-0">
+          <div
+            data-editor-safe
+            className="absolute inset-x-0 bottom-0 h-[88dvh] max-h-[88dvh] overflow-hidden rounded-t-2xl border-t border-white/10 bg-[#101012] shadow-2xl flex flex-col pb-[env(safe-area-inset-bottom)] lg:inset-x-auto lg:right-0 lg:top-0 lg:h-full lg:max-h-full lg:w-[440px] lg:rounded-none lg:border-l lg:border-t-0"
+          >
             <DrawerContent
               signal={editor.signal}
               services={data.services}
@@ -244,7 +366,7 @@ function EditorCanvas({ data }: { data: WebsiteEditorData }) {
       {!editor.signal && (
         <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[90] flex justify-center lg:hidden">
           <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/10 bg-black/90 px-2 py-1 shadow-2xl">
-            <ToolbarQuickLinks data={data} />
+            <ToolbarQuickLinks data={data} mobile />
           </div>
         </div>
       )}

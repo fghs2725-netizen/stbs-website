@@ -125,7 +125,19 @@ function SectionChrome({ section, children }: { section: RenderableSection; chil
           <span className="rounded-sm border border-white/20 bg-black/90 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-white">Hidden section</span>
         </div>
       )}
-      <div className="absolute right-3 top-3 z-[58] hidden items-center gap-1 rounded-lg border border-white/10 bg-black/90 p-1 shadow-[0_10px_40px_rgba(0,0,0,.5)] group-hover/edsec:flex">
+      {/* Mobile visible controls */}
+      <div className="absolute right-2 top-2 z-[58] flex lg:hidden items-center gap-1 rounded-lg border border-white/15 bg-black/90 p-1 shadow-md">
+        <button type="button" onClick={open} className="inline-flex min-h-9 items-center gap-1 rounded-md px-2 text-xs font-bold text-signal hover:bg-white/10" title={`Edit ${section.type} section`}>
+          <Pencil size={12} /> Edit
+        </button>
+        <button type="button" onClick={() => editor.moveSection(section.id!, "up")} className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-md text-zinc-300 hover:bg-white/10" title="Move up"><ArrowUp size={13} /></button>
+        <button type="button" onClick={() => editor.moveSection(section.id!, "down")} className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-md text-zinc-300 hover:bg-white/10" title="Move down"><ArrowDown size={13} /></button>
+        <button type="button" onClick={() => editor.hideSection(section.id!)} className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-md text-zinc-300 hover:bg-white/10" title={chipHidden ? "Show section" : "Hide section"}>
+          {chipHidden ? <Eye size={13} /> : <EyeOff size={13} />}
+        </button>
+      </div>
+      {/* Desktop hover controls */}
+      <div className="absolute right-3 top-3 z-[58] hidden items-center gap-1 rounded-lg border border-white/10 bg-black/90 p-1 shadow-[0_10px_40px_rgba(0,0,0,.5)] lg:group-hover/edsec:flex">
         <button type="button" onClick={open} className="inline-flex min-h-9 items-center gap-1.5 rounded-md px-2.5 text-xs font-bold text-signal hover:bg-white/10" title={`Edit ${section.type} section`}>
           <Pencil size={13} /> Edit
         </button>
@@ -159,31 +171,31 @@ function HeroSection({ owner, content }: { owner?: RenderableSection; content: R
   const target = asSection(owner);
 
   return (
-    <section className="water-hero relative flex min-h-[80vh] items-center overflow-hidden pt-24 lg:min-h-[85vh]">
+    <section className="water-hero relative flex min-h-[75vh] items-center overflow-hidden pt-20 sm:pt-24 lg:min-h-[85vh]">
       <Editable target={{ kind: "section-field", section: target, fieldKey: "heroImage" }} label="Edit Image" className="absolute inset-0">
         <div className="absolute inset-0">
           <Image src={heroImage} alt={heroImageAlt} fill priority className={`object-cover object-center opacity-[.58] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
           {mobileImage && <Image src={mobileImage} alt={heroImageAlt} fill priority className="object-cover object-center opacity-[.58] sm:hidden" sizes="100vw" />}
         </div>
       </Editable>
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,19,31,.25),rgba(7,19,31,.2)_42%,rgba(7,19,31,.9))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,19,31,.25),rgba(7,19,31,.2)_42%,rgba(7,19,31,.9))]" />
       <div className="pointer-events-none absolute -right-24 top-24 h-72 w-[58rem] rotate-[-10deg] rounded-[50%] border border-cyan-200/15" />
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-16 pt-24 lg:px-8 lg:pb-24">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-12 pt-20 sm:px-5 sm:pb-16 sm:pt-24 lg:px-8 lg:pb-24">
         <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-          <p className="mb-8 flex items-center gap-3 text-xs font-bold uppercase tracking-[.25em] text-signal">
-            <span className="h-px w-12 bg-signal" />{eyebrow}
+          <p className="mb-6 sm:mb-8 flex items-center gap-3 text-xs font-bold uppercase tracking-[.25em] text-signal">
+            <span className="h-px w-8 sm:w-12 bg-signal" />{eyebrow}
           </p>
         </Editable>
         <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-          <h1 className="max-w-4xl font-display text-6xl font-bold uppercase leading-[.85] text-white sm:text-7xl lg:text-[7.5rem]">
+          <h1 className="max-w-4xl font-display text-4xl font-bold uppercase leading-[.9] text-white sm:text-7xl lg:text-[7.5rem]">
             <span className="block">{heading}</span>
             {headingLine2 && <span className="block text-signal">{headingLine2}</span>}
           </h1>
         </Editable>
         <Editable target={{ kind: "section", section: target }} label="Supporting text" className="max-w-fit">
-          <p className="mt-8 max-w-xl text-base leading-8 text-white/70 lg:text-lg">{supportingText}</p>
+          <p className="mt-6 sm:mt-8 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base sm:leading-8 lg:text-lg">{supportingText}</p>
         </Editable>
-        <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="mt-8 sm:mt-12 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <Editable target={{ kind: "section", section: target }} label="Primary CTA">
             <Link href={primaryCtaUrl} className="public-cta">
               {primaryCtaText} <ArrowRight size={16} />
@@ -201,18 +213,18 @@ function HeroSection({ owner, content }: { owner?: RenderableSection; content: R
 function PageHeroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
   const target = asSection(owner);
   return (
-    <section className="water-page-hero relative overflow-hidden px-5 pb-20 pt-40 lg:px-8 lg:pb-28">
+    <section className="water-page-hero relative overflow-hidden px-4 pb-12 pt-28 sm:px-5 sm:pb-20 sm:pt-40 lg:px-8 lg:pb-28">
       <div className="absolute left-0 top-20 h-px w-1/3 bg-water-accent" />
       <div className="pointer-events-none absolute -bottom-36 right-[8%] size-[34rem] rounded-full border border-cyan-100/10" />
       <Reveal className="relative mx-auto max-w-7xl">
         <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-          <p className="mb-5 text-xs font-bold uppercase tracking-[.24em] text-signal">{str(content, "eyebrow")}</p>
+          <p className="mb-4 sm:mb-5 text-xs font-bold uppercase tracking-[.24em] text-signal">{str(content, "eyebrow")}</p>
         </Editable>
         <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-          <h1 className="max-w-5xl font-display text-5xl font-bold leading-[.95] sm:text-7xl">{str(content, "heading")}</h1>
+          <h1 className="max-w-5xl font-display text-3xl font-bold leading-[1.05] sm:text-5xl lg:text-7xl sm:leading-[.95]">{str(content, "heading")}</h1>
         </Editable>
         <Editable target={{ kind: "section", section: target }} label="Intro text" className="max-w-fit">
-          <p className="mt-8 max-w-2xl text-base leading-8 text-white/80">{str(content, "text")}</p>
+          <p className="mt-6 sm:mt-8 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base sm:leading-8">{str(content, "text")}</p>
         </Editable>
       </Reveal>
     </section>
@@ -226,8 +238,8 @@ function StatsSection({ _owner, content }: { _owner?: RenderableSection; content
     <section className="water-surface-dark waterline text-white">
       <div className="mx-auto grid max-w-7xl grid-cols-2 lg:grid-cols-4">
         {stats.map((s, i) => (
-          <div key={i} className="border-b border-cyan-100/10 p-6 last:border-r-0 sm:p-8 lg:border-b-0 lg:border-r">
-            <p className="font-display text-4xl font-bold text-water-accent sm:text-5xl">{str(s, "value")}</p>
+          <div key={i} className="border-b border-cyan-100/10 p-4 sm:p-8 last:border-r-0 lg:border-b-0 lg:border-r">
+            <p className="font-display text-3xl font-bold text-water-accent sm:text-4xl lg:text-5xl">{str(s, "value")}</p>
             <p className="mt-1 text-[10px] font-extrabold uppercase tracking-[.16em] text-white/60">{str(s, "label")}</p>
           </div>
         ))}
@@ -242,16 +254,16 @@ function WhyChooseSection({ owner, content }: { owner?: RenderableSection; conte
   const display = items.length > 0 ? items : whyChoose.map(w => ({ title: w.title, text: w.text }));
   const target = asSection(owner);
   return (
-    <section className="water-surface-dark px-5 py-16 lg:px-8 lg:py-20">
+    <section className="water-surface-dark px-4 py-12 sm:px-5 sm:py-16 lg:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
         <Editable target={{ kind: "section", section: target }} label="Heading" className="mx-auto w-fit">
-          <h2 className="text-center font-display text-5xl font-semibold tracking-[.08em] text-white/70 sm:text-6xl lg:text-7xl">{heading}</h2>
+          <h2 className="text-center font-display text-3xl font-semibold tracking-[.08em] text-white/70 sm:text-4xl lg:text-7xl">{heading}</h2>
         </Editable>
-        <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:mt-16">
+        <div className="mt-8 sm:mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-5 lg:mt-16">
           {display.map((item, i) => (
-            <div key={i} className="water-card h-full p-7 transition-all hover:-translate-y-1 hover:border-signal/60 sm:p-8">
-              <p className="font-display text-2xl font-bold uppercase leading-tight text-signal">{str(item, "title")}</p>
-              <p className="mt-3 text-sm leading-7 text-white/65">{str(item, "text")}</p>
+            <div key={i} className="water-card h-full p-5 sm:p-8 transition-all hover:-translate-y-1 hover:border-signal/60">
+              <p className="font-display text-xl sm:text-2xl font-bold uppercase leading-tight text-signal">{str(item, "title")}</p>
+              <p className="mt-2.5 sm:mt-3 text-sm leading-relaxed sm:leading-7 text-white/65">{str(item, "text")}</p>
             </div>
           ))}
         </div>
@@ -269,30 +281,30 @@ function ProcessSection({ owner, content }: { owner?: RenderableSection; content
   const display = steps.length > 0 ? steps : processSteps.map(p => ({ step: p.step, title: p.title, text: p.text }));
   const target = asSection(owner);
   return (
-    <section className="water-surface-dark px-5 py-24 lg:px-8 lg:py-32">
+    <section className="water-surface-dark px-4 py-12 sm:px-5 sm:py-24 lg:px-8 lg:py-32">
       <div className="mx-auto w-full max-w-[88rem]">
         <Reveal>
-          <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end">
+          <div className="mb-10 sm:mb-16 flex flex-col gap-4 sm:gap-6 md:flex-row md:items-end">
             <div>
               <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-                <p className="mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
+                <p className="mb-3 sm:mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
               </Editable>
               <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-                <h2 className="font-display text-5xl font-bold uppercase leading-none sm:text-7xl">{heading}<br />{headingLine2}</h2>
+                <h2 className="font-display text-3xl sm:text-5xl lg:text-7xl font-bold uppercase leading-none">{heading}<br />{headingLine2}</h2>
               </Editable>
             </div>
-            {description && <p className="max-w-md text-sm leading-7 text-white/50">{description}</p>}
+            {description && <p className="max-w-md text-sm leading-relaxed sm:leading-7 text-white/50">{description}</p>}
           </div>
         </Reveal>
-        <div className="relative mt-16 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-5">
+        <div className="relative mt-8 sm:mt-16 grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-5">
           {display.map((step, i) => (
-            <div key={i} className="water-card group relative flex flex-col p-6">
-              <div className="font-display text-5xl font-bold leading-none select-none text-water-accent/45 transition-all duration-300 group-hover:text-water-accent group-hover:-translate-y-1">
+            <div key={i} className="water-card group relative flex flex-col p-5 sm:p-6">
+              <div className="font-display text-4xl sm:text-5xl font-bold leading-none select-none text-water-accent/45 transition-all duration-300 group-hover:text-water-accent group-hover:-translate-y-1">
                 {str(step, "step")}
               </div>
-              <div className="mt-5 mb-4 h-px w-10 bg-signal transition-all duration-300 group-hover:w-16" />
-              <h3 className="font-display text-xl font-bold tracking-wide text-white">{str(step, "title")}</h3>
-              <p className="mt-3 text-sm leading-[1.7] text-white/55">{str(step, "text")}</p>
+              <div className="mt-4 sm:mt-5 mb-3 sm:mb-4 h-px w-8 sm:w-10 bg-signal transition-all duration-300 group-hover:w-16" />
+              <h3 className="font-display text-lg sm:text-xl font-bold tracking-wide text-white">{str(step, "title")}</h3>
+              <p className="mt-2.5 sm:mt-3 text-sm leading-relaxed sm:leading-[1.7] text-white/55">{str(step, "text")}</p>
             </div>
           ))}
         </div>
@@ -315,38 +327,38 @@ function ServicesSection({ owner, content, data }: { owner?: RenderableSection; 
     : staticServices.map(s => ({ title: s.title, text: s.text, image: null, slug: "/services" }));
 
   return (
-    <section className="water-surface-dark px-5 py-24 lg:px-8 lg:py-32">
+    <section className="water-surface-dark px-4 py-12 sm:px-5 sm:py-24 lg:px-8 lg:py-32">
       <div className="mx-auto max-w-7xl">
         <Reveal>
-          <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end">
+          <div className="mb-10 sm:mb-16 flex flex-col gap-4 sm:gap-6 md:flex-row md:items-end">
             <div>
               <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-                <p className="mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
+                <p className="mb-3 sm:mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
               </Editable>
               <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-                <h2 className="font-display text-5xl font-bold uppercase leading-none sm:text-7xl">
+                <h2 className="font-display text-3xl sm:text-5xl lg:text-7xl font-bold uppercase leading-none">
                   {heading}<br /><span className="text-signal">{headingHighlight}</span>
                 </h2>
               </Editable>
             </div>
-            {description && <p className="max-w-md text-sm leading-7 text-white/50">{description}</p>}
+            {description && <p className="max-w-md text-sm leading-relaxed sm:leading-7 text-white/50">{description}</p>}
           </div>
         </Reveal>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
           {displayServices.map((s, i) => (
             <Reveal key={s.title} delay={i * 0.08}>
-              <Editable target={{ kind: "services" }} label="Edit service" className="h-full">
-                <Link href={s.slug} className="water-card group flex h-full flex-col gap-6 p-8 transition-all hover:-translate-y-1 hover:border-signal/60">
+              <Editable target={{ kind: "services" }} label="Edit service" className="h-full block">
+                <Link href={s.slug} className="water-card group flex h-full flex-col gap-5 sm:gap-6 p-5 sm:p-8 transition-all hover:-translate-y-1 hover:border-signal/60">
                   {s.image && (
-                    <div className="relative -mx-8 -mt-8 h-48 overflow-hidden border-b border-white/10">
+                    <div className="relative -mx-5 -mt-5 sm:-mx-8 sm:-mt-8 h-40 sm:h-48 overflow-hidden border-b border-white/10">
                       <Image src={s.image} alt={`${s.title} service`} fill className="object-cover grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" sizes="(max-width:768px) 100vw, 50vw" />
                     </div>
                   )}
                   <div className="flex items-start justify-between">
-                    <span className="font-display text-6xl text-water-accent/20">0{i + 1}</span>
+                    <span className="font-display text-4xl sm:text-4xl text-water-accent/20">0{i + 1}</span>
                   </div>
-                  <h3 className="font-display text-3xl font-semibold uppercase">{s.title}</h3>
-                  <p className="text-sm leading-7 text-white/60">{s.text}</p>
+                  <h3 className="font-display text-2xl sm:text-3xl font-semibold uppercase">{s.title}</h3>
+                  <p className="text-sm leading-relaxed sm:leading-7 text-white/60">{s.text}</p>
                 </Link>
               </Editable>
             </Reveal>
@@ -371,39 +383,41 @@ function TestimonialsSection({ owner, content, data }: { owner?: RenderableSecti
   if (!items || items.length === 0) return null;
 
   return (
-    <section className="bg-black px-5 py-24 lg:px-8 lg:py-32">
+    <section className="bg-black px-4 py-12 sm:px-5 sm:py-24 lg:px-8 lg:py-32">
       <div className="mx-auto max-w-7xl">
         <Reveal>
-          <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end">
+          <div className="mb-10 sm:mb-16 flex flex-col gap-4 sm:gap-6 md:flex-row md:items-end">
             <div>
               <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-                <p className="mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
+                <p className="mb-3 sm:mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
               </Editable>
               <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-                <h2 className="font-display text-5xl font-bold uppercase leading-none sm:text-7xl">{heading}</h2>
+                <h2 className="font-display text-3xl sm:text-5xl lg:text-7xl font-bold uppercase leading-none">{heading}</h2>
               </Editable>
             </div>
-            {description && <p className="max-w-md text-sm leading-7 text-white/50">{description}</p>}
+            {description && <p className="max-w-md text-sm leading-relaxed sm:leading-7 text-white/50">{description}</p>}
           </div>
         </Reveal>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
           {items.map((t, i) => (
             <Reveal key={i}>
-              <div className="flex flex-col gap-6 border border-white/10 bg-white/5 p-8">
-                <div className="flex items-center gap-2">
-                  {Array.from({ length: 5 }).map((_, j) => (
-                    <span key={j} className={`text-sm ${j < t.rating ? "text-signal" : "text-white/20"}`}>★</span>
-                  ))}
+              <Editable target={{ kind: "testimonials" }} label="Edit Testimonial" className="h-full block">
+                <div className="flex h-full flex-col gap-5 sm:gap-6 border border-white/10 bg-white/5 p-5 sm:p-8">
+                  <div className="flex items-center gap-2">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <span key={j} className={`text-sm ${j < t.rating ? "text-signal" : "text-white/20"}`}>★</span>
+                    ))}
+                  </div>
+                  <blockquote className="text-sm sm:text-base leading-relaxed sm:leading-7 text-white/80">&quot;{t.quote}&quot;</blockquote>
+                  <div className="mt-auto pt-2">
+                    {t.photo && <Image src={t.photo} alt={t.name} width={48} height={48} className="mb-3 size-12 rounded-full object-cover" />}
+                    <p className="font-bold text-white text-sm sm:text-base">{t.name}</p>
+                    <p className="text-[11px] sm:text-xs uppercase tracking-wider text-white/50">
+                      {[t.location, t.project].filter(Boolean).join(" · ")}
+                    </p>
+                  </div>
                 </div>
-                <blockquote className="text-base leading-7 text-white/80">&quot;{t.quote}&quot;</blockquote>
-                <div className="mt-auto">
-                  {t.photo && <Image src={t.photo} alt={t.name} width={48} height={48} className="mb-3 size-12 rounded-full object-cover" />}
-                  <p className="font-bold text-white">{t.name}</p>
-                  <p className="text-xs uppercase tracking-wider text-white/50">
-                    {[t.location, t.project].filter(Boolean).join(" · ")}
-                  </p>
-                </div>
-              </div>
+              </Editable>
             </Reveal>
           ))}
         </div>
@@ -427,16 +441,16 @@ function GallerySection({ owner, content, data }: { owner?: RenderableSection; c
   if (!items || items.length === 0) return null;
 
   return (
-    <section className="bg-black px-5 pb-24 lg:px-8 lg:pb-32">
+    <section className="bg-black px-4 pb-12 sm:px-5 sm:pb-24 lg:px-8 lg:pb-32">
       <div className="mx-auto max-w-7xl">
         <Reveal>
-          <div className="mb-12 flex items-end justify-between">
+          <div className="mb-8 sm:mb-12 flex items-end justify-between">
             <div>
               <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-                <p className="mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
+                <p className="mb-3 sm:mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
               </Editable>
               <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-                <h2 className="font-display text-5xl font-bold uppercase sm:text-7xl">{heading}</h2>
+                <h2 className="font-display text-3xl sm:text-5xl lg:text-7xl font-bold uppercase">{heading}</h2>
               </Editable>
             </div>
             <Link href="/gallery" className="hidden items-center gap-2 text-xs font-bold uppercase tracking-widest text-signal md:flex">
@@ -444,14 +458,14 @@ function GallerySection({ owner, content, data }: { owner?: RenderableSection; c
             </Link>
           </div>
         </Reveal>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" style={{ gridAutoRows: "240px" }}>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" style={{ gridAutoRows: "minmax(200px, 240px)" }}>
           {items.map((item, i) => (
             <Reveal key={i} delay={i * 0.05}>
-              <Editable target={{ kind: "gallery" }} label="Edit Image" className="h-full">
+              <Editable target={{ kind: "gallery" }} label="Edit Image" className="h-full block">
                 <Link href="/gallery" className="group relative block h-full overflow-hidden">
                   <Image src={item.src} alt={item.alt} fill className="object-cover grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" sizes="(max-width:768px) 100vw,33vw" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
-                  <p className="absolute bottom-4 left-4 font-display text-xl uppercase text-white transition group-hover:text-signal">{item.label}</p>
+                  <p className="absolute bottom-4 left-4 font-display text-lg sm:text-xl uppercase text-white transition group-hover:text-signal">{item.label}</p>
                 </Link>
               </Editable>
             </Reveal>
@@ -469,14 +483,14 @@ function CtaSection({ owner, content }: { owner?: RenderableSection; content: Re
   const backgroundText = str(content, "backgroundText", "1992");
   const target = asSection(owner);
   return (
-    <section className="relative overflow-hidden bg-signal px-5 py-20 text-black lg:px-8">
-      <div className="absolute -right-10 top-1/2 -translate-y-1/2 font-display text-[16rem] font-bold text-black/5">{backgroundText}</div>
-      <Reveal className="relative mx-auto flex max-w-7xl flex-col justify-between gap-8 md:flex-row md:items-center">
+    <section className="relative overflow-hidden bg-signal px-4 py-12 sm:px-5 sm:py-20 text-black lg:px-8">
+      <div className="pointer-events-none absolute -right-10 top-1/2 -translate-y-1/2 font-display text-[7rem] sm:text-[16rem] font-bold text-black/5 select-none">{backgroundText}</div>
+      <Reveal className="relative mx-auto flex max-w-7xl flex-col justify-between gap-6 sm:gap-8 md:flex-row md:items-center">
         <Editable target={{ kind: "section", section: target }} label="CTA heading" className="max-w-fit">
-          <h2 className="max-w-3xl font-display text-5xl font-bold uppercase leading-none sm:text-7xl">{heading}</h2>
+          <h2 className="max-w-3xl font-display text-3xl sm:text-5xl lg:text-7xl font-bold uppercase leading-tight sm:leading-none">{heading}</h2>
         </Editable>
         <Editable target={{ kind: "section", section: target }} label="CTA button">
-          <Link href={ctaUrl} className="inline-flex h-12 items-center gap-2 bg-black px-6 text-sm font-bold uppercase tracking-wider text-white transition hover:-translate-y-0.5 hover:bg-white hover:text-black">
+          <Link href={ctaUrl} className="inline-flex min-h-12 items-center gap-2 bg-black px-6 text-sm font-bold uppercase tracking-wider text-white transition hover:-translate-y-0.5 hover:bg-white hover:text-black">
             {ctaText} <ArrowRight size={17} />
           </Link>
         </Editable>
@@ -499,14 +513,14 @@ function TextImageSection({ owner, content }: { owner?: RenderableSection; conte
   const target = asSection(owner);
 
   const imageCol = image ? (
-    <Reveal className="group relative h-[400px] lg:h-[500px]">
+    <Reveal className="group relative h-[280px] sm:h-[400px] lg:h-[500px]">
       <Editable target={{ kind: "section-field", section: target, fieldKey: "image" }} label="Edit Image" className="absolute inset-0">
         <Image src={image} alt={imageAlt} fill className="object-cover grayscale transition duration-700 group-hover:grayscale-0 group-hover:scale-105" sizes="(max-width:1024px) 100vw,50vw" />
       </Editable>
       {badgeText && (
-        <div className="absolute -bottom-5 -left-5 z-10 bg-signal p-7">
-          <span className="font-display text-5xl font-bold">{badgeText}</span>
-          {badgeSubtext && <p className="text-xs font-bold uppercase tracking-widest">{badgeSubtext}</p>}
+        <div className="absolute -bottom-3 -left-3 sm:-bottom-5 sm:-left-5 z-10 bg-signal p-4 sm:p-7">
+          <span className="font-display text-3xl sm:text-5xl font-bold">{badgeText}</span>
+          {badgeSubtext && <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest">{badgeSubtext}</p>}
         </div>
       )}
     </Reveal>
@@ -515,23 +529,23 @@ function TextImageSection({ owner, content }: { owner?: RenderableSection; conte
   const textCol = (
     <Reveal>
       {eyebrow && <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit"><p className="text-xs font-extrabold uppercase tracking-[.2em]">{eyebrow}</p></Editable>}
-      {heading && <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit"><h2 className="mt-5 font-display text-5xl font-bold uppercase leading-none sm:text-6xl">{heading}{headingLine2 && <><br />{headingLine2}</>}</h2></Editable>}
-      {body && <Editable target={{ kind: "section", section: target }} label="Body text" className="max-w-fit"><p className="mt-7 leading-8 text-black/60">{body}</p></Editable>}
-      {body2 && <Editable target={{ kind: "section", section: target }} label="Body text" className="max-w-fit"><p className="mt-4 leading-8 text-black/60">{body2}</p></Editable>}
+      {heading && <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit"><h2 className="mt-4 sm:mt-5 font-display text-3xl sm:text-5xl lg:text-6xl font-bold uppercase leading-tight sm:leading-none">{heading}{headingLine2 && <><br />{headingLine2}</>}</h2></Editable>}
+      {body && <Editable target={{ kind: "section", section: target }} label="Body text" className="max-w-fit"><p className="mt-5 sm:mt-7 text-sm leading-relaxed sm:text-base sm:leading-8 text-black/60">{body}</p></Editable>}
+      {body2 && <Editable target={{ kind: "section", section: target }} label="Body text" className="max-w-fit"><p className="mt-3 sm:mt-4 text-sm leading-relaxed sm:text-base sm:leading-8 text-black/60">{body2}</p></Editable>}
     </Reveal>
   );
 
   if (layout === "center" || !image) {
     return (
-      <section className="bg-neutral-100 px-5 py-24 text-black lg:px-8">
+      <section className="bg-neutral-100 px-4 py-12 sm:px-5 sm:py-24 text-black lg:px-8">
         <div className="mx-auto max-w-7xl text-center">{textCol}</div>
       </section>
     );
   }
 
   return (
-    <section className="bg-neutral-100 px-5 py-24 text-black lg:px-8">
-      <div className={`mx-auto grid max-w-7xl gap-14 lg:grid-cols-2 lg:items-center ${layout === "left-image" ? "" : ""}`}>
+    <section className="bg-neutral-100 px-4 py-12 sm:px-5 sm:py-24 text-black lg:px-8">
+      <div className={`mx-auto grid max-w-7xl gap-8 sm:gap-14 lg:grid-cols-2 lg:items-center ${layout === "left-image" ? "" : ""}`}>
         {layout === "left-image" ? <>{imageCol}{textCol}</> : <>{textCol}{imageCol}</>}
       </div>
     </section>
@@ -541,14 +555,14 @@ function TextImageSection({ owner, content }: { owner?: RenderableSection; conte
 function MissionVisionSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
   const target = asSection(owner);
   return (
-    <section className="bg-signal px-5 py-20 text-black lg:px-8">
-      <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-2">
+    <section className="bg-signal px-4 py-12 sm:px-5 sm:py-20 text-black lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-8 sm:gap-12 md:grid-cols-2">
         <Reveal>
           <Editable target={{ kind: "section", section: target }} label="Mission" className="max-w-fit">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.2em]">{str(content, "missionEyebrow", "Our mission")}</p>
-              <h2 className="mt-5 font-display text-4xl font-bold uppercase">{str(content, "missionHeading", "Quality that endures.")}</h2>
-              <p className="mt-5 leading-8 text-black/65">{str(content, "missionText", company.mission)}</p>
+              <h2 className="mt-4 sm:mt-5 font-display text-2xl sm:text-4xl font-bold uppercase">{str(content, "missionHeading", "Quality that endures.")}</h2>
+              <p className="mt-3 sm:mt-5 text-sm leading-relaxed sm:text-base sm:leading-8 text-black/65">{str(content, "missionText", company.mission)}</p>
             </div>
           </Editable>
         </Reveal>
@@ -556,8 +570,8 @@ function MissionVisionSection({ owner, content }: { owner?: RenderableSection; c
           <Editable target={{ kind: "section", section: target }} label="Vision" className="max-w-fit">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[.2em]">{str(content, "visionEyebrow", "Our vision")}</p>
-              <h2 className="mt-5 font-display text-4xl font-bold uppercase">{str(content, "visionHeading", "A safer community.")}</h2>
-              <p className="mt-5 leading-8 text-black/65">{str(content, "visionText", company.vision)}</p>
+              <h2 className="mt-4 sm:mt-5 font-display text-2xl sm:text-4xl font-bold uppercase">{str(content, "visionHeading", "A safer community.")}</h2>
+              <p className="mt-3 sm:mt-5 text-sm leading-relaxed sm:text-base sm:leading-8 text-black/65">{str(content, "visionText", company.vision)}</p>
             </div>
           </Editable>
         </Reveal>
@@ -578,16 +592,16 @@ function FounderSection({ owner, content, data }: { owner?: RenderableSection; c
   const target = asSection(owner);
 
   return (
-    <section className="bg-steel px-5 py-24 text-white lg:px-8">
+    <section className="bg-steel px-4 py-12 sm:px-5 sm:py-24 text-white lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="grid gap-14 lg:grid-cols-[1.2fr_1.8fr] lg:items-center">
-          <Reveal className="group relative h-[480px]">
+        <div className="grid gap-8 sm:gap-14 lg:grid-cols-[1.2fr_1.8fr] lg:items-center">
+          <Reveal className="group relative h-[300px] sm:h-[420px] lg:h-[480px]">
             <Editable target={{ kind: "section-field", section: target, fieldKey: "photo" }} label="Edit Image" className="absolute inset-0">
               <Image src={photo} alt={name} fill className="object-cover grayscale transition duration-700 group-hover:grayscale-0 group-hover:scale-105" sizes="(max-width:1024px) 100vw, 40vw" />
             </Editable>
-            <div className="absolute -bottom-5 -right-5 z-10 bg-signal p-6 text-black">
-              <p className="font-display text-xl font-bold uppercase tracking-wider">{name}</p>
-              <p className="text-xs font-bold uppercase tracking-widest opacity-75">{title}</p>
+            <div className="absolute -bottom-3 -right-3 sm:-bottom-5 sm:-right-5 z-10 bg-signal p-4 sm:p-6 text-black">
+              <p className="font-display text-lg sm:text-xl font-bold uppercase tracking-wider">{name}</p>
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-75">{title}</p>
             </div>
           </Reveal>
           <Reveal delay={0.15}>
@@ -595,10 +609,10 @@ function FounderSection({ owner, content, data }: { owner?: RenderableSection; c
               <p className="text-xs font-bold uppercase tracking-[.25em] text-signal">{eyebrow}</p>
             </Editable>
             <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-              <h2 className="mt-5 font-display text-5xl font-bold uppercase leading-none sm:text-6xl">{heading}<br />{headingLine2}</h2>
+              <h2 className="mt-4 sm:mt-5 font-display text-3xl sm:text-5xl lg:text-6xl font-bold uppercase leading-tight sm:leading-none">{heading}<br />{headingLine2}</h2>
             </Editable>
-            {bio && <Editable target={{ kind: "section", section: target }} label="Bio" className="max-w-fit"><p className="mt-7 text-lg leading-8 text-white/70">{bio}</p></Editable>}
-            {additionalText && <Editable target={{ kind: "section", section: target }} label="Additional text" className="max-w-fit"><p className="mt-4 leading-8 text-white/55">{additionalText}</p></Editable>}
+            {bio && <Editable target={{ kind: "section", section: target }} label="Bio" className="max-w-fit"><p className="mt-5 sm:mt-7 text-sm leading-relaxed sm:text-lg sm:leading-8 text-white/70">{bio}</p></Editable>}
+            {additionalText && <Editable target={{ kind: "section", section: target }} label="Additional text" className="max-w-fit"><p className="mt-3 sm:mt-4 text-xs leading-relaxed sm:text-sm sm:leading-8 text-white/55">{additionalText}</p></Editable>}
           </Reveal>
         </div>
       </div>
@@ -612,22 +626,22 @@ function WhyStbsSection({ owner, content }: { owner?: RenderableSection; content
   const items = arr(content, "items");
   const target = asSection(owner);
   return (
-    <section className="bg-black px-5 py-24 lg:px-8">
+    <section className="bg-black px-4 py-12 sm:px-5 sm:py-24 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <Reveal>
           <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-            <p className="mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
+            <p className="mb-3 sm:mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
           </Editable>
           <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-            <h2 className="font-display text-5xl font-bold uppercase leading-none sm:text-6xl">{heading}</h2>
+            <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl font-bold uppercase leading-tight sm:leading-none">{heading}</h2>
           </Editable>
         </Reveal>
-        <div className="mt-12 grid gap-px bg-white/10 md:grid-cols-3">
+        <div className="mt-8 sm:mt-12 grid gap-px bg-white/10 md:grid-cols-3">
           {items.map((item, i) => (
-            <Reveal key={i} className="bg-black p-9">
-              <p className="font-display text-3xl font-bold text-signal">{str(item, "title")}</p>
-              {str(item, "subtitle") && <h3 className="mt-3 font-display text-xl uppercase text-white">{str(item, "subtitle")}</h3>}
-              <p className="mt-4 text-sm leading-7 text-white/45">{str(item, "description")}</p>
+            <Reveal key={i} className="bg-black p-5 sm:p-9">
+              <p className="font-display text-2xl sm:text-3xl font-bold text-signal">{str(item, "title")}</p>
+              {str(item, "subtitle") && <h3 className="mt-2 sm:mt-3 font-display text-lg sm:text-xl uppercase text-white">{str(item, "subtitle")}</h3>}
+              <p className="mt-3 sm:mt-4 text-xs leading-relaxed sm:text-sm sm:leading-7 text-white/45">{str(item, "description")}</p>
             </Reveal>
           ))}
         </div>
@@ -648,26 +662,26 @@ function ExperienceCultureSection({ owner, content }: { owner?: RenderableSectio
   const target = asSection(owner);
 
   return (
-    <section className="bg-neutral-100 px-5 py-24 text-black lg:px-8">
+    <section className="bg-neutral-100 px-4 py-12 sm:px-5 sm:py-24 text-black lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="grid gap-16 lg:grid-cols-3">
+        <div className="grid gap-10 sm:gap-16 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-              <h2 className="font-display text-5xl font-bold uppercase leading-none sm:text-6xl">{heading}<br />{headingLine2}</h2>
+              <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl font-bold uppercase leading-tight sm:leading-none">{heading}<br />{headingLine2}</h2>
             </Editable>
-            <div className="mt-12 space-y-8">
+            <div className="mt-8 sm:mt-12 space-y-6 sm:space-y-8">
               {sections.map((sec, i) => (
                 <div key={i}>
-                  <h3 className="mb-4 font-display text-2xl font-bold uppercase">{str(sec, "title")}</h3>
-                  <p className="leading-8 text-black/60">{str(sec, "body")}</p>
+                  <h3 className="mb-3 sm:mb-4 font-display text-xl sm:text-2xl font-bold uppercase">{str(sec, "title")}</h3>
+                  <p className="text-sm leading-relaxed sm:text-base sm:leading-8 text-black/60">{str(sec, "body")}</p>
                 </div>
               ))}
               {values.length > 0 && (
                 <div>
-                  <h3 className="mb-4 font-display text-2xl font-bold uppercase">Our Values</h3>
-                  <div className="space-y-3">
+                  <h3 className="mb-3 sm:mb-4 font-display text-xl sm:text-2xl font-bold uppercase">Our Values</h3>
+                  <div className="space-y-2.5 sm:space-y-3">
                     {values.map((v, i) => (
-                      <div key={i} className="flex items-center gap-4">
+                      <div key={i} className="flex items-center gap-3 sm:gap-4">
                         <div className="size-1 bg-black/20" />
                         <p className="text-sm font-medium">{str(v, "value")}</p>
                       </div>
@@ -677,12 +691,14 @@ function ExperienceCultureSection({ owner, content }: { owner?: RenderableSectio
               )}
             </div>
           </div>
-          <div className="relative h-full min-h-[400px] lg:min-h-[500px]">
+          <div className="relative h-full min-h-[280px] sm:min-h-[400px] lg:min-h-[500px]">
             <div className="group relative h-full">
-              <Editable target={{ kind: "section-field", section: target, fieldKey: "image" }} label="Edit Image" className="absolute inset-0"><Image src={image} alt={imageAlt} fill className="object-cover grayscale transition duration-700 group-hover:grayscale-0 group-hover:scale-105" sizes="(max-width:1024px) 100vw,40vw" /></Editable>
-              <div className="absolute -bottom-8 -left-8 bg-signal p-8">
-                <span className="font-display text-6xl font-bold">{badgeText}</span>
-                <p className="text-sm font-bold uppercase tracking-wider">{badgeSubtext}</p>
+              <Editable target={{ kind: "section-field", section: target, fieldKey: "image" }} label="Edit Image" className="absolute inset-0">
+                <Image src={image} alt={imageAlt} fill className="object-cover grayscale transition duration-700 group-hover:grayscale-0 group-hover:scale-105" sizes="(max-width:1024px) 100vw,40vw" />
+              </Editable>
+              <div className="absolute -bottom-4 -left-4 sm:-bottom-8 sm:-left-8 bg-signal p-4 sm:p-8">
+                <span className="font-display text-4xl lg:text-6xl font-bold">{badgeText}</span>
+                <p className="text-xs sm:text-sm font-bold uppercase tracking-wider">{badgeSubtext}</p>
               </div>
             </div>
           </div>
@@ -698,20 +714,20 @@ function SectorsSection({ owner, content }: { owner?: RenderableSection; content
   const sectors = arr(content, "sectors");
   const target = asSection(owner);
   return (
-    <section className="bg-neutral-100 px-5 py-24 text-black lg:px-8">
+    <section className="bg-neutral-100 px-4 py-12 sm:px-5 sm:py-24 text-black lg:px-8">
       <div className="mx-auto max-w-7xl">
         <Reveal>
           <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-            <h2 className="max-w-3xl font-display text-5xl font-bold uppercase leading-none sm:text-6xl">{heading}</h2>
+            <h2 className="max-w-3xl font-display text-3xl sm:text-5xl lg:text-6xl font-bold uppercase leading-tight sm:leading-none">{heading}</h2>
           </Editable>
-          {description && <p className="mt-6 max-w-2xl leading-8 text-black/55">{description}</p>}
+          {description && <p className="mt-4 sm:mt-6 max-w-2xl text-sm leading-relaxed sm:text-base sm:leading-8 text-black/55">{description}</p>}
         </Reveal>
-        <div className="mt-14 grid sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 sm:mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-0">
           {sectors.map((sec, i) => (
             <Reveal key={i} delay={i * 0.05}>
-              <div className="group border border-black/10 p-8 transition hover:bg-black hover:text-white">
-                <h3 className="mt-8 font-display text-3xl uppercase">{str(sec, "name")}</h3>
-                {str(sec, "description") && <p className="mt-3 text-sm text-black/50 group-hover:text-white/50">{str(sec, "description")}</p>}
+              <div className="group border border-black/10 p-5 sm:p-8 transition hover:bg-black hover:text-white">
+                <h3 className="mt-4 sm:mt-8 font-display text-2xl sm:text-3xl uppercase">{str(sec, "name")}</h3>
+                {str(sec, "description") && <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-black/50 group-hover:text-white/50 leading-relaxed">{str(sec, "description")}</p>}
               </div>
             </Reveal>
           ))}
@@ -736,31 +752,31 @@ function FeaturedClientsSection({ owner, content, data }: { owner?: RenderableSe
       ];
 
   return (
-    <section className="bg-black px-5 py-24 lg:px-8">
+    <section className="bg-black px-4 py-12 sm:px-5 sm:py-24 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <Reveal>
           <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
             <p className="text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
           </Editable>
           <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-            <h2 className="mt-5 max-w-4xl font-display text-5xl font-bold uppercase leading-[.92] sm:text-6xl">{heading}</h2>
+            <h2 className="mt-4 sm:mt-5 max-w-4xl font-display text-3xl sm:text-5xl lg:text-6xl font-bold uppercase leading-tight sm:leading-[.92]">{heading}</h2>
           </Editable>
-          {description && <p className="mt-6 max-w-xl text-sm leading-7 text-white/45">{description}</p>}
+          {description && <p className="mt-4 sm:mt-6 max-w-xl text-sm leading-relaxed sm:leading-7 text-white/45">{description}</p>}
         </Reveal>
-        <div className="mt-12 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 sm:mt-12 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {items.map((c, i) => (
             <Reveal key={i} delay={i * 0.05}>
-              <Editable target={{ kind: "clients" }} label="Edit Logo" className="h-full">
-                <article className="group relative flex min-h-48 flex-col justify-between overflow-hidden border border-white/10 bg-white/[.035] p-7 transition duration-300 hover:-translate-y-1 hover:border-signal/60 hover:bg-white/[.07]">
-                <div>
-                  {c.logoUrl && <div className="flex h-14 items-center"><Image src={c.logoUrl} alt={c.name} width={120} height={48} className="object-contain brightness-0 invert opacity-80" /></div>}
-                  <h3 className="mt-6 max-w-sm font-display text-2xl uppercase leading-tight text-white transition group-hover:text-signal">{c.name}</h3>
-                </div>
-                <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-4 text-[10px] font-bold uppercase tracking-[.2em] text-white/35">
-                  <span>{c.sector}</span>
-                  <span className="h-px w-8 bg-signal/60" />
-                </div>
-              </article>
+              <Editable target={{ kind: "clients" }} label="Edit Logo" className="h-full block">
+                <article className="group relative flex min-h-36 sm:min-h-48 flex-col justify-between overflow-hidden border border-white/10 bg-white/[.035] p-5 sm:p-7 transition duration-300 hover:-translate-y-1 hover:border-signal/60 hover:bg-white/[.07]">
+                  <div>
+                    {c.logoUrl && <div className="flex h-12 sm:h-14 items-center"><Image src={c.logoUrl} alt={c.name} width={120} height={48} className="object-contain brightness-0 invert opacity-80" /></div>}
+                    <h3 className="mt-4 sm:mt-6 max-w-sm font-display text-xl sm:text-2xl uppercase leading-tight text-white transition group-hover:text-signal">{c.name}</h3>
+                  </div>
+                  <div className="mt-6 sm:mt-8 flex items-center justify-between border-t border-white/10 pt-3 sm:pt-4 text-[10px] font-bold uppercase tracking-[.2em] text-white/35">
+                    <span>{c.sector}</span>
+                    <span className="h-px w-8 bg-signal/60" />
+                  </div>
+                </article>
               </Editable>
             </Reveal>
           ))}
@@ -783,31 +799,31 @@ function ContactInfoSection({ owner, content, data }: { owner?: RenderableSectio
   const address = s?.address ?? "";
 
   return (
-    <section className="bg-neutral-100 px-5 py-24 text-black lg:px-8">
+    <section className="bg-neutral-100 px-4 py-12 sm:px-5 sm:py-24 text-black lg:px-8">
       <div className="mx-auto max-w-7xl">
         <Reveal>
           <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-            <h2 className="font-display text-5xl font-bold uppercase leading-none sm:text-6xl">{heading}</h2>
+            <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl font-bold uppercase leading-tight sm:leading-none">{heading}</h2>
           </Editable>
-          {description && <p className="mt-6 max-w-2xl leading-8 text-black/55">{description}</p>}
+          {description && <p className="mt-4 sm:mt-6 max-w-2xl text-sm leading-relaxed sm:leading-8 text-black/55">{description}</p>}
         </Reveal>
-        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 sm:mt-14 grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {(phone || phone2) && (
-            <Reveal className="border border-black/10 bg-white p-8">
-              <p className="font-display text-2xl uppercase">Call us</p>
-              <p className="mt-3 text-sm text-black/60">{phone && <>+91 {phone}<br />{phone2 && <>+91 {phone2}</>}</>}</p>
+            <Reveal className="border border-black/10 bg-white p-5 sm:p-8">
+              <p className="font-display text-xl sm:text-2xl uppercase">Call us</p>
+              <p className="mt-2 sm:mt-3 text-sm text-black/60">{phone && <>+91 {phone}<br />{phone2 && <>+91 {phone2}</>}</>}</p>
             </Reveal>
           )}
           {email && (
-            <Reveal delay={0.05} className="border border-black/10 bg-white p-8">
-              <p className="font-display text-2xl uppercase">Email us</p>
-              <p className="mt-3 break-all text-sm text-black/60">{email}</p>
+            <Reveal delay={0.05} className="border border-black/10 bg-white p-5 sm:p-8">
+              <p className="font-display text-xl sm:text-2xl uppercase">Email us</p>
+              <p className="mt-2 sm:mt-3 break-all text-sm text-black/60">{email}</p>
             </Reveal>
           )}
-          <Reveal delay={0.1} className="border border-black/10 bg-white p-8">
-            <p className="font-display text-2xl uppercase">Visit us</p>
-            {address && <p className="mt-3 text-sm text-black/60">{address}</p>}
-            <Link href={ctaUrl} className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-signal hover:underline">{ctaText} <ArrowRight size={14} /></Link>
+          <Reveal delay={0.1} className="border border-black/10 bg-white p-5 sm:p-8">
+            <p className="font-display text-xl sm:text-2xl uppercase">Visit us</p>
+            {address && <p className="mt-2 sm:mt-3 text-sm text-black/60">{address}</p>}
+            <Link href={ctaUrl} className="mt-4 sm:mt-5 inline-flex items-center gap-2 text-sm font-bold text-signal hover:underline">{ctaText} <ArrowRight size={14} /></Link>
           </Reveal>
         </div>
       </div>
@@ -820,14 +836,14 @@ function MapSection({ owner, content }: { owner?: RenderableSection; content: Re
   const embedUrl = str(content, "embedUrl", "https://www.google.com/maps?q=Sonipat,Haryana&output=embed");
   const target = asSection(owner);
   return (
-    <section className="bg-black px-5 py-16 lg:px-8 lg:py-20">
+    <section className="bg-black px-4 py-12 sm:px-5 sm:py-16 lg:px-8 lg:py-20">
       <div className="mx-auto max-w-7xl">
         <Reveal>
           <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-            <p className="mb-6 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
+            <p className="mb-4 sm:mb-6 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
           </Editable>
           <div className="overflow-hidden border border-white/10">
-            <iframe title="Saini Tubewell Boring Service location" src={embedUrl} className="h-[400px] w-full grayscale" loading="lazy" />
+            <iframe title="Saini Tubewell Boring Service location" src={embedUrl} className="h-[300px] sm:h-[400px] w-full grayscale" loading="lazy" />
           </div>
         </Reveal>
       </div>
@@ -845,19 +861,19 @@ function QuoteIntroSection({ owner, content }: { owner?: RenderableSection; cont
     : ["Required service", "Project or site location", "Known depth or capacity needs", "Preferred project timeline"];
 
   return (
-    <section className="bg-black px-5 py-24 lg:px-8">
+    <section className="bg-black px-4 py-12 sm:px-5 sm:py-24 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <Reveal>
           <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
             <p className="text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
           </Editable>
           <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-            <h2 className="mt-5 font-display text-4xl font-bold uppercase">{heading}</h2>
+            <h2 className="mt-4 sm:mt-5 font-display text-2xl sm:text-4xl font-bold uppercase">{heading}</h2>
           </Editable>
-          <ol className="mt-8 space-y-6">
+          <ol className="mt-6 sm:mt-8 space-y-4 sm:space-y-6">
             {displaySteps.map((step, i) => (
-              <li key={i} className="flex items-center gap-4 border-b border-white/10 pb-5">
-                <span className="font-display text-2xl text-signal">0{i + 1}</span>
+              <li key={i} className="flex items-center gap-3 sm:gap-4 border-b border-white/10 pb-4 sm:pb-5">
+                <span className="font-display text-xl sm:text-2xl text-signal">0{i + 1}</span>
                 <span className="text-sm text-white/60">{step}</span>
               </li>
             ))}
@@ -870,7 +886,7 @@ function QuoteIntroSection({ owner, content }: { owner?: RenderableSection; cont
 
 function QuoteFormSection() {
   return (
-    <section className="bg-black px-5 py-24 lg:px-8">
+    <section className="bg-black px-4 py-12 sm:px-5 sm:py-24 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <QuoteForm />
       </div>

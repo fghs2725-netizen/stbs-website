@@ -22,16 +22,16 @@ export function WebsiteFrame({
   children: ReactNode;
 }) {
   return (
-    <>
+    <div className="relative min-w-0 w-full overflow-x-clip">
       <SiteHeader
         navLinks={navLinks}
         businessName={settings?.businessName ?? undefined}
         logoUrl={settings?.primaryLogoUrl ?? settings?.lightLogoUrl ?? settings?.darkLogoUrl ?? settings?.logoUrl ?? undefined}
         mobileLogoUrl={settings?.mobileLogoUrl ?? undefined}
       />
-      <main>{children}</main>
+      <main className="min-w-0 w-full">{children}</main>
       <SiteFooter settings={settings} navLinks={navLinks} />
       <WhatsAppFloat phone={phone} />
-    </>
+    </div>
   );
 }
