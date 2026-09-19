@@ -189,7 +189,7 @@ function HeroSection({ owner, content }: { owner?: RenderableSection; content: R
         <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
           <h1 className="max-w-4xl font-display text-4xl font-bold uppercase leading-[.9] text-white sm:text-7xl lg:text-[7.5rem]">
             <span className="block">{heading}</span>
-            {headingLine2 && <span className="block text-signal">{headingLine2}</span>}
+            {headingLine2 && <>{" "}<span className="block text-signal">{headingLine2}</span></>}
           </h1>
         </Editable>
         <Editable target={{ kind: "section", section: target }} label="Supporting text" className="max-w-fit">
@@ -651,7 +651,7 @@ function WhyStbsSection({ owner, content }: { owner?: RenderableSection; content
 }
 
 function ExperienceCultureSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
-  const heading = str(content, "heading", "Three decades");
+  const heading = str(content, "heading", "34 years");
   const headingLine2 = str(content, "headingLine2", "of expertise.");
   const image = str(content, "image", "/Site_pic_2.jpeg");
   const imageAlt = str(content, "imageAlt", "Professional drilling team at work");

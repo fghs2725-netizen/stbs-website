@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import { getPublishedSeo, getPublishedSettings } from "@/lib/website/queries";
-import { SITE_OG_IMAGE } from "@/lib/site-url";
+import { canonicalSiteUrl, SITE_OG_IMAGE } from "@/lib/site-url";
+import { SITE_DEFAULT_DESCRIPTION, SITE_DEFAULT_TITLE } from "@/lib/page-metadata";
+
+/** Rewrites legacy / apex hosts in CMS-entered URLs to the canonical host. */
+function canonicalHost(url: string | undefined): string | undefined {
+  return url?.replace(/^https?:\/\/(www\.)?(sainitubewell\.com|stbs\.in)(?=\/|$)/i, canonicalSiteUrl());
+}
 
 function str(c: Record<string, unknown>, key: string): string | undefined {
   const v = c[key];
@@ -24,16 +30,18 @@ export async function getPublicSeoMetadata(): Promise<Metadata> {
   const description = str(raw, "globalDescription");
   // A published SEO record owns this value, including an intentional clear.
   // Settings provide the legacy/global fallback only while SEO is unconfigured.
-  const ogImage = (seo ? str(raw, "defaultOgImage") : str(settingsRaw, "defaultOgImage"))?.replace("sainitubewell.com", "stbs.in");
-  const twitterTitle = str(raw, "twitterTitle") ?? title;
-  const twitterDescription = str(raw, "twitterDescription") ?? description;
-  const twitterImage = str(raw, "twitterImage")?.replace("sainitubewell.com", "stbs.in");
+  const ogImage = canonicalHost(seo ? str(raw, "defaultOgImage") : str(settingsRaw, "defaultOgImage"));
+  // Next.js replaces (does not merge) the parent's openGraph/twitter objects, so an
+  // undefined title/description here would erase the root values site-wide.
+  const twitterTitle = str(raw, "twitterTitle") ?? title ?? SITE_DEFAULT_TITLE;
+  const twitterDescription = str(raw, "twitterDescription") ?? description ?? SITE_DEFAULT_DESCRIPTION;
+  const twitterImage = canonicalHost(str(raw, "twitterImage"));
 
   const meta: Metadata = {};
   if (title) meta.title = title;
   if (description) meta.description = description;
   meta.openGraph = { title: twitterTitle, description: twitterDescription, images: [ogImage || SITE_OG_IMAGE] };
-  meta.twitter = { card: "summary", title: twitterTitle, description: twitterDescription, images: [twitterImage || ogImage || SITE_OG_IMAGE] };
+  meta.twitter = { card: "summary_large_image", title: twitterTitle, description: twitterDescription, images: [twitterImage || ogImage || SITE_OG_IMAGE] };
 
   return meta;
 }

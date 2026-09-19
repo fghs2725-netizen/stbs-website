@@ -176,7 +176,7 @@ async function seedPages() {
           name: "Company intro",
           position: 1,
           content: {
-            eyebrow: "More than three decades in the field",
+            eyebrow: "34 years in the field",
             heading: "Know the ground.",
             headingLine2: "Respect the work.",
             body: "Our experience spans rainwater harvesting, borewells from 100 mm to 400 mm, quality borewell material supply and complete tubewell construction.",
@@ -209,7 +209,7 @@ async function seedPages() {
             eyebrow: "Why STBS",
             heading: "What sets us apart",
             items: [
-              { title: "34+ Years", subtitle: "Field experience", description: "Decades of hands-on expertise in water infrastructure." },
+              { title: "34+ Years", subtitle: "Field experience", description: "34 years of hands-on expertise in water infrastructure." },
               { title: "1200+ Projects", subtitle: "Completed work", description: "Proven track record across residential and industrial sites." },
               { title: "100% Focus", subtitle: "Quality commitment", description: "Attention to detail from survey through installation." },
             ],
@@ -235,7 +235,7 @@ async function seedPages() {
           name: "Experience & culture",
           position: 5,
           content: {
-            heading: "Three decades",
+            heading: "34 years",
             headingLine2: "of expertise.",
             image: "/Site_pic_2.jpeg",
             imageAlt: "Professional drilling team at work",
@@ -605,7 +605,7 @@ async function seedSeo() {
       globalTitle: "Saini Tubewell Boring Service | Since 1992",
       globalDescription:
         "Professional borewell drilling, rainwater harvesting, borewell material supply and tubewell construction services since 1992.",
-      canonicalUrl: "https://stbs.in",
+      canonicalUrl: "https://www.stbs.in",
     },
   });
   console.log("Seeded website SEO (unpublished).");

@@ -166,7 +166,7 @@ export default function CompanySettingsPage() {
           <Field label="Phone 2" value={company.phone2} onChange={v => update('phone2', v)} placeholder="+91 ..." />
         </div>
         <Field label="Email" value={company.email} onChange={v => update('email', v)} placeholder="info@stbs.in" />
-        <Field label="Website" value={company.website} onChange={v => update('website', v)} placeholder="https://stbs.in" />
+        <Field label="Website" value={company.website} onChange={v => update('website', v)} placeholder="https://www.stbs.in" />
       </Section>
 
       {/* Address */}

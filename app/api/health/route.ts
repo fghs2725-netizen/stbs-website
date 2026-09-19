@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { auth } from '@/auth';
 
 const APP_VERSION = process.env.npm_package_version || '1.0.0';
 const startTime = Date.now();
@@ -92,6 +93,12 @@ async function checkJobQueue(): Promise<HealthCheck> {
 }
 
 export async function GET() {
+  // Anonymous callers (Docker HEALTHCHECK, CI deploy probe, uptime monitors) get a
+  // minimal liveness answer: no per-service detail, no error strings, and no DB
+  // writes. Only an authenticated admin session gets the full report and history.
+  const session = await auth();
+  const isAdmin = Boolean(session?.user);
+
   const checks = await Promise.all([
     checkDatabase(),
     checkStorage(),
@@ -104,6 +111,13 @@ export async function GET() {
       ? 'unhealthy'
       : 'degraded';
 
+  if (!isAdmin) {
+    return NextResponse.json(
+      { status: overallStatus },
+      { headers: { 'Cache-Control': 'no-store' } },
+    );
+  }
+
   await prisma.healthCheck.createMany({
     data: checks.map(c => ({
       service: c.service,
@@ -113,19 +127,14 @@ export async function GET() {
     })),
   }).catch(() => {});
 
-  const response = NextResponse.json({
-    status: overallStatus,
-    checks,
-    uptime: Math.floor((Date.now() - startTime) / 1000),
-    version: APP_VERSION,
-    timestamp: new Date().toISOString(),
-  });
-
-  if (overallStatus !== 'healthy') {
-    response.headers.set('Cache-Control', 'no-store');
-  } else {
-    response.headers.set('Cache-Control', 'public, max-age=30');
-  }
-
-  return response;
+  return NextResponse.json(
+    {
+      status: overallStatus,
+      checks,
+      uptime: Math.floor((Date.now() - startTime) / 1000),
+      version: APP_VERSION,
+      timestamp: new Date().toISOString(),
+    },
+    { headers: { 'Cache-Control': 'no-store' } },
+  );
 }

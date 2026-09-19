@@ -185,7 +185,7 @@ export function SettingsPage({ initial }: { initial: SerializedWebsiteSettings }
       copyrightText: "",
       founderName: "Rajesh Saini",
       founderTitle: "Founder & Managing Director",
-      founderBio: "With over 30 years of hands-on experience in water infrastructure, Rajesh Saini leads Saini Tubewell with a field-first approach—precision drilling, responsible recharge, and end-to-end tubewell construction built on practical expertise.",
+      founderBio: "With 34 years of hands-on experience in water infrastructure, Rajesh Saini leads Saini Tubewell with a field-first approach—precision drilling, responsible recharge, and end-to-end tubewell construction built on practical expertise.",
       mission: "To provide customers with products and services that achieve and sustain the highest possible quality standards.",
       vision: "Excel in what we do and build a safe and secure environment for our community.",
     });

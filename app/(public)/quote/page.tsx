@@ -4,7 +4,7 @@ import { QuoteForm } from "@/components/quote-form";
 import { Reveal } from "@/components/reveal";
 import { PageRenderer } from "@/components/public/page-renderer";
 import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
-import { absolutePath } from "@/lib/site-url";
+import { pageMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -12,9 +12,8 @@ const SLUG = "quote";
 
 export async function generateMetadata(): Promise<Metadata> {
   const meta = await getPublishedPageMeta(SLUG);
-  const canonical = { alternates: { canonical: absolutePath("/quote") } };
-  if (meta && meta.seoTitle) return { title: meta.seoTitle, description: meta.metaDescription ?? undefined, ...canonical };
-  return { title: "Request a Quote", description: "Request a quote for borewell drilling, rainwater harvesting, material supply or tubewell construction.", ...canonical };
+  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? "Request a quote for borewell drilling, rainwater harvesting, material supply or tubewell construction.", path: "/quote", image: meta.ogImage });
+  return pageMetadata({ title: "Request a Quote", description: "Request a quote for borewell drilling, rainwater harvesting, material supply or tubewell construction.", path: "/quote" });
 }
 
 function QuoteStatic() {

@@ -17,7 +17,7 @@ export function SeoPage({ initial }: { initial: SerializedWebsiteSeo }) {
     twitterTitle: initial.twitterTitle ?? "",
     twitterDescription: initial.twitterDescription ?? "",
     twitterImage: initial.twitterImage ?? "",
-    canonicalUrl: initial.canonicalUrl ?? "https://stbs.in",
+    canonicalUrl: initial.canonicalUrl ?? "https://www.stbs.in",
     robotsSettings: initial.robotsSettings ?? "",
     structuredData: initial.structuredData ? JSON.stringify(initial.structuredData, null, 2) : "",
   });
@@ -82,7 +82,7 @@ export function SeoPage({ initial }: { initial: SerializedWebsiteSeo }) {
       <div className="admin-card overflow-hidden">
         <div className="border-b border-white/[.08] p-5">
           <h2 className="font-display text-lg font-semibold text-white">Global metadata</h2>
-          <p className="mt-0.5 text-sm text-zinc-500">Per-page SEO set in the page editor overrides these defaults. Canonical domain must be https://stbs.in.</p>
+          <p className="mt-0.5 text-sm text-zinc-500">Per-page SEO set in the page editor overrides these defaults. Canonical domain must be https://www.stbs.in.</p>
         </div>
         <div className="grid gap-x-8 gap-y-4 p-5 lg:grid-cols-2">
           <div>

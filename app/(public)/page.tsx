@@ -3,7 +3,7 @@ import { HomePage } from "@/components/home-page";
 import { Testimonials } from "@/components/public/site-additions";
 import { PageRenderer } from "@/components/public/page-renderer";
 import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
-import { absolutePath } from "@/lib/site-url";
+import { pageMetadata, SITE_DEFAULT_DESCRIPTION, SITE_DEFAULT_TITLE } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -11,14 +11,15 @@ const SLUG = "home";
 
 export async function generateMetadata(): Promise<Metadata> {
   const meta = await getPublishedPageMeta(SLUG);
-  const canonical = { alternates: { canonical: absolutePath("/") } };
-  if (!meta || !meta.seoTitle) return canonical;
-  return {
-    title: meta.seoTitle,
-    description: meta.metaDescription ?? undefined,
-    openGraph: meta.ogImage ? { title: meta.ogTitle ?? meta.seoTitle, description: meta.ogDescription ?? undefined, images: [meta.ogImage] } : undefined,
-    ...canonical,
-  };
+  return pageMetadata({
+    title: meta?.seoTitle || SITE_DEFAULT_TITLE,
+    description: meta?.metaDescription || SITE_DEFAULT_DESCRIPTION,
+    ogTitle: meta?.ogTitle,
+    ogDescription: meta?.ogDescription,
+    path: "/",
+    image: meta?.ogImage,
+    absoluteTitle: true,
+  });
 }
 
 export default async function Home() {

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { GalleryClient } from "@/components/gallery-client";
 import { PageRenderer } from "@/components/public/page-renderer";
 import { getPublishedGalleryItems, getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
-import { absolutePath } from "@/lib/site-url";
+import { pageMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -32,9 +32,8 @@ const FALLBACK_SECTIONS = [
 
 export async function generateMetadata(): Promise<Metadata> {
   const meta = await getPublishedPageMeta(SLUG);
-  const canonical = { alternates: { canonical: absolutePath("/gallery") } };
-  if (meta && meta.seoTitle) return { title: meta.seoTitle, description: meta.metaDescription ?? undefined, ...canonical };
-  return { title: "Gallery", description: "Proof of work: images of drilling, installation, and completed projects from our field operations.", ...canonical };
+  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? "Proof of work: images of drilling, installation, and completed projects from our field operations.", path: "/gallery", image: meta.ogImage });
+  return pageMetadata({ title: "Gallery", description: "Proof of work: images of drilling, installation, and completed projects from our field operations.", path: "/gallery" });
 }
 
 export default async function Gallery() {

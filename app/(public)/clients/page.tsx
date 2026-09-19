@@ -5,7 +5,7 @@ import { Reveal } from "@/components/reveal";
 import { clients } from "@/lib/company";
 import { PageRenderer } from "@/components/public/page-renderer";
 import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
-import { absolutePath } from "@/lib/site-url";
+import { pageMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +13,8 @@ const SLUG = "clients";
 
 export async function generateMetadata(): Promise<Metadata> {
   const meta = await getPublishedPageMeta(SLUG);
-  const canonical = { alternates: { canonical: absolutePath("/clients") } };
-  if (meta && meta.seoTitle) return { title: meta.seoTitle, description: meta.metaDescription ?? undefined, ...canonical };
-  return { title: "Clients", description: "Water infrastructure support for residential, agricultural, commercial, institutional and industrial requirements.", ...canonical };
+  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? "Water infrastructure support for residential, agricultural, commercial, institutional and industrial requirements.", path: "/clients", image: meta.ogImage });
+  return pageMetadata({ title: "Clients", description: "Water infrastructure support for residential, agricultural, commercial, institutional and industrial requirements.", path: "/clients" });
 }
 
 const sectors = [[Home, "Residential", "Practical planning for homes and housing sites."], [Sprout, "Agriculture", "Water access planned around field operations."], [Building2, "Commercial", "Coordinated work for active commercial premises."], [Factory, "Industrial", "Execution aligned to site safety and operations."], [Landmark, "Institutional", "Clear coordination for campuses and public sites."], [Warehouse, "Infrastructure", "Site-aware support for larger development work."]] as const;

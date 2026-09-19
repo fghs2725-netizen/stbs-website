@@ -12,7 +12,7 @@ export function SiteFooter({ settings, navLinks }: { settings?: Pick<CmsSettings
   const email = settings?.email ?? "";
   const name = settings?.businessName ?? "";
   const tagline = settings?.shortDescription ?? "";
-  const links = navLinks?.length ? navLinks.map(l => l.label).filter(l => !l.toLowerCase().includes("quote") && l.toLowerCase() !== "admin") : DEFAULT_LINKS;
+  const links = navLinks?.length ? navLinks.filter(l => !l.href.startsWith("/admin") && !l.href.startsWith("/quote") && !l.label.toLowerCase().includes("quote") && l.label.toLowerCase() !== "admin").map(l => l.label) : DEFAULT_LINKS;
   const editor = useWebsiteEditor();
   const isEditor = editor.isEditor;
 

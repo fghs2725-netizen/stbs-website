@@ -10,7 +10,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://stbs:${DB_PASSWORD:-stbs_password}@postgres:5432/stbs
       - DATABASE_URL_UNPOOLED=postgresql://stbs:${DB_PASSWORD:-stbs_password}@postgres:5432/stbs
-      - AUTH_SECRET=${AUTH_SECRET:-change-me-in-production}
+      - AUTH_SECRET=${AUTH_SECRET:?AUTH_SECRET must be set (openssl rand -base64 32)}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
       - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}

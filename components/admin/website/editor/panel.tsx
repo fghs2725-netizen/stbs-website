@@ -851,14 +851,14 @@ export function SeoPanel({ seo, onClose }: { seo: SerializedWebsiteSeo | null; o
 
   return (
     <div className="flex h-full flex-col">
-      <DrawerHeader title="SEO settings" subtitle="Global search metadata · canonical https://stbs.in" onClose={onClose} />
+      <DrawerHeader title="SEO settings" subtitle="Global search metadata · canonical https://www.stbs.in" onClose={onClose} />
       <div className="flex-1 space-y-3 overflow-y-auto p-5 pb-24">
         <div><label className="admin-label">Global title</label><input className="admin-input" value={form.globalTitle} onChange={set("globalTitle")} /></div>
         <div><label className="admin-label">Global description</label><textarea className="admin-input min-h-20 resize-y" value={form.globalDescription} onChange={set("globalDescription")} /></div>
         <div>
           <label className="admin-label">Canonical URL</label>
-          <input className="admin-input" value={form.canonicalUrl} onChange={set("canonicalUrl")} placeholder="https://stbs.in" />
-          <p className="mt-1 text-[11px] leading-4 text-zinc-600">Keep this as https://stbs.in — the site does not redirect www, so don&apos;t switch to www.</p>
+          <input className="admin-input" value={form.canonicalUrl} onChange={set("canonicalUrl")} placeholder="https://www.stbs.in" />
+          <p className="mt-1 text-[11px] leading-4 text-zinc-600">Keep this as https://www.stbs.in — apex stbs.in redirects to www, so www is the canonical host.</p>
         </div>
         <div><label className="admin-label">Default OG image</label><ImageUpload label="" value={form.defaultOgImage || null} onChange={(url) => setForm((f) => ({ ...f, defaultOgImage: url ?? "" }))} hint="Upload or paste a URL." /></div>
         <div><label className="admin-label">Robots settings</label><textarea className="admin-input min-h-14 resize-y" value={form.robotsSettings} onChange={set("robotsSettings")} /></div>

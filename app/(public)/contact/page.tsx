@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { company } from "@/lib/company";
 import { PageRenderer } from "@/components/public/page-renderer";
 import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
-import { absolutePath } from "@/lib/site-url";
+import { pageMetadata } from "@/lib/page-metadata";
 import { VisualSlot } from "@/components/public/site-additions";
 
 export const dynamic = "force-dynamic";
@@ -16,9 +16,8 @@ const SLUG = "contact";
 
 export async function generateMetadata(): Promise<Metadata> {
   const meta = await getPublishedPageMeta(SLUG);
-  const canonical = { alternates: { canonical: absolutePath("/contact") } };
-  if (meta && meta.seoTitle) return { title: meta.seoTitle, description: meta.metaDescription ?? undefined, ...canonical };
-  return { title: "Contact", description: "Contact Saini Tubewell Boring Service to discuss borewell and tubewell requirements. Call, email, or request a quote.", ...canonical };
+  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? "Contact Saini Tubewell Boring Service to discuss borewell and tubewell requirements. Call, email, or request a quote.", path: "/contact", image: meta.ogImage });
+  return pageMetadata({ title: "Contact", description: "Contact Saini Tubewell Boring Service to discuss borewell and tubewell requirements. Call, email, or request a quote.", path: "/contact" });
 }
 
 function ContactStatic() {

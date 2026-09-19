@@ -32,7 +32,7 @@ export const trustItems = [
 ];
 
 export const whyChoose = [
-  { title: "34+ Years", text: "Three decades of hands-on field experience across borewell and tubewell projects." },
+  { title: "34+ Years", text: "34 years of hands-on field experience across borewell and tubewell projects." },
   { title: "Modern Equipment", text: "A maintained fleet of drilling rigs and recharge systems built for tough ground." },
   { title: "Transparent Pricing", text: "Clear, itemised quotes with no hidden charges and fair material rates." },
   { title: "Experienced Team", text: "Skilled operators and site supervisors who own the work end to end." },
@@ -58,4 +58,4 @@ export const keywords = [
 export const foundingYear = 1992;
 export const founderName = "Rajesh Saini";
 export const founderTitle = "Founder & Managing Director";
-export const founderBio = "With over 30 years of hands-on experience in water infrastructure, Rajesh Saini leads Saini Tubewell with a field-first approach—precision drilling, responsible recharge, and end-to-end tubewell construction built on practical expertise.";
+export const founderBio = "With 34 years of hands-on experience in water infrastructure, Rajesh Saini leads Saini Tubewell with a field-first approach—precision drilling, responsible recharge, and end-to-end tubewell construction built on practical expertise.";

@@ -116,7 +116,7 @@ export function HomePage() {
             transition={{ duration: 0.85, delay: 0.2 }}
             className="max-w-4xl font-display text-[clamp(2.5rem,8vw,5rem)] font-bold uppercase leading-[0.9] text-white sm:text-[clamp(3.5rem,9vw,6rem)] lg:text-[clamp(4rem,10vw,7rem)]"
           >
-            <span className="block">Reliable Water.</span>
+            <span className="block">Reliable Water.</span>{" "}
             <span className="block text-signal">Stronger Foundations.</span>
           </motion.h1>
 
@@ -195,7 +195,7 @@ export function HomePage() {
                 </h2>
               </div>
               <p className="max-w-md text-sm leading-relaxed sm:leading-7 text-white/50">
-                Decades of field experience delivering water infrastructure solutions built to last.
+                34 years of field experience delivering water infrastructure solutions built to last.
               </p>
             </div>
           </Reveal>

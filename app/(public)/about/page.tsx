@@ -5,7 +5,7 @@ import { Reveal } from "@/components/reveal";
 import { company, foundingYear, founderName, founderTitle, founderBio } from "@/lib/company";
 import { PageRenderer } from "@/components/public/page-renderer";
 import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
-import { absolutePath } from "@/lib/site-url";
+import { pageMetadata } from "@/lib/page-metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +13,8 @@ const SLUG = "about";
 
 export async function generateMetadata(): Promise<Metadata> {
   const meta = await getPublishedPageMeta(SLUG);
-  const canonical = { alternates: { canonical: absolutePath("/about") } };
-  if (meta && meta.seoTitle) return { title: meta.seoTitle, description: meta.metaDescription ?? undefined, ...canonical };
-  return { title: "About", description: "Learn about Saini Tubewell Boring Service, providing professional water infrastructure services since 1992.", ...canonical };
+  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? "Learn about Saini Tubewell Boring Service, providing professional water infrastructure services since 1992.", path: "/about", image: meta.ogImage });
+  return pageMetadata({ title: "About", description: "Learn about Saini Tubewell Boring Service, providing professional water infrastructure services since 1992.", path: "/about" });
 }
 
 function AboutStatic() {
@@ -30,7 +29,7 @@ function AboutStatic() {
       <section className="bg-neutral-100 px-5 py-24 text-black lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-14 lg:grid-cols-2 lg:items-center">
           <Reveal>
-            <p className="text-xs font-extrabold uppercase tracking-[.2em]">More than three decades in the field</p>
+            <p className="text-xs font-extrabold uppercase tracking-[.2em]">34 years in the field</p>
             <h2 className="mt-5 font-display text-5xl font-bold uppercase leading-none sm:text-6xl">Know the ground.<br />Respect the work.</h2>
             <p className="mt-7 leading-8 text-black/60">
               Our experience spans rainwater harvesting, borewells from 100 mm to 400 mm, quality borewell material supply and complete tubewell construction.
@@ -80,7 +79,7 @@ function AboutStatic() {
           </Reveal>
           <div className="mt-12 grid gap-px bg-white/10 md:grid-cols-3">
             {[
-              ["34+ Years", "Field experience", "Decades of hands-on expertise in water infrastructure."],
+              ["34+ Years", "Field experience", "34 years of hands-on expertise in water infrastructure."],
               ["1200+ Projects", "Completed work", "Proven track record across residential and industrial sites."],
               ["100% Focus", "Quality commitment", "Attention to detail from survey through installation."],
             ].map(([title, subtitle, desc]) => (
@@ -133,7 +132,7 @@ function AboutStatic() {
           <div className="grid gap-16 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <h2 className="font-display text-5xl font-bold uppercase leading-none sm:text-6xl">
-                Three decades<br />of expertise.
+                34 years<br />of expertise.
               </h2>
               <div className="mt-12 space-y-8">
                 <div>

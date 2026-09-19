@@ -94,14 +94,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as { role?: string }).role || "SUPER_ADMIN";
+        token.role = (user as { role?: string }).role || "NONE"; // fail closed: never default to a privileged role
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub!;
-        (session.user as { role?: string }).role = (token.role as string) || "SUPER_ADMIN";
+        (session.user as { role?: string }).role = (token.role as string) || "NONE";
       }
       return session;
     },
