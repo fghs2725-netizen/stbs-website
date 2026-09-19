@@ -44,3 +44,11 @@ export const HOME_SERVICES = {
   eyebrow: "Services",
   heading: "What we deliver",
 } as const;
+
+/** Closing CTA banner. The supporting line makes no promise about turnaround or price. */
+export const HOME_CTA = {
+  heading: "Planning a project?",
+  text: "Share your site and scope. We will review it and send a written proposal.",
+  ctaText: "Request a proposal",
+  ctaUrl: "/quote",
+} as const;

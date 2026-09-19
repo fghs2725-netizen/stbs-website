@@ -135,12 +135,12 @@ export const SECTION_TYPE_DEFS: Record<string, SectionTypeDef> = {
   },
   cta: {
     label: "Call to Action",
-    description: "Signal-coloured CTA band.",
+    description: "Closing banner on the dark brand colour: heading, one supporting line and a single button.",
     fields: [
-      { key: "heading", label: "Heading", type: "text" },
-      { key: "ctaText", label: "Button text", type: "text" },
-      { key: "ctaUrl", label: "Button URL", type: "url" },
-      { key: "backgroundText", label: "Background watermark", type: "text", placeholder: "1992" },
+      { key: "heading", label: "Heading", type: "text", placeholder: "Planning a project?" },
+      { key: "text", label: "Supporting line", type: "text", placeholder: "Share your site and scope. We will review it and send a written proposal." },
+      { key: "ctaText", label: "Button text", type: "text", placeholder: "Request a proposal" },
+      { key: "ctaUrl", label: "Button URL", type: "url", placeholder: "/quote" },
     ],
   },
   text_image: {

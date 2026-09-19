@@ -26,6 +26,8 @@
  *   8. projects create the home "Featured Projects" section holding the three real projects from the
  *               owner's work orders (BigBasket Kundli, Ashoka University North Campus, EOC Polymers).
  *               /projects reads the same rows. Position is provisional (101) until the ordering step.
+ *   9. closing  home/cta content -> "Planning a project?" + supporting line + "Request a proposal"
+ *               (drops the decorative "1992" watermark field).
  *   2. cta      "Request a quote" / "Request quote" / "Request A Quote" -> "Request a proposal"
  *               (whole-string matches only, inside section content/publishedContent).
  *
@@ -35,7 +37,7 @@
  */
 import fs from "node:fs";
 import { prisma } from "../lib/prisma";
-import { HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "../lib/website/home-defaults";
+import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "../lib/website/home-defaults";
 import { HOME_PROJECTS, PROJECTS } from "../lib/website/projects-data";
 
 type Op = { label: string; before: unknown; run: () => Promise<unknown> };
@@ -245,6 +247,22 @@ async function planProjects() {
   });
 }
 
+// ── 9. closing CTA ────────────────────────────────────────────────────────
+async function planClosingCta() {
+  const sec = await prisma.websiteSection.findFirst({ where: { type: "cta", page: { slug: "home" }, deletedAt: null } });
+  if (!sec) { console.log("  (no home cta section found)"); return; }
+  const next = { heading: HOME_CTA.heading, text: HOME_CTA.text, ctaText: HOME_CTA.ctaText, ctaUrl: HOME_CTA.ctaUrl };
+  const data: Record<string, unknown> = {};
+  const before: Record<string, unknown> = { id: sec.id };
+  for (const col of ["content", "publishedContent"] as const) {
+    const cur = sec[col] as Record<string, unknown> | null;
+    if (!cur || JSON.stringify(cur) === JSON.stringify(next)) continue;
+    before[col] = cur; data[col] = next;
+    console.log(`  ~ home/cta ${col}: "${cur.heading}" / "${cur.ctaText}"  ->  "${next.heading}" / "${next.ctaText}"  (drops: ${Object.keys(cur).filter((k) => !(k in next)).join(", ") || "-"})`);
+  }
+  if (Object.keys(data).length) ops.push({ label: `cta ${sec.id}`, before, run: () => prisma.websiteSection.update({ where: { id: sec.id }, data: data as never }) });
+}
+
 async function main() {
   const apply = process.argv.includes("--apply");
   console.log("Step 1: navigation"); await planNav();
@@ -255,6 +273,7 @@ async function main() {
   console.log("Step 6: sectors section"); await planSectors();
   console.log("Step 7: services cards"); await planServices();
   console.log("Step 8: featured projects"); await planProjects();
+  console.log("Step 9: closing CTA"); await planClosingCta();
   console.log(`\n${ops.length} change(s) planned.`);
   if (!apply) { console.log("DRY RUN — nothing written. Re-run with --apply to write."); await prisma.$disconnect(); return; }
   if (!ops.length) { await prisma.$disconnect(); return; }

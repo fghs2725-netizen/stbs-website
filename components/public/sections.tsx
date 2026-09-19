@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain, Construction, Copy, Download, Drill, Droplets, Eye, EyeOff, Factory, Home, Landmark, MapPin, Pencil, Sprout, Store, Trash2, type LucideIcon } from "lucide-react";
-import { HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "@/lib/website/home-defaults";
+import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "@/lib/website/home-defaults";
 import { SERVICE_PAGES, serviceHref, servicePageFor, type ServiceIconKey } from "@/lib/website/service-pages";
 import { HOME_PROJECTS, resolveProjects } from "@/lib/website/projects-data";
 import { StatsStrip } from "@/components/public/stats-strip";
@@ -475,25 +475,27 @@ function GallerySection({ owner, content, data }: { owner?: RenderableSection; c
   );
 }
 
-function CtaSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
-  const heading = str(content, "heading", "Let us get your project moving.");
-  const ctaText = str(content, "ctaText", "Request a proposal");
-  const ctaUrl = str(content, "ctaUrl", "/quote");
-  const backgroundText = str(content, "backgroundText", "1992");
+export function CtaSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
+  const heading = str(content, "heading", HOME_CTA.heading);
+  const text = str(content, "text", HOME_CTA.text);
+  const ctaText = str(content, "ctaText", HOME_CTA.ctaText);
+  const ctaUrl = str(content, "ctaUrl", HOME_CTA.ctaUrl);
   const target = asSection(owner);
   return (
-    <section className="relative overflow-hidden bg-signal px-4 py-12 sm:px-5 sm:py-20 text-black lg:px-8">
-      <div className="pointer-events-none absolute -right-10 top-1/2 -translate-y-1/2 font-display text-[7rem] sm:text-[16rem] font-bold text-black/5 select-none">{backgroundText}</div>
-      <Reveal className="relative mx-auto flex max-w-7xl flex-col justify-between gap-6 sm:gap-8 md:flex-row md:items-center">
-        <Editable target={{ kind: "section", section: target }} label="CTA heading" className="max-w-fit">
-          <h2 className="max-w-3xl font-display text-3xl sm:text-5xl lg:text-7xl font-bold uppercase leading-tight sm:leading-none">{heading}</h2>
-        </Editable>
-        <Editable target={{ kind: "section", section: target }} label="CTA button">
-          <Link href={ctaUrl} className="inline-flex min-h-12 items-center gap-2 bg-black px-6 text-sm font-bold uppercase tracking-wider text-white transition hover:-translate-y-0.5 hover:bg-white hover:text-black">
-            {ctaText} <ArrowRight size={17} />
-          </Link>
-        </Editable>
-      </Reveal>
+    <section className="band-deep rule-on-dark">
+      <div className="container-x section-y">
+        <Reveal className="flex flex-col gap-u5 lg:flex-row lg:items-center lg:justify-between lg:gap-u8">
+          <div>
+            <Editable target={{ kind: "section", section: target }} label="CTA heading" className="max-w-fit">
+              <h2 className="t-h2 text-block">{heading}</h2>
+            </Editable>
+            {text && <p className="t-body mt-u2 max-w-[48rem] text-stbs-ink-on-dark">{text}</p>}
+          </div>
+          <Editable target={{ kind: "section", section: target }} label="CTA button" className="shrink-0">
+            <Link href={ctaUrl} className="btn btn-primary w-full sm:w-auto sm:self-start lg:self-auto">{ctaText}</Link>
+          </Editable>
+        </Reveal>
+      </div>
     </section>
   );
 }
