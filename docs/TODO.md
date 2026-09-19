@@ -1,28 +1,21 @@
 # STBS rebuild: TODO
 
-Last updated 2026-09-19, after Phase 4c. Nothing here has been pushed or applied to production.
+Last updated 2026-09-19, after Phase 6 (stopped before the quotation editor). Nothing here has been pushed or applied to production.
 
-## A. Done: Phase 4c (contact, quote, gallery)
+## A. Done: Phases 4c, 5 and 6
 
-- [x] Contact page on shared renderers (placeholder map box removed, WhatsApp tile, tel/mailto links)
-- [x] Gallery renderer (duotone, 4:3, captions below, no gradient overlay) and honest empty state
-- [x] Quote form rebuilt: shared zod schema, inline errors, honeypot, `POST /api/quote`, real failure state
-- [x] Verified the form in a browser (24 checks: validation, focus, loading, success, failure fallbacks, honeypot). Request intercepted, nothing sent.
-- [x] Verified `/api/quote` paths that do not send (422 / 400 / 413 / 405 / honeypot / 429); EmailLog untouched
-- [x] Quote page at 375px and gallery preview checked visually
-- [x] Gate (tsc, lint, 6 test suites, build) and commit 4c
+- [x] 4c: contact, quote (real `POST /api/quote`, honeypot, rate limit, no false success) and gallery on shared renderers
+- [x] 5a: footer (address / GSTIN / hours shown only when supplied), `/privacy` and `/terms` placeholders (noindex), WhatsApp float in a landmark
+- [x] 5b: per-page titles/descriptions (`lib/website/seo-copy.ts`), LocalBusiness JSON-LD without invented address/geo, canonical host `www.stbs.in`, CMS metadata step in the migration
+- [x] 5c: 3 unused assets deleted (~3.8 MB), alt-text audit clean. Lighthouse (local production build, simulated mobile): desktop `/` perf 98, mobile `/` perf 82-88 (LCP 3.3 s), accessibility / best-practices / SEO 100. See B for why mobile is lower.
+- [x] 6: quotation template lock: `npm run test:quotation-snapshot` (3 fixtures, HTML + per-page PNG + PDF page count; baselines in `tests/quotation-snapshots/`). Template files were not touched. Re-record with `-- --update` only for an intended template change.
 
 ## B. Engineering still to do
 
-### Phase 5: technical and SEO (Brief 1, Part D)
-- [ ] Footer rebuild: registered address, GSTIN, business hours, service-area list, WhatsApp link, Google Maps embed, Privacy and Terms links (placeholders where data is missing). Old footer fails contrast (4.23:1).
-- [ ] `/privacy` and `/terms` placeholder pages (also fixes the existing 404 link from `/verify/[code]`)
-- [ ] WhatsApp float: pre-filled message, `aria-label`, ~400px scroll threshold, must not overlap the mobile footer CTA, put inside a landmark (axe "region" finding)
-- [ ] JSON-LD: legal name, logo, `serviceType[]`, district-level `areaServed`; address / hours / geo only once supplied
-- [ ] Per-page titles and descriptions with natural local keywords (Sonipat, Panipat, Gurugram, Rohtak, Kundli, NCR)
-- [ ] Sitemap: add `/privacy`, `/terms`
-- [ ] Image pass: unused ~2.8 MB `hero-industrial-cross-section.png`, duplicate logos, remaining PNG/JPEG; alt-text audit of every image
-- [ ] Lighthouse on `/` (target 95+ performance, 100 accessibility)
+### Performance (Lighthouse follow-ups)
+- [ ] Mobile `/` LCP is the CMS hero image (the original upload is a 2.6 MB PNG; the optimizer serves a 44 KB AVIF). Upload the real photo as a compressed JPEG/WebP (< 300 KB) when you replace the hero, then re-run Lighthouse against the deployed URL (local numbers include cold DB and image-cache cost)
+- [ ] Home is `force-dynamic` (TTFB ~2 s cold); consider ISR with on-publish revalidation
+- [ ] Re-run `/services` Lighthouse SEO (one local run flagged the meta description although the tag is present)
 - [ ] Extend `scripts/browser-editor-qa.ts` to cover the new homepage sections (it is written for the old ones; needs a non-production DB to run)
 
 ### Security backlog (from the audit)
@@ -41,12 +34,13 @@ Last updated 2026-09-19, after Phase 4c. Nothing here has been pushed or applied
 - [ ] Old static `Testimonials` placeholder component in `site-additions.tsx` (unused; kept because testimonial content must not be deleted)
 
 ### Brief 2: admin panel (analysis done; code not started)
-- [ ] Phase 6: quotation snapshot regression test (3 fixtures, HTML + PNG baseline, diff). The template component already exists.
+- [x] Phase 6: quotation snapshot regression test (done)
+- Finding for Q6: the price table sits on a fixed 297mm page with `overflow:hidden`; a long item list is clipped, not paginated (see `many-items` baseline)
 - [ ] Phase 7: quotation editor rebuild. **Blocked on Q1-Q6** below.
 - [ ] Phase 8: DOCX export (PDF export already exists and is server-side)
 - [ ] Phase 9: website editor: zod schemas, character counters, required alt text, client-side image compression, last-10-versions history with rollback, unsaved-changes warning, publish confirmation
 
-### Migration (`scripts/migrate-homepage.ts`, 11 steps, 30 changes, dry run only)
+### Migration (`scripts/migrate-homepage.ts`, 12 steps, 38 changes, dry run only)
 - [ ] Decide: run `--rehearse` against production (executes writes inside a transaction, then rolls back), then `--apply`
 - [ ] After apply: check live homepage, `/clients` logos, navbar (Services, Clients, Projects, Contact)
 
@@ -86,6 +80,5 @@ Last updated 2026-09-19, after Phase 4c. Nothing here has been pushed or applied
 - [ ] Be careful sharing the BigBasket PO: it contains STBS bank account details
 
 ## D. Known limitations to remember
-- Old footer and WhatsApp button still frame every page until Phase 5
 - `.env` points at the **production** database: `test:publish`, `test:storage-blob` and `browser-editor-qa` write data and must not be run against it
 - Interior-page H1s use the H2 type scale by design; the 40-76px scale is reserved for the homepage hero
