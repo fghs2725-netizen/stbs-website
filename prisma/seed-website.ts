@@ -31,6 +31,7 @@ import {
 } from "../lib/company";
 import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "../lib/website/home-defaults";
 import { HOME_PROJECTS, PROJECTS } from "../lib/website/projects-data";
+import { ABOUT_SECTIONS, CLIENTS_SECTIONS } from "../lib/website/page-defaults";
 
 const prisma = new PrismaClient();
 
@@ -73,105 +74,7 @@ async function seedPages() {
       seoTitle: "About | Saini Tubewell",
       metaDescription:
         "Learn about Saini Tubewell Boring Service, providing professional water infrastructure services since 1992.",
-      sections: [
-        {
-          type: "page_hero",
-          name: "Page hero",
-          position: 0,
-          content: {
-            eyebrow: "Our company",
-            heading: "Built from the ground down.",
-            text: "Saini Tubewell Boring Service was established in 1992 and has grown as a trusted provider of borewell, material supply and rainwater harvesting services.",
-          },
-        },
-        {
-          type: "text_image",
-          name: "Company intro",
-          position: 1,
-          content: {
-            eyebrow: "34 years in the field",
-            heading: "Know the ground.",
-            headingLine2: "Respect the work.",
-            body: "Our experience spans rainwater harvesting, borewells from 100 mm to 400 mm, quality borewell material supply and complete tubewell construction.",
-            body2: "We focus on quality materials at reasonable rates, timely work and follow-up support to ensure supplied equipment runs efficiently and is serviced on time.",
-            image: "/site_pic.jpeg",
-            imageAlt: "Industrial engineer at work",
-            layout: "right-image",
-            badgeText: "1992",
-            badgeSubtext: "Established",
-          },
-        },
-        {
-          type: "mission_vision",
-          name: "Mission & vision",
-          position: 2,
-          content: {
-            missionEyebrow: "Our mission",
-            missionHeading: "Quality that endures.",
-            missionText: company.mission,
-            visionEyebrow: "Our vision",
-            visionHeading: "A safer community.",
-            visionText: company.vision,
-          },
-        },
-        {
-          type: "why_stbs",
-          name: "What sets us apart",
-          position: 3,
-          content: {
-            eyebrow: "Why STBS",
-            heading: "What sets us apart",
-            items: [
-              { title: "34+ Years", subtitle: "Field experience", description: "34 years of hands-on expertise in water infrastructure." },
-              { title: "1200+ Projects", subtitle: "Completed work", description: "Proven track record across residential and industrial sites." },
-              { title: "100% Focus", subtitle: "Quality commitment", description: "Attention to detail from survey through installation." },
-            ],
-          },
-        },
-        {
-          type: "founder",
-          name: "Founder",
-          position: 4,
-          content: {
-            eyebrow: "Leadership",
-            heading: "Field-First",
-            headingLine2: "Leadership",
-            name: founderName,
-            title: founderTitle,
-            bio: founderBio,
-            additionalText: `Rajesh Saini established Saini Tubewell Boring Service in 1992 with a commitment to providing Haryana and Delhi NCR with dependable water access solutions. Under his guidance, the company has completed over 1,200 projects while maintaining rigorous quality standards and pricing integrity.`,
-            photo: "/founder/rajesh-saini.jpeg",
-          },
-        },
-        {
-          type: "experience_culture",
-          name: "Experience & culture",
-          position: 5,
-          content: {
-            heading: "34 years",
-            headingLine2: "of expertise.",
-            image: "/Site_pic_2.jpeg",
-            imageAlt: "Professional drilling team at work",
-            badgeText: "1992",
-            badgeSubtext: "Established",
-            sections: [
-              {
-                title: "Our Story",
-                body: "Saini Tubewell Boring Service was founded in 1992 with a simple mission: to provide dependable water infrastructure across Haryana. Starting as a one-man operation, we've grown to a professional team trusted by businesses and communities alike.",
-              },
-              {
-                title: "Our Experience",
-                body: "From rainwater harvesting systems to deep borewell drilling, we've completed over 1200 projects. Our experience spans 100mm to 400mm borewells, complete tubewell construction, and modern recharge systems built for challenging local conditions.",
-              },
-            ],
-            values: [
-              { value: "Quality materials at competitive rates" },
-              { value: "Follow-up support and maintenance" },
-              { value: "Site discipline and professional coordination" },
-            ],
-          },
-        },
-      ],
+      sections: ABOUT_SECTIONS,
     },
     {
       slug: "services",
@@ -223,57 +126,7 @@ async function seedPages() {
       seoTitle: "Clients | Saini Tubewell",
       metaDescription:
         "Water infrastructure support for residential, agricultural, commercial, institutional and industrial requirements.",
-      sections: [
-        {
-          type: "page_hero",
-          name: "Page hero",
-          position: 0,
-          content: {
-            eyebrow: "Who we serve",
-            heading: "Grounded partnerships.",
-            text: "Our service model supports diverse water infrastructure requirements with the same focus on practical planning and dependable execution.",
-          },
-        },
-        {
-          type: "sectors",
-          name: "Sectors",
-          position: 1,
-          content: {
-            heading: "Built to support every kind of site.",
-            description:
-              "From individual properties to operational facilities, our work begins by understanding the requirement, access, ground conditions and intended use.",
-            sectors: [
-              { name: "Residential", description: "Homes, plots and individual properties." },
-              { name: "Agriculture", description: "Farms, orchards and irrigation needs." },
-              { name: "Commercial", description: "Businesses, retail and offices." },
-              { name: "Industrial", description: "Factories, plants and process water." },
-              { name: "Institutional", description: "Schools, hospitals and campuses." },
-              { name: "Infrastructure", description: "Township and municipal water works." },
-            ],
-          },
-        },
-        {
-          type: "featured_clients",
-          name: "Featured clients",
-          position: 2,
-          content: {
-            eyebrow: "Selected partners",
-            heading: "Trusted on demanding sites.",
-            description:
-              "A selection of organisations supported by Saini Tubewell across institutional, industrial, food and technology environments.",
-          },
-        },
-        {
-          type: "testimonials",
-          name: "Testimonials",
-          position: 3,
-          content: {
-            eyebrow: "Client voices",
-            heading: "What they say",
-            description: "Project feedback gathered from work across Haryana and NCR.",
-          },
-        },
-      ],
+      sections: CLIENTS_SECTIONS,
     },
     {
       slug: "gallery",

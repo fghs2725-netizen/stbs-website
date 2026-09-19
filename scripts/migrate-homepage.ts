@@ -34,6 +34,8 @@
  *               CMS. The testimonials section MOVES to the clients page (approval-gated: it shows
  *               nothing until a testimonial is approved). The five-step process already lives on
  *               the Borewell Drilling and Tubewell Construction pages.
+ *  11. about    about-page copy fixes in the CMS rows: the two photo alt texts (the old ones did not
+ *               describe the images) and the unmeasurable "100% Focus" stat card -> "20+ Clients".
  *   2. cta      "Request a quote" / "Request quote" / "Request A Quote" -> "Request a proposal"
  *               (whole-string matches only, inside section content/publishedContent).
  *
@@ -48,6 +50,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL });
 import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "../lib/website/home-defaults";
 import { HOME_PROJECTS, PROJECTS } from "../lib/website/projects-data";
+import { CLIENT_LOGOS } from "../lib/website/client-logos";
 
 type Db = Prisma.TransactionClient;
 type Op = { label: string; before: unknown; run: (db: Db) => Promise<unknown> };
@@ -162,16 +165,9 @@ async function planStats() {
 }
 
 // ── 5. client logos ───────────────────────────────────────────────────────
-const LOGOS: Array<{ name: string; logoUrl: string; altText: string }> = [
-  { name: "Ashoka University", logoUrl: "/clients/ashoka-university.png", altText: "Ashoka University logo" },
-  { name: "Amul Milk, Murthal", logoUrl: "/clients/amul.svg", altText: "Amul logo" },
-  { name: "BigBasket, Sonipat Site", logoUrl: "/clients/bigbasket.png", altText: "BigBasket logo" },
-  { name: "LT Overseas Pvt. Ltd. (Dawat Rice Mill)", logoUrl: "/clients/lt-foods.svg", altText: "LT Foods logo" },
-  { name: "Voestalpine VAE VKN India Pvt. Ltd.", logoUrl: "/clients/voestalpine.svg", altText: "voestalpine logo" },
-  { name: "Coral Drugs Pvt. Ltd.", logoUrl: "/clients/coral-drugs.svg", altText: "Coral Drugs logo" },
-  { name: "Rishi Laser Limited", logoUrl: "/clients/rishi-laser.webp", altText: "Rishi Laser Limited logo" },
-];
-const NEW_CLIENT = { name: "O.P. Jindal Global University", sector: "Institutional", logoUrl: "/clients/op-jindal-global-university.webp", altText: "O.P. Jindal Global University logo", featured: true };
+const LOGOS = CLIENT_LOGOS.filter((l) => l.name !== "O.P. Jindal Global University");
+const JINDAL = CLIENT_LOGOS.find((l) => l.name === "O.P. Jindal Global University")!;
+const NEW_CLIENT = { name: JINDAL.name, sector: "Institutional", logoUrl: JINDAL.logoUrl, altText: JINDAL.altText, featured: true };
 
 async function planLogos() {
   const rows = await prisma.websiteClient.findMany({ where: { deletedAt: null }, orderBy: { position: "asc" } });
@@ -338,6 +334,36 @@ async function report(db: Db) {
   console.log("  RESULT services: " + svc.map((x) => `${x.title}(${x.slug})`).join(" | "));
 }
 
+// ── 11. about-page copy ───────────────────────────────────────────────────
+const ABOUT_ALTS: Record<string, string> = {
+  "Industrial engineer at work": "Worker in a ringed concrete pit guiding a pipe above a gravel bed",
+  "Professional drilling team at work": "Crew lowering precast concrete rings into a trench beside a drilling rig",
+};
+const FOCUS_OLD = { title: "100% Focus", subtitle: "Quality commitment" };
+const FOCUS_NEW = { title: "20+ Clients", subtitle: "Named clients", description: "Industrial, commercial and institutional sites across Haryana." };
+function fixAbout<T>(v: T): T {
+  if (typeof v === "string") return (ABOUT_ALTS[v] ?? v) as unknown as T;
+  if (Array.isArray(v)) return v.map(fixAbout) as unknown as T;
+  if (v && typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    if (o.title === FOCUS_OLD.title && o.subtitle === FOCUS_OLD.subtitle) return { ...FOCUS_NEW } as unknown as T;
+    return Object.fromEntries(Object.entries(o).map(([k, x]) => [k, fixAbout(x)])) as T;
+  }
+  return v;
+}
+async function planAbout() {
+  const secs = await prisma.websiteSection.findMany({ where: { page: { slug: "about" }, deletedAt: null } });
+  for (const s of secs) {
+    const data: Record<string, unknown> = {};
+    const before: Record<string, unknown> = { id: s.id };
+    for (const col of ["content", "publishedContent"] as const) {
+      const fixed = fixAbout(s[col]);
+      if (changed(s[col], fixed)) { before[col] = s[col]; data[col] = fixed; console.log(`  ~ about/${s.type} ${col}`); }
+    }
+    if (Object.keys(data).length) ops.push({ label: `about ${s.id}`, before, run: (db) => db.websiteSection.update({ where: { id: s.id }, data: data as never }) });
+  }
+}
+
 async function main() {
   const apply = process.argv.includes("--apply");
   const rehearse = process.argv.includes("--rehearse");
@@ -350,6 +376,7 @@ async function main() {
   console.log("Step 7: services cards"); await planServices();
   console.log("Step 8: featured projects"); await planProjects();
   console.log("Step 9: closing CTA"); await planClosingCta();
+  console.log("Step 11: about-page copy"); await planAbout();
   console.log("Step 10: final order + relocations"); await planOrder();   // must stay LAST
   console.log(`\n${ops.length} change(s) planned.`);
   if (!apply && !rehearse) { console.log("DRY RUN — nothing written. Re-run with --rehearse (rolled back) or --apply (writes)."); await prisma.$disconnect(); return; }
