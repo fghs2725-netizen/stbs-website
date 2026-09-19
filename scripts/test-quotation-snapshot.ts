@@ -91,8 +91,12 @@ async function main() {
         else { failures.push(`${name}: ${label} ${detail}`); console.log(`  FAIL ${name}: ${label} ${detail}`); }
       };
       if (!fs.existsSync(files.html)) { expect("baseline exists (run with --update once)", false); continue; }
-      expect("HTML identical", fs.readFileSync(files.html, "utf8") === html);
-      expect("page counts identical", fs.readFileSync(files.meta, "utf8").trim() === JSON.stringify(meta, null, 2));
+      expect("HTML identical", fs.readFileSync(files.html, "utf8").replace(/
+/g, "
+") === html.replace(/
+/g, "
+"));
+      expect("page counts identical", JSON.stringify(JSON.parse(fs.readFileSync(files.meta, "utf8"))) === JSON.stringify(meta));
       pngs.forEach((b, i) => {
         const base = path.join(DIR, `${name}-p${i + 1}.png`);
         if (!fs.existsSync(base)) return expect(`page ${i + 1} baseline exists`, false);
