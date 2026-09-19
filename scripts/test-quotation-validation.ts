@@ -1,4 +1,8 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { CLIENT_LOGOS } from "../lib/website/client-logos";
+import { quotation as fixedContent } from "../components/quotation/quotation-data";
 import {
   isItemValid,
   validateItem,
@@ -120,6 +124,23 @@ check("subject cleared after having default is rejected (explicit clear)", () =>
   assert.equal(isQuotationPdfReady(q), true);
   const cleared: QuotationState = { ...q, subject: "" };
   assert.equal(isQuotationPdfReady(cleared), false);
+});
+
+check("every staged client logo file exists on disk (a missing file would print a broken image in the PDF)", () => {
+  for (const logo of CLIENT_LOGOS) {
+    assert.ok(logo.logoUrl.startsWith("/clients/"), logo.name);
+    assert.ok(fs.existsSync(path.join(process.cwd(), "public", logo.logoUrl)), `${logo.name}: ${logo.logoUrl} is missing`);
+    assert.ok(logo.altText.trim().length > 0, `${logo.name}: alt text is empty`);
+  }
+});
+check("every logo name appears in the quotation client list, so a renamed client cannot silently lose its logo", () => {
+  const listed = new Set<string>(fixedContent.clients);
+  for (const logo of CLIENT_LOGOS) assert.ok(listed.has(logo.name), `${logo.name} is not in the quotation client list`);
+});
+check("logo names are unique and no client name is listed twice", () => {
+  const names = CLIENT_LOGOS.map((l) => l.name);
+  assert.equal(new Set(names).size, names.length);
+  assert.equal(new Set(fixedContent.clients).size, fixedContent.clients.length);
 });
 
 console.log(`\n${passed} checks passed`);

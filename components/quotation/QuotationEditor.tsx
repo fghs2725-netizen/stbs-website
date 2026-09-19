@@ -3,7 +3,7 @@ import { useCallback, useRef, useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Redo2, Undo2 } from "lucide-react";
 import { QuotationPreview } from "./QuotationPreview";
-import { defaultSubject, buildDraft, serviceOptions, type QuotationState, type QuotationItem, validateItem, getValidItems, isQuotationPdfReady, calcTotal, formatINR } from "./quotation-model";
+import { defaultSubject, buildDraft, serviceOptions, type QuotationState, type QuotationItem, validateItem, getValidItems, isQuotationPdfReady, calcTotals, formatINR } from "./quotation-model";
 import "./editor.css";
 import { saveDraftAction, finalizeAction } from "@/app/admin/(dashboard)/quotations/actions";
 import { AdminBackLink } from "@/components/admin-back-link";
@@ -12,6 +12,9 @@ import { QuotationPrintDocument } from "./QuotationPrintDocument";
 import { openQuotationPdf, pdfActionMessage, pdfFailureMessage } from "./requestQuotationPdf";
 import { fitScaleForWidth } from "./useQuotationPreviewFit";
 import { ItemsTable } from "./items-table";
+import { PricingPanel } from "./pricing-panel";
+import { quotationPageCount } from "./pagination";
+import { amountInWords } from "@/lib/amount-in-words";
 import { ConfirmDialog, Toaster, useToasts } from "./feedback";
 import { createHistory, duplicateItem, isPopulatedItem, moveItem, pushHistory, redoHistory, replaceHistoryPresent, undoHistory, type History } from "./editor-logic";
 
@@ -30,7 +33,9 @@ const CLIENT_FIELD_LABELS: Record<string, string> = {
   pinCode: "PIN code",
   phone: "Phone",
   email: "Email",
+  gstin: "GSTIN (optional)",
 };
+const CLIENT_FIELD_ORDER = ["companyName", "contactPerson", "addressLine1", "addressLine2", "city", "state", "pinCode", "phone", "email", "gstin"] as const;
 
 /* ---------- Dev test data (NOT permanently stored) ---------- */
 const TEST_ITEMS: QuotationItem[] = [
@@ -103,7 +108,8 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
   const qJson = useMemo(() => JSON.stringify(q), [q]);
   const dirty = qJson !== savedJson.current;
   const validItems = useMemo(() => getValidItems(q.items), [q.items]);
-  const total = useMemo(() => calcTotal(validItems), [validItems]);
+  const totals = useMemo(() => calcTotals(q), [q]);
+  const pageCount = useMemo(() => quotationPageCount(q), [q]);
   const canGenerateQuotation = isQuotationPdfReady(q) && (q.serviceType !== "Custom" || q.customServiceType.trim() !== "");
   const isFinal = q.status === "FINAL";
 
@@ -226,7 +232,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
   const updateClient = (key: string, value: string) => setQ((x) => ({ ...x, client: { ...x.client, [key]: value } }), `c:${key}`);
   const setService = (serviceType: string) => setQ((x) => ({ ...x, serviceType, subject: subjectEdited ? x.subject : defaultSubject({ ...x, serviceType }) }));
   const setCustomService = (customServiceType: string) => setQ((x) => ({ ...x, customServiceType, subject: subjectEdited ? x.subject : defaultSubject({ ...x, customServiceType }) }), "f:custom");
-  const selectClient = (id: string) => { const client = clients.find((x) => x.id === id); if (!client) return; setQ((x) => ({ ...x, clientId: client.id, saveClientForFuture: false, client: { companyName: client.companyName, contactPerson: client.contactPerson, addressLine1: client.addressLine1, addressLine2: client.addressLine2, city: client.city, state: client.state, pinCode: client.pinCode, phone: client.phone, email: client.email } })); };
+  const selectClient = (id: string) => { const client = clients.find((x) => x.id === id); if (!client) return; setQ((x) => ({ ...x, clientId: client.id, saveClientForFuture: false, client: { gstin: client.gstin, companyName: client.companyName, contactPerson: client.contactPerson, addressLine1: client.addressLine1, addressLine2: client.addressLine2, city: client.city, state: client.state, pinCode: client.pinCode, phone: client.phone, email: client.email } })); };
 
   const editItem = useCallback((id: string, patch: Partial<QuotationItem>, key: string) => setQ((x) => ({ ...x, items: x.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) }), key), [setQ]);
   const addItem = useCallback(() => { const item = emptyItem(); setQ((x) => ({ ...x, items: [...x.items, item] })); setFocusId(item.id); }, [setQ]);
@@ -273,7 +279,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
 
   const saveLabel = saveState === "saving" ? "Saving…" : saveState === "error" ? "Not saved" : !q.id ? "Not saved yet" : dirty ? "Unsaved changes" : `Saved${savedAt ? ` ${savedAt}` : ""}`;
   const pdfDisabled = !canGenerateQuotation || page4Overflow || pdfBusy;
-  const pdfTitle = canGenerateQuotation && !page4Overflow ? "Generate the quotation PDF (Ctrl+P)" : "Complete the quotation and resolve Page 4 overflow first";
+  const pdfTitle = canGenerateQuotation && !page4Overflow ? "Generate the quotation PDF (Ctrl+P)" : "Complete the quotation and resolve the page overflow first";
 
   const actionButtons = (
     <>
@@ -322,7 +328,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
         <div className="editor-scroll-content">
           {page4Overflow && (
             <div className="editor-warning">
-              ⚠ Price table exceeds the available space on Page 4.
+              ⚠ A price page is fuller than the page allows and content may touch the footer. Shorten a description or split the item.
             </div>
           )}
 
@@ -339,9 +345,9 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
             <>
               <div className="step-heading"><h3>Prepared for</h3><p>Who is this quotation for? These details appear in the quotation header.</p></div>
               {clients.length > 0 && <label>Client source<select value={q.clientId || "new"} onChange={(e) => e.target.value === "new" ? update("clientId", undefined) : selectClient(e.target.value)}><option value="new">ENTER NEW CLIENT</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.companyName}</option>)}</select></label>}
-              {Object.entries(q.client).map(([k, v]) => (
+              {CLIENT_FIELD_ORDER.map((k) => { const v = q.client[k] ?? ""; return (
                 <label key={k}>{CLIENT_FIELD_LABELS[k] ?? k}<input value={v} onChange={(e) => updateClient(k, e.target.value)} className={k === "companyName" && !v.trim() ? "field-error" : ""} aria-invalid={k === "companyName" && !v.trim() ? true : undefined} />{k === "companyName" && !v.trim() && <span className="validation-msg">Company name is required.</span>}</label>
-              ))}
+              ); })}
               <label className="flex items-center gap-2 normal-case"><input type="checkbox" checked={Boolean(q.saveClientForFuture && !q.clientId)} onChange={(e) => setQ((x) => ({ ...x, saveClientForFuture: e.target.checked, clientId: e.target.checked ? undefined : x.clientId }))} /> SAVE CLIENT FOR FUTURE QUOTATIONS</label>
             </>
           )}
@@ -371,7 +377,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
                 <>
                   <ItemsTable items={q.items} errors={itemErrors} focusId={focusId} onEdit={editItem} onAdd={addItem} onRemove={requestRemove} onDuplicate={dupItem} onMove={moveRow} onReorder={moveRow} />
                   <button type="button" className="add-item" onClick={addItem}>+ ADD ITEM</button>
-                  <div className="editor-total">Total <b>{formatINR(total)}</b></div>
+                  <PricingPanel q={q} totals={totals} pageCount={pageCount} onChange={(patch, key) => setQ((x) => ({ ...x, ...patch }), key)} />
                 </>
               )}
 
@@ -406,7 +412,11 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
                 <div className="review-row"><span>Service</span><b>{q.serviceType === "Custom" ? q.customServiceType || "—" : q.serviceType}</b></div>
                 <div className="review-row"><span>Subject</span><b>{q.subject || defaultSubject(q)}</b></div>
                 <div className="review-row"><span>Price items</span><b>{validItems.length}</b></div>
-                <div className="review-row total"><span>Total</span><b>{formatINR(total)}</b></div>
+                {totals.tax > 0 && <div className="review-row"><span>GST</span><b>{formatINR(totals.tax)}</b></div>}
+                {totals.discount > 0 && <div className="review-row"><span>Discount</span><b>−{formatINR(totals.discount)}</b></div>}
+                <div className="review-row total"><span>Final total</span><b>{formatINR(totals.grandTotal)}</b></div>
+                {totals.grandTotal > 0 && <div className="review-row"><span>In words</span><b>{amountInWords(totals.grandTotal)}</b></div>}
+                <div className="review-row"><span>Pages</span><b>{pageCount}</b></div>
               </div>
               {missing.length > 0 && <div className="editor-warning" role="alert">Before you can finalize or generate a PDF, add: {missing.join(", ")}.</div>}
               {!q.id && !isFinal && <p className="wizard-msg">Save the draft first (Ctrl+S) to enable Finalize.</p>}
@@ -432,10 +442,10 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
           <button onClick={() => setZoom(Math.min(100, zoom + 10))} aria-label="Zoom in">+</button>
           <button onClick={fitPreviewToPanel}>Fit width</button>
           {actionButtons}
-          <small>4 Pages</small>
+          <small>{pageCount} pages</small>
         </div>
         <div className="preview-viewport">
-          <div className="preview-scale-container" style={{ "--preview-scale": zoom / 60, "--preview-height": `${(297 / 25.4 * 96 * 4 * zoom / 60) + 36}px` } as React.CSSProperties}>
+          <div className="preview-scale-container" style={{ "--preview-scale": zoom / 60, "--preview-height": `${(297 / 25.4 * 96 * pageCount * zoom / 60) + 36}px` } as React.CSSProperties}>
             <div className="preview-scale-content">
               <QuotationPreview quotation={previewQ} onPage4Overflow={handlePage4Overflow} />
             </div>

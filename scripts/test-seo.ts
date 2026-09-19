@@ -36,9 +36,8 @@ check("logo and image are absolute URLs on the canonical host", () => {
 });
 
 // The guard that matters most: unverified owner data must not be invented.
-check("no address, geo, legalName or GSTIN is emitted while the owner has not supplied them", () => {
+check("no address, geo or legalName is emitted while the owner has not supplied them; the GSTIN is supplied but not part of the JSON-LD", () => {
   assert.equal(businessInfo.registeredOffice, "");
-  assert.equal(businessInfo.gstin, "");
   assert.equal(businessInfo.legalName, "");
   assert.equal("address" in ld, false);
   assert.equal("geo" in ld, false);

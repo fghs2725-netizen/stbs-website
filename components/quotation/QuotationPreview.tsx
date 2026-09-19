@@ -2,6 +2,7 @@
 import { QuotationDocumentClient as QuotationDocument } from "./QuotationDocumentClient";
 import { type QuotationState } from "./quotation-model";
 import { useQuotationPreviewFit, A4_HEIGHT_PX } from "./useQuotationPreviewFit";
+import { quotationPageCount } from "./pagination";
 
 /* ==========================================================================
    QuotationPreview
@@ -13,8 +14,6 @@ import { useQuotationPreviewFit, A4_HEIGHT_PX } from "./useQuotationPreviewFit";
    It reuses the same container-measured FIT scaling as the editor preview
    so the complete A4 page always fits the available width, centered.
    ========================================================================== */
-const PREVIEW_PAGE_COUNT = 4;
-
 export function QuotationPreview({ quotation, onPage4Overflow, embedded }: {
   quotation: QuotationState;
   onPage4Overflow?: (isOverflow: boolean) => void;
@@ -23,7 +22,7 @@ export function QuotationPreview({ quotation, onPage4Overflow, embedded }: {
   const { ref, scale } = useQuotationPreviewFit<HTMLDivElement>(0.25, 1);
 
   if (embedded) {
-    const previewHeight = (A4_HEIGHT_PX * PREVIEW_PAGE_COUNT) * scale + 36;
+    const previewHeight = (A4_HEIGHT_PX * quotationPageCount(quotation)) * scale + 36;
     return (
       <div className="ed-embedded-preview">
         <div className="preview-viewport" ref={ref}>
@@ -44,7 +43,7 @@ export function QuotationPreview({ quotation, onPage4Overflow, embedded }: {
   return (
     <div className="quotation-stage">
       <div className="q-tools">
-        <span>Template preview · 4 fixed A4 pages</span>
+        <span>Template preview · {quotationPageCount(quotation)} A4 pages</span>
         <button onClick={() => window.print()}>Print preview</button>
       </div>
       <QuotationDocument

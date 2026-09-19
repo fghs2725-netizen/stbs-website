@@ -59,6 +59,7 @@ async function main() {
   const server = await startServer();
   const browser = await puppeteer.launch({ executablePath: CHROME, headless: true, args: ["--no-sandbox"] });
   const failures: string[] = [];
+  const layoutProblems: string[] = [];
   let checks = 0;
   try {
     for (const name of Object.keys(QUOTATION_FIXTURES)) {
@@ -68,6 +69,16 @@ async function main() {
       await page.evaluate(() => document.fonts.ready);
       await page.addStyleTag({ content: "nextjs-portal{display:none!important}" });
 
+      // Every page must keep its content clear of the footer and inside its A4 box.
+      const overflow = await page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>(".q-page")).map((pg, i) => {
+        if (pg.scrollHeight > pg.clientHeight + 1) return i + 1;
+        const footer = pg.querySelector("footer")!.getBoundingClientRect();
+        const content = Array.from(pg.querySelectorAll<HTMLElement>(".q-main > *"));
+        const bottom = Math.max(...content.map((el) => el.getBoundingClientRect().bottom));
+        return bottom > footer.top - 2 ? i + 1 : 0;
+      }).filter(Boolean));
+      if (overflow.length) layoutProblems.push(`${name}: page(s) ${overflow.join(", ")} overflow their A4 box or touch the footer`);
+
       const html = await page.evaluate(() => (document.querySelector(".q-document") as HTMLElement).outerHTML);
       const pages = await page.$$(".q-page");
       const pngs: Buffer[] = [];
@@ -76,6 +87,7 @@ async function main() {
       const pdfPages = (pdf.toString("latin1").match(/\/Type\s*\/Page[^s]/g) ?? []).length;
       await page.close();
 
+      if (pdfPages !== pages.length) layoutProblems.push(`${name}: PDF has ${pdfPages} pages but the document renders ${pages.length}`);
       const meta = { pages: pages.length, pdfPages };
       const files = { html: path.join(DIR, `${name}.html`), meta: path.join(DIR, `${name}.json`) };
 
@@ -107,9 +119,13 @@ async function main() {
     await browser.close();
     server?.kill();
   }
-  if (UPDATE) return console.log("\nbaselines updated");
-  console.log(`\n${checks - failures.length}/${checks} checks passed`);
-  if (failures.length) process.exit(1);
+  if (layoutProblems.length) console.error("\nLAYOUT PROBLEMS:\n" + layoutProblems.join("\n"));
+  if (UPDATE) {
+    if (layoutProblems.length) process.exit(1);
+    return console.log("\nbaselines updated");
+  }
+  console.log(`\n${checks - failures.length}/${checks} checks passed${layoutProblems.length ? `, ${layoutProblems.length} layout problem(s)` : ""}`);
+  if (failures.length || layoutProblems.length) process.exit(1);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

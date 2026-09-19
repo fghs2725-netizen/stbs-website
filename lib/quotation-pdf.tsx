@@ -3,6 +3,7 @@ import chromium from "@sparticuz/chromium";
 import puppeteer, { type Browser, type Page } from "puppeteer-core";
 import { PDFDocument } from "pdf-lib";
 import type { QuotationState } from "@/components/quotation/quotation-model";
+import { quotationPageCount } from "@/components/quotation/pagination";
 import { createQuotationRenderToken } from "@/lib/quotation-render-auth";
 import { trustedPdfOrigin, assertPdfRenderPathname } from "@/lib/pdf-origin";
 import { deploymentContext } from "@/lib/deployment-info";
@@ -90,7 +91,7 @@ async function waitReady(page: Page, context: PdfContext) {
     })));
   });
 }
-async function renderPdf(url: string, context: PdfContext) {
+async function renderPdf(url: string, context: PdfContext, expectedPages: number) {
   let browser: Browser | undefined;
   try {
     browser = await launch(context);
@@ -117,8 +118,8 @@ async function renderPdf(url: string, context: PdfContext) {
     const bytes = Buffer.from(pdf); diag("PDF_GENERATION_SUCCESS", context); diag("PDF_BYTES", context, { pdfBytes: bytes.length });
     if (bytes.length < 1000 || !bytes.subarray(0, 5).equals(Buffer.from("%PDF-"))) throw new Error("INVALID_PDF_BYTES");
     const pageCount = (await PDFDocument.load(bytes)).getPageCount();
-    context.stage = "page-count"; diag("PAGE_COUNT", context, { expectedPageCount: 4, actualPageCount: pageCount });
-    if (pageCount !== 4) throw new Error("PDF_PAGE_COUNT_INVALID");
+    context.stage = "page-count"; diag("PAGE_COUNT", context, { expectedPageCount: expectedPages, actualPageCount: pageCount });
+    if (pageCount !== expectedPages) throw new Error("PDF_PAGE_COUNT_INVALID");
     diag("VALIDATION_SUCCESS", context, { pageCount }); return bytes;
   } catch (error) { fail(context, error); } finally { await browser?.close().catch(() => undefined); }
 }
@@ -130,7 +131,7 @@ export async function generateQuotationPdf(quotation: QuotationState, requestOri
     const origin = trustedPdfOrigin(requestOrigin);
     const token = createQuotationRenderToken(quotation.id);
     diag("RENDER_URL_CREATED", context, { originHost: new URL(origin).host, ...deploymentContext() });
-    return await renderPdf(`${origin}/internal/quotation-pdf/${encodeURIComponent(quotation.id)}?token=${encodeURIComponent(token)}`, context);
+    return await renderPdf(`${origin}/internal/quotation-pdf/${encodeURIComponent(quotation.id)}?token=${encodeURIComponent(token)}`, context, quotationPageCount(quotation));
   } catch (error) { fail(context, error); }
 }
 

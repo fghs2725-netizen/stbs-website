@@ -1,6 +1,6 @@
 # STBS rebuild: TODO
 
-Last updated 2026-09-19, after Phase 7 (quotation editor, owner-independent parts). Nothing here has been pushed or applied to production.
+Last updated 2026-09-19, after Phase 7b (discount / GST / multi-page quotation) and the client logo wall. Nothing here has been pushed or applied to production.
 
 ## A. Done: Phases 4c, 5 and 6
 
@@ -37,8 +37,10 @@ Last updated 2026-09-19, after Phase 7 (quotation editor, owner-independent part
 - [x] Phase 6: quotation snapshot regression test (done)
 - Finding for Q6: the price table sits on a fixed 297mm page with `overflow:hidden`; a long item list is clipped, not paginated (see `many-items` baseline)
 - [x] Phase 7 (done, no template / schema change): line-items table (add, delete with confirm, duplicate, drag + arrow reorder, Tab / Enter / Escape, Indian grouping on blur, numeric-only), undo / redo (Ctrl+Z / Ctrl+Y), autosave of existing drafts with Saved / Saving / Unsaved / Not saved state, Ctrl+S save and Ctrl+P PDF, toasts, confirm dialogs (delete row, finalize, new), inline "what is missing" before finalize, preview debounced 200 ms, list view with search, status, created-date range, sort, amount, view / edit / PDF / duplicate / delete (soft delete via `deletedAt`, restorable).
-- [ ] Phase 7 remainder, **blocked on owner answers (Q1-Q6)** because the template has none of these and I was told not to invent tax logic: specification column, discount, GST (CGST / SGST / IGST), amount in words, financial-year numbering (current scheme `STBS/{calendar year}/{NNN}` is kept), page-4 overflow policy (today the editor warns and blocks PDF, the template clips)
-- [ ] Phase 7 remainder, needs a schema change (migration to be shown before running): saved library of terms and standard line items; expiry date field
+- [x] Phase 7b (owner-approved template change): single discount (percent or flat) on the subtotal, optional GST per quotation (CGST+SGST or IGST, rate editable, default 18%), amount in words (Indian lakh/crore), client GSTIN (optional) and seller GSTIN printed when GST is on, the "Taxes" term hidden when GST is on, and a price section that flows onto extra pages (`04 / 06` numbering, headers repeated, totals only on the last page). Additive migration `20260919_quotation_discount_gst` applied. Existing quotations render unchanged apart from the new amount-in-words line.
+- [x] Client logo wall on the quotation's Company Profile page (8 logos; BigBasket and O.P. Jindal Global University added to the list). The other 13 names stay as text.
+- [ ] Still needs owner decisions: specification column, financial-year numbering (current `STBS/{year}/{NNN}` kept), page-4 wording; saved terms / standard-items libraries and an expiry date need a schema change
+- [ ] Logo permission: confirm each client is comfortable with its logo on a commercial quotation, not only on the website. BigBasket's file is only 161x65 (soft in print); a better file would help.
 - [ ] Not browser-tested: the full editor (autosave, finalize, list actions) because saving writes to the database in `.env`, which is production. Table, keyboard, undo and dialogs are covered by `npm run test:quotation-items-ui` on a dev-only harness (`/internal/quotation-items-harness`). Please click through the editor once on a non-production database.
 - [ ] Phase 8: DOCX export (PDF export already exists and is server-side)
 - [ ] Phase 9: website editor: zod schemas, character counters, required alt text, client-side image compression, last-10-versions history with rollback, unsaved-changes warning, publish confirmation

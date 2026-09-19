@@ -28,7 +28,7 @@ export const businessInfo = {
   /** OWNER TO SUPPLY. Documents show Dipalpur Road, Bhalgarh, Sonipat (pincode 131021 vs 131001): unconfirmed. */
   registeredOffice: "",
   /** OWNER TO CONFIRM before publishing (appears on client documents, not yet approved for the site). */
-  gstin: "",
+  gstin: "06AWTPS2732A1ZI",
   /** OWNER TO SUPPLY. */
   legalName: "",
   mapsUrl: "https://www.google.com/maps?q=Sonipat,Haryana",

@@ -199,3 +199,18 @@
   .items-table .it-actions button{width:36px;height:36px}
   .icon-btn{width:44px;height:44px}
 }
+
+/* --- Discount & GST panel --- */
+.pricing-panel{margin:16px 0 0;padding:12px;border:1px solid #353837;background:#14171a}
+.pricing-panel h4{margin:0 0 10px;color:#d2a65b;font:700 11px var(--font-manrope),Arial;letter-spacing:.08em;text-transform:uppercase}
+.pricing-panel .pp-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.pricing-panel label{display:block;color:#9a978f;font:600 9px var(--font-inter),Arial;letter-spacing:.06em;text-transform:uppercase}
+.pricing-panel .pp-check{display:flex;align-items:center;gap:8px;margin:8px 0;text-transform:none;font:600 11px var(--font-inter),Arial;color:#f5f0e7;letter-spacing:0}
+.pricing-panel .pp-check input{width:auto;margin:0}
+.pricing-panel input.num{text-align:right}
+.pp-summary{margin:12px 0 0;border-top:1px solid #2a2826;padding-top:8px;font:11px var(--font-inter),Arial}
+.pp-summary div{display:flex;justify-content:space-between;padding:2px 0;color:#bbb}
+.pp-summary dd{margin:0}
+.pp-summary .total{color:#e2b968;font-weight:700;border-top:1px solid #493d2b;margin-top:4px;padding-top:6px}
+.pp-words{margin:8px 0 0;color:#c9c2b6;font:500 10px/1.5 var(--font-inter),Arial}
+.pp-pages{margin:6px 0 0;color:#777;font:500 10px var(--font-inter),Arial}

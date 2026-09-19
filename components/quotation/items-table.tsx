@@ -8,7 +8,7 @@ type Errors = Map<string, ReturnType<typeof validateItem>>;
 type Field = "description" | "unit" | "quantity" | "rate";
 const FIELDS: Field[] = ["description", "unit", "quantity", "rate"];
 
-function NumberCell({ value, max, label, invalid, cellId, onCommit, onKeyDown }: {
+export function NumberCell({ value, max, label, invalid, cellId, onCommit, onKeyDown }: {
   value: number; max: number; label: string; invalid: boolean; cellId: string;
   onCommit: (n: number) => void; onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }) {

@@ -1,12 +1,15 @@
 export type QuotationItem = { id: string; description: string; unit: string; quantity: number; rate: number };
-export type ClientDetails = { companyName: string; contactPerson: string; addressLine1: string; addressLine2: string; city: string; state: string; pinCode: string; phone: string; email: string };
-export type QuotationState = { id?: string; clientId?: string; saveClientForFuture?: boolean; quotationReference: string; quotationDate: string; validity: string; client: ClientDetails; serviceType: string; customServiceType: string; subject: string; items: QuotationItem[]; status?: "DRAFT" | "FINAL" };
+export type ClientDetails = { gstin: string; companyName: string; contactPerson: string; addressLine1: string; addressLine2: string; city: string; state: string; pinCode: string; phone: string; email: string };
+export type QuotationState = { id?: string; clientId?: string; saveClientForFuture?: boolean; quotationReference: string; quotationDate: string; validity: string; client: ClientDetails; serviceType: string; customServiceType: string; subject: string; items: QuotationItem[]; status?: "DRAFT" | "FINAL"; discountType?: DiscountType | null; discountValue?: number; gstEnabled?: boolean; gstMode?: GstMode; gstRate?: number };
+export type DiscountType = "PERCENT" | "FLAT";
+export type GstMode = "CGST_SGST" | "IGST";
+export const DEFAULT_GST_RATE = 18;
 export const serviceOptions = ["Borewell Construction", "Rainwater Harvesting Borewell System", "Rainwater Harvesting", "Tubewell Boring", "Borewell Cleaning", "Borewell Material Supply", "Custom"];
 export const serviceLabel = (q: QuotationState) => q.serviceType === "Custom" ? q.customServiceType || "Custom Service" : q.serviceType;
 export const defaultSubject = (q: QuotationState) => `Price Offer for ${serviceLabel(q)}`;
 
 // Start with ZERO items — no fake empty row
-export const initialQuotation: QuotationState = { quotationReference: "", quotationDate: "", validity: "15 days from date of submission", client: { companyName: "", contactPerson: "", addressLine1: "", addressLine2: "", city: "", state: "", pinCode: "", phone: "", email: "" }, serviceType: serviceOptions[0], customServiceType: "", subject: "", items: [], status: "DRAFT" };
+export const initialQuotation: QuotationState = { quotationReference: "", quotationDate: "", validity: "15 days from date of submission", client: { gstin: "", companyName: "", contactPerson: "", addressLine1: "", addressLine2: "", city: "", state: "", pinCode: "", phone: "", email: "" }, serviceType: serviceOptions[0], customServiceType: "", subject: "", items: [], status: "DRAFT", discountType: null, discountValue: 0, gstEnabled: false, gstMode: "CGST_SGST", gstRate: DEFAULT_GST_RATE };
 
 // Build a fresh draft quotation whose subject is committed to state as the
 // derived default whenever it is not explicitly provided. The editor displays
@@ -97,3 +100,27 @@ export function calcTotal(items: QuotationItem[]): number {
 export function formatINR(n: number): string {
   return `₹${n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
+
+// --- Totals: the ONE place discount and GST maths lives (editor, preview and PDF all read this) ---
+export type QuotationTotals = { subtotal: number; discount: number; taxable: number; cgst: number; sgst: number; igst: number; tax: number; grandTotal: number };
+const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
+const clamp = (n: number, lo: number, hi: number) => Math.min(Math.max(Number.isFinite(n) ? n : 0, lo), hi);
+
+export function calcTotals(q: Pick<QuotationState, "items" | "discountType" | "discountValue" | "gstEnabled" | "gstMode" | "gstRate">): QuotationTotals {
+  const subtotal = calcTotal(getValidItems(q.items));
+  // Discount applies to the subtotal and can never push the total below zero.
+  let discount = 0;
+  if (q.discountType === "PERCENT") discount = round2(subtotal * clamp(q.discountValue ?? 0, 0, 100) / 100);
+  else if (q.discountType === "FLAT") discount = round2(clamp(q.discountValue ?? 0, 0, subtotal));
+  const taxable = round2(subtotal - discount);
+  let cgst = 0, sgst = 0, igst = 0;
+  if (q.gstEnabled) {
+    const rate = clamp(q.gstRate ?? DEFAULT_GST_RATE, 0, 100);
+    if (q.gstMode === "IGST") igst = round2(taxable * rate / 100);
+    else { cgst = round2(taxable * rate / 200); sgst = cgst; }
+  }
+  const tax = round2(cgst + sgst + igst);
+  return { subtotal, discount, taxable, cgst, sgst, igst, tax, grandTotal: round2(taxable + tax) };
+}
+
+export const hasDiscount = (q: Pick<QuotationState, "discountType" | "discountValue">, t: QuotationTotals) => Boolean(q.discountType) && t.discount > 0;

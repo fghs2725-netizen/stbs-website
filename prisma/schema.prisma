@@ -316,6 +316,12 @@ model Quotation {
   clientPinCode     String?
   clientPhone       String?
   clientEmail       String?
+  clientGstin       String?
+  discountType      String?              // PERCENT | FLAT | null (no discount)
+  discountValue     Decimal              @default(0) @db.Decimal(12, 2)
+  gstEnabled        Boolean              @default(false)
+  gstMode           String?              // CGST_SGST | IGST
+  gstRate           Decimal              @default(18) @db.Decimal(5, 2)
   items             QuotationItem[]
   finalizedAt       DateTime?
   createdAt         DateTime             @default(now())
