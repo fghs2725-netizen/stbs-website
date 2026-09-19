@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { MessageCircle } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 // Message text specified in the brief. It is the customer's own first message, so it keeps the word "quote".
 const MESSAGE = "Hi, I'd like a quote for borewell drilling.";
@@ -14,7 +13,6 @@ const MESSAGE = "Hi, I'd like a quote for borewell drilling.";
  */
 export function WhatsAppFloat({ phone }: { phone?: string }) {
   const [visible, setVisible] = useState(false);
-  const reduce = useReducedMotion();
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 400);
@@ -29,25 +27,21 @@ export function WhatsAppFloat({ phone }: { phone?: string }) {
 
   const href = `https://wa.me/91${number}?text=${encodeURIComponent(MESSAGE)}`;
 
+  // Plain CSS transition (no animation library): this component loads on every public page, and pulling
+  // in framer-motion for a fade cost ~120 KB of JavaScript. Hidden = out of the tab order and the a11y tree.
   return (
     <aside aria-label="WhatsApp chat">
-      <AnimatePresence>
-        {visible && (
-          <motion.a
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Chat with us on WhatsApp"
-            initial={reduce ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
-            transition={{ duration: reduce ? 0 : 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed bottom-u2 right-u2 z-50 flex size-14 items-center justify-center rounded-full bg-stbs-verified text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stbs-ink md:bottom-u3 md:right-u3"
-          >
-            <MessageCircle size={26} strokeWidth={1.75} aria-hidden />
-          </motion.a>
-        )}
-      </AnimatePresence>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat with us on WhatsApp"
+        aria-hidden={!visible}
+        tabIndex={visible ? 0 : -1}
+        className={`fixed bottom-u2 right-u2 z-50 flex size-14 items-center justify-center rounded-full bg-stbs-verified text-white transition-[opacity,transform,visibility] duration-[250ms] ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stbs-ink motion-reduce:transition-none md:bottom-u3 md:right-u3 ${visible ? "visible translate-y-0 opacity-100" : "invisible translate-y-2 opacity-0"}`}
+      >
+        <MessageCircle size={26} strokeWidth={1.75} aria-hidden />
+      </a>
     </aside>
   );
 }
