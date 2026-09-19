@@ -1,7 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 import { Check } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
-import { Faq, ProcessSteps, ServiceCta, VisualSlot, WaveDivider } from "@/components/public/site-additions";
+import { CtaSection } from "@/components/public/sections";
+import { Faq, ProcessSteps } from "@/components/public/site-additions";
 
 /* FAQ answers are intentionally generic until the business owner confirms
    exact depth ranges, turnaround commitments, licensing scope and warranty
@@ -14,6 +15,67 @@ const sharedFaq: Array<[string, string]> = [
   ["Which areas do you serve?", "Sonipat, Panipat, Kundli, Rohtak, Haryana and Delhi NCR."],
 ];
 
+/** FAQPage structured data built from the exact visible FAQ text. */
+function faqJsonLd(items: Array<[string, string]>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
+  };
+}
+
 export function ServiceDetailPage({ eyebrow, title, intro, icon: Icon, bullets, specs, process, segments }: { eyebrow: string; title: string; intro: string; icon: LucideIcon; bullets: string[]; specs?: string[]; process?: boolean; segments?: string[] }) {
-  return <><PageHero eyebrow={eyebrow} title={title} text={intro}/><section className="bg-[#f0fdfa] px-5 py-20 text-ink lg:px-8"><div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.2fr_.8fr]"><div><div className="flex size-14 items-center justify-center rounded-2xl bg-signal text-white"><Icon size={28}/></div><h2 className="mt-6 font-display text-4xl font-bold uppercase">Built around site conditions</h2><ul className="mt-7 grid gap-4 sm:grid-cols-2">{bullets.map((item) => <li key={item} className="flex gap-3 rounded-xl bg-white p-4 shadow-sm"><Check className="mt-0.5 shrink-0 text-signal" size={18}/><span className="text-sm leading-6 text-slate-700">{item}</span></li>)}</ul></div><VisualSlot label={`${eyebrow} supporting illustration`}/></div></section>{specs && <><WaveDivider/><section className="bg-white px-5 py-16 text-ink lg:px-8"><div className="mx-auto max-w-7xl rounded-2xl border border-cyan-900/15 p-7"><h2 className="font-display text-3xl uppercase">Planning specifications</h2><div className="mt-6 grid gap-3 sm:grid-cols-3">{specs.map(x => <p key={x} className="rounded-xl bg-cyan-50 p-4 text-sm font-semibold text-water-dark">{x}</p>)}</div></div></section></>}{segments && <section className="bg-white px-5 py-16 text-ink lg:px-8"><div className="mx-auto max-w-7xl"><h2 className="font-display text-3xl uppercase">Who this is for</h2><div className="mt-6 grid gap-3 sm:grid-cols-3">{segments.map(x => <p key={x} className="rounded-xl bg-cyan-50 p-4 text-sm text-slate-700">{x}</p>)}</div></div></section>}{process && <ProcessSteps/>}<Faq items={sharedFaq}/><ServiceCta/></>;
+  const hasAside = Boolean(specs?.length || segments?.length);
+  return (
+    <>
+      <PageHero eyebrow={eyebrow} title={title} text={intro} />
+
+      <section className="theme-public section-y">
+        <div className={`container-x grid gap-u6 ${hasAside ? "lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-u8" : ""}`}>
+          <div>
+            <Icon size={32} strokeWidth={1.75} className="text-stbs-brand-mid" aria-hidden />
+            <h2 className="t-h2 mt-u3 text-block">Built around site conditions</h2>
+            <ul className={`mt-u4 grid gap-u2 ${hasAside ? "" : "sm:grid-cols-2"}`}>
+              {bullets.map((item) => (
+                <li key={item} className="tile flex items-start gap-u2 p-u2">
+                  <Check size={20} strokeWidth={1.75} className="mt-[2px] shrink-0 text-stbs-verified" aria-hidden />
+                  <span className="t-body">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {hasAside && (
+            <aside className="grid content-start gap-u2">
+              {specs && specs.length > 0 && (
+                <div className="tile p-u3">
+                  <p className="t-eyebrow">Planning specifications</p>
+                  <ul className="mt-u2 space-y-u1">
+                    {specs.map((x) => (
+                      <li key={x} className="font-medium tabular-nums text-stbs-ink">{x}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {segments && segments.length > 0 && (
+                <div className="tile p-u3">
+                  <p className="t-eyebrow">Who this is for</p>
+                  <ul className="mt-u2 space-y-u1">
+                    {segments.map((x) => (
+                      <li key={x} className="t-body">{x}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </aside>
+          )}
+        </div>
+      </section>
+
+      {process && <ProcessSteps />}
+      <Faq items={sharedFaq} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(sharedFaq)) }} />
+      <CtaSection content={{}} />
+    </>
+  );
 }

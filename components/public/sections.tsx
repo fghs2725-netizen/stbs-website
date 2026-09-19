@@ -5,7 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain, Construction, Copy, Download, Drill, Droplets, Eye, EyeOff, Factory, Home, Landmark, MapPin, Pencil, Sprout, Store, Trash2, type LucideIcon } from "lucide-react";
 import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "@/lib/website/home-defaults";
-import { SERVICE_PAGES, serviceHref, servicePageFor, type ServiceIconKey } from "@/lib/website/service-pages";
+import { SERVICE_PAGES, serviceHref, servicePageFor } from "@/lib/website/service-pages";
+import { SERVICE_ICONS } from "@/components/public/service-icons";
 import { HOME_PROJECTS, resolveProjects } from "@/lib/website/projects-data";
 import { StatsStrip } from "@/components/public/stats-strip";
 import { Reveal } from "@/components/reveal";
@@ -233,21 +234,26 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
 
 function PageHeroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
   const target = asSection(owner);
+  const eyebrow = str(content, "eyebrow");
+  const text = str(content, "text");
+  // Same markup and classes as components/page-hero.tsx; this one wraps fields for the visual editor.
   return (
-    <section className="water-page-hero relative overflow-hidden px-4 pb-12 pt-28 sm:px-5 sm:pb-20 sm:pt-40 lg:px-8 lg:pb-28">
-      <div className="absolute left-0 top-20 h-px w-1/3 bg-water-accent" />
-      <div className="pointer-events-none absolute -bottom-36 right-[8%] size-[34rem] rounded-full border border-cyan-100/10" />
-      <Reveal className="relative mx-auto max-w-7xl">
-        <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-          <p className="mb-4 sm:mb-5 text-xs font-bold uppercase tracking-[.24em] text-signal">{str(content, "eyebrow")}</p>
-        </Editable>
+    <section className="theme-public band-alt page-head">
+      <div className="container-x">
+        {eyebrow && (
+          <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
+            <p className="t-eyebrow">{eyebrow}</p>
+          </Editable>
+        )}
         <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-          <h1 className="max-w-5xl font-display text-3xl font-bold leading-[1.05] sm:text-5xl lg:text-7xl sm:leading-[.95]">{str(content, "heading")}</h1>
+          <h1 className="t-h2 mt-u2 text-block">{str(content, "heading")}</h1>
         </Editable>
-        <Editable target={{ kind: "section", section: target }} label="Intro text" className="max-w-fit">
-          <p className="mt-6 sm:mt-8 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base sm:leading-8">{str(content, "text")}</p>
-        </Editable>
-      </Reveal>
+        {text && (
+          <Editable target={{ kind: "section", section: target }} label="Intro text" className="max-w-fit">
+            <p className="t-body measure mt-u3">{text}</p>
+          </Editable>
+        )}
+      </div>
     </section>
   );
 }
@@ -321,8 +327,6 @@ function ProcessSection({ owner, content }: { owner?: RenderableSection; content
     </section>
   );
 }
-
-const SERVICE_ICONS: Record<ServiceIconKey, LucideIcon> = { drill: Drill, rain: CloudRain, supply: Boxes, tubewell: Construction };
 
 export function ServicesSection({ owner, content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {
   const eyebrow = str(content, "eyebrow", HOME_SERVICES.eyebrow);

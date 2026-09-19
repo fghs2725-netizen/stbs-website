@@ -1,10 +1,40 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Boxes, CloudRain, Construction, Drill } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
-import { ServiceCta, WaveDivider } from "@/components/public/site-additions";
+import { CtaSection } from "@/components/public/sections";
+import { SERVICE_ICONS } from "@/components/public/service-icons";
 import { pageMetadata } from "@/lib/page-metadata";
+import { SERVICE_PAGES } from "@/lib/website/service-pages";
 
 export const metadata: Metadata = pageMetadata({ title: "Services", description: "Explore borewell drilling, rainwater harvesting, material supply and tubewell construction.", path: "/services" });
-const services = [["Borewell Drilling", "Precision drilling planned around access, ground conditions and water requirements.", "/borewell-drilling", Drill], ["Rainwater Harvesting", "Practical recharge systems for responsible rainwater management.", "/rainwater-harvesting", CloudRain], ["Borewell Material Supply", "Borewell components selected around durability and fit for the installation.", "/borewell-material-supply", Boxes], ["Tubewell Construction", "Coordinated execution from planning to installation and handover.", "/tubewell-construction", Construction]] as const;
-export default function Services() { return <><PageHero eyebrow="Capabilities" title="Water infrastructure, one service at a time." text="Choose a service to see the process, planning points and questions we can work through with you."/><section className="bg-[#f0fdfa] px-5 py-20 text-ink lg:px-8"><div className="mx-auto grid max-w-7xl gap-5 md:grid-cols-2">{services.map(([name, text, href, Icon]) => <Link key={href} href={href} className="group rounded-2xl border border-cyan-900/15 bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:border-signal"><Icon className="text-signal" size={34}/><h2 className="mt-12 font-display text-3xl uppercase text-water-dark">{name}</h2><p className="mt-4 leading-7 text-slate-600">{text}</p><span className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-signal">Explore service <ArrowRight size={16}/></span></Link>)}</div></section><WaveDivider/><ServiceCta/></>; }
+
+export default function Services() {
+  return (
+    <>
+      <PageHero eyebrow="Services" title="Water infrastructure, one service at a time." text="Choose a service to see the process, planning points and questions we can work through with you." />
+      <section className="theme-public section-y">
+        <div className="container-x">
+          <ul className="grid auto-rows-fr gap-u2 md:grid-cols-2 lg:gap-u3">
+            {SERVICE_PAGES.map((s) => {
+              const Icon = SERVICE_ICONS[s.icon];
+              return (
+                <li key={s.slug}>
+                  <Link href={s.href} className="hairline-card flex h-full flex-col p-u3 md:p-u4">
+                    <Icon size={32} strokeWidth={1.75} className="text-stbs-brand-mid" aria-hidden />
+                    <h2 className="t-h3 mt-u3">{s.fullTitle}</h2>
+                    <p className="t-body mt-u1">{s.summary}</p>
+                    <span className="mt-u3 inline-flex items-center gap-u1 font-medium text-stbs-brand-mid">
+                      Explore service <ArrowRight size={16} strokeWidth={1.75} aria-hidden />
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </section>
+      <CtaSection content={{}} />
+    </>
+  );
+}

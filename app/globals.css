@@ -142,6 +142,8 @@
   .rule-on-dark { border-top: 1px solid var(--hairline-on-dark); }
   .hero-scrim { background: var(--brand-deep); opacity: .5; }  /* flat overlay, never a gradient */
   .band-alt { background: var(--surface-alt); }
+  .page-head { padding-block: var(--s7) var(--s6); border-bottom: 1px solid var(--hairline); }
+  @media (min-width: 1024px) { .page-head { padding-block: var(--s10) var(--s8); } }
   .band-deep { background: var(--brand-deep); color: var(--ink-on-dark); }
   .band-deep .t-h1, .band-deep .t-h2, .band-deep .t-h3 { color: var(--ink-on-dark); }
   .band-deep .t-eyebrow { color: var(--muted-on-dark); }
