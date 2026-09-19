@@ -26,6 +26,8 @@ const DIR = path.join(process.cwd(), "tests", "quotation-snapshots");
 const CHROME = process.env.CHROME_PATH ?? ["C:/Program Files/Google/Chrome/Application/chrome.exe", "/usr/bin/google-chrome", "/usr/bin/chromium"].find((p) => fs.existsSync(p));
 const PIXEL_TOLERANCE = 0.00005; // fraction of pixels allowed to differ (~40 px per page): anti-aliasing noise only
 
+const norm = (t: string) => t.split("\r\n").join("\n");
+
 async function up() {
   try { return (await fetch(`${BASE}/internal/quotation-fixtures/single-item`)).ok; } catch { return false; }
 }
@@ -91,11 +93,7 @@ async function main() {
         else { failures.push(`${name}: ${label} ${detail}`); console.log(`  FAIL ${name}: ${label} ${detail}`); }
       };
       if (!fs.existsSync(files.html)) { expect("baseline exists (run with --update once)", false); continue; }
-      expect("HTML identical", fs.readFileSync(files.html, "utf8").replace(/
-/g, "
-") === html.replace(/
-/g, "
-"));
+      expect("HTML identical", norm(fs.readFileSync(files.html, "utf8")) === norm(html));
       expect("page counts identical", JSON.stringify(JSON.parse(fs.readFileSync(files.meta, "utf8"))) === JSON.stringify(meta));
       pngs.forEach((b, i) => {
         const base = path.join(DIR, `${name}-p${i + 1}.png`);

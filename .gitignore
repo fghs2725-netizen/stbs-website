@@ -67,3 +67,6 @@ Modern_RWH_Quotation_Template.md
 
 # data-fix backups (may contain live CMS content)
 backups/
+
+# quotation snapshot failure artifacts
+tests/quotation-snapshots/*.actual.png
