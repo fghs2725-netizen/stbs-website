@@ -13,6 +13,27 @@ export const company = {
   vision: "Excel in what we do and build a safe and secure environment for our community.",
 };
 
+/**
+ * Public business facts used by the footer, the contact page and structured data.
+ * Empty strings are deliberate: a field with no verified value is HIDDEN, never faked.
+ * See docs/TODO.md for what the owner still needs to supply.
+ */
+export const businessInfo = {
+  /** Existing site copy (contact page + JSON-LD); NOT verified by the owner yet. */
+  hours: ["Monday to Saturday: 8:00 AM to 7:00 PM", "Sunday: Emergency support only"],
+  /** Machine-readable form of the same hours, for JSON-LD. */
+  openingHours: "Mo-Sa 08:00-19:00",
+  /** Areas named in the owner's brief; Gurugram was requested there. */
+  serviceAreas: ["Sonipat", "Panipat", "Kundli", "Rohtak", "Gurugram", "Delhi NCR"],
+  /** OWNER TO SUPPLY. Documents show Dipalpur Road, Bhalgarh, Sonipat (pincode 131021 vs 131001): unconfirmed. */
+  registeredOffice: "",
+  /** OWNER TO CONFIRM before publishing (appears on client documents, not yet approved for the site). */
+  gstin: "",
+  /** OWNER TO SUPPLY. */
+  legalName: "",
+  mapsUrl: "https://www.google.com/maps?q=Sonipat,Haryana",
+};
+
 export const clients = ["Brackparts Pvt. Ltd.", "Ashoka University", "Jupiter Laminator Pvt. Ltd.", "LT Overseas Pvt. Ltd. (Dawat Rice Mill)", "Amul Milk, Murthal", "BigBasket, Sonipat Site", "Nidaan Hospital", "Devi Lal Park, Sonipat/Panipat", "Alaina Indane Gas", "Voestalpine VAE VKN India Pvt. Ltd.", "Maneta Pvt. Ltd.", "Avicreations", "Ajit Industries Pvt. Ltd.", "Shreeji International School", "Parker Mall, Kundli", "TDI City, Kundli", "ITEC Technopark, IIT Delhi Sonipat Campus", "Coral Drugs Pvt. Ltd.", "Rishi Laser Limited", "Marut Techno Tools Pvt. Ltd.", "A-One Tex Tech Pvt. Ltd.", "O.P. Jindal Global University"];
 
 export const services = [

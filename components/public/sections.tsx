@@ -93,6 +93,7 @@ import {
   whyChoose,
   processSteps,
   company,
+  businessInfo,
 } from "@/lib/company";
 
 /* ── editor overrides (never rendered on the public site) ─────────────────── */
@@ -841,7 +842,7 @@ function ContactInfoSection({ owner, content, data }: { owner?: RenderableSectio
   const ctaText = str(content, "ctaText", "Request a proposal");
   const ctaUrl = str(content, "ctaUrl", "/quote");
   // Hours and service area are existing site copy, not verified data: confirm them (see TODO) or edit here.
-  const hours = str(content, "hours", "Monday to Saturday: 8:00 AM to 7:00 PM\nSunday: Emergency support only").split(/\r?\n/).filter(Boolean);
+  const hours = str(content, "hours", businessInfo.hours.join("\n")).split(/\r?\n/).filter(Boolean);
   const serviceArea = str(content, "serviceArea", "Sonipat, Panipat, Kundli, Rohtak and across Haryana and Delhi NCR");
   const target = asSection(owner);
   const s = data.settings;
