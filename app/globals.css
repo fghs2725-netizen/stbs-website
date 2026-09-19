@@ -148,6 +148,7 @@
   /* ---- surfaces: 1px hairline instead of shadows, 4px radius ---- */
   .hairline-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius); transition: border-color var(--t-fast) var(--ease-out); }
   .hairline-card:hover, .hairline-card:focus-within { border-color: var(--hairline-strong); }
+  .tile { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius); }  /* static: same look as hairline-card, no hover state */
   .img-zoom { overflow: hidden; border-radius: var(--radius); }
   .img-zoom img { transition: transform var(--t-fast) var(--ease-out); }
   .img-zoom:hover img, .hairline-card:hover .img-zoom img { transform: scale(1.02); }

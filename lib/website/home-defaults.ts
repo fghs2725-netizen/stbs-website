@@ -31,3 +31,10 @@ export const HOME_STATS = [
   { value: "20+", label: "Industrial, commercial & institutional clients" },
   { value: "Haryana & NCR", label: "Service area" },
 ] as const;
+
+/** Sectors served: icon + short label only (no descriptions). Residential is one tile, styled like the rest. */
+export const HOME_SECTORS = {
+  eyebrow: "Sectors served",
+  heading: "Who we build for",
+  sectors: [{ name: "Industrial" }, { name: "Real estate" }, { name: "Government & tenders" }, { name: "Residential" }],
+} as const;

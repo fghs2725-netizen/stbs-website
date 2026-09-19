@@ -16,6 +16,9 @@
  *   5. logos    attach the staged client logos (public/clients/*) to the matching WebsiteClient rows
  *               (draft + published snapshot) and add O.P. Jindal Global University, which the
  *               owner named as a client but which is not in the CMS. Rows without a logo are untouched.
+ *   6. sectors  create the home "Sectors served" section (Industrial, Real estate, Government & tenders,
+ *               Residential) with draft + published content. Its position is provisional (100):
+ *               the final ordering step places every home section.
  *   2. cta      "Request a quote" / "Request quote" / "Request A Quote" -> "Request a proposal"
  *               (whole-string matches only, inside section content/publishedContent).
  *
@@ -25,7 +28,7 @@
  */
 import fs from "node:fs";
 import { prisma } from "../lib/prisma";
-import { HOME_HERO, HOME_STATS } from "../lib/website/home-defaults";
+import { HOME_HERO, HOME_SECTORS, HOME_STATS } from "../lib/website/home-defaults";
 
 type Op = { label: string; before: unknown; run: () => Promise<unknown> };
 const ops: Op[] = [];
@@ -175,6 +178,23 @@ async function planLogos() {
   });
 }
 
+// ── 6. sectors ────────────────────────────────────────────────────────────
+async function planSectors() {
+  const home = await prisma.websitePage.findUnique({ where: { slug: "home" } });
+  if (!home) { console.log("  (no home page found)"); return; }
+  const existing = await prisma.websiteSection.findFirst({ where: { pageId: home.id, type: "sectors", deletedAt: null } });
+  if (existing) { console.log("  = home already has a sectors section (left as is)"); return; }
+  const content = { eyebrow: HOME_SECTORS.eyebrow, heading: HOME_SECTORS.heading, sectors: HOME_SECTORS.sectors.map((s) => ({ name: s.name })) };
+  console.log(`  + home/sectors "${HOME_SECTORS.heading}": ${HOME_SECTORS.sectors.map((s) => s.name).join(" | ")}  [published, position 100 = provisional]`);
+  ops.push({
+    label: "sectors create", before: null,
+    run: async () => {
+      const row = await prisma.websiteSection.create({ data: { pageId: home.id, type: "sectors", name: "Sectors served", content, publishedContent: content, publishedAt: new Date(), position: 100, visible: true } });
+      created.push(row.id);
+    },
+  });
+}
+
 async function main() {
   const apply = process.argv.includes("--apply");
   console.log("Step 1: navigation"); await planNav();
@@ -182,6 +202,7 @@ async function main() {
   console.log("Step 3: hero copy");  await planHero();
   console.log("Step 4: stats strip"); await planStats();
   console.log("Step 5: client logos"); await planLogos();
+  console.log("Step 6: sectors section"); await planSectors();
   console.log(`\n${ops.length} change(s) planned.`);
   if (!apply) { console.log("DRY RUN — nothing written. Re-run with --apply to write."); await prisma.$disconnect(); return; }
   if (!ops.length) { await prisma.$disconnect(); return; }

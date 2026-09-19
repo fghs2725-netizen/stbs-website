@@ -214,14 +214,15 @@ export const SECTION_TYPE_DEFS: Record<string, SectionTypeDef> = {
     ],
   },
   sectors: {
-    label: "Client Sectors",
-    description: "Grid of sectors served.",
+    label: "Sectors Served",
+    description: "Icon + short label tiles (Industrial, Real estate, Government & tenders, Residential). The icon is chosen from the sector name. Keep names to a few words.",
     fields: [
-      { key: "heading", label: "Heading", type: "text" },
-      { key: "description", label: "Description", type: "textarea" },
+      { key: "eyebrow", label: "Eyebrow", type: "text", placeholder: "Sectors served" },
+      { key: "heading", label: "Heading", type: "text", placeholder: "Who we build for" },
+      { key: "description", label: "Intro (optional, leave empty on the homepage)", type: "textarea" },
     ],
     lists: [
-      { key: "sectors", label: "Sectors", fields: [{ key: "name", label: "Name", type: "text" }, { key: "description", label: "Optional description", type: "textarea" }] },
+      { key: "sectors", label: "Sectors", fields: [{ key: "name", label: "Name (a few words)", type: "text" }, { key: "description", label: "Optional short note (leave empty on the homepage)", type: "textarea" }] },
     ],
   },
   featured_clients: {

@@ -3,8 +3,8 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Copy, Download, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
-import { HOME_HERO, HOME_STATS } from "@/lib/website/home-defaults";
+import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Building2, Construction, Copy, Download, Droplets, Eye, EyeOff, Factory, Home, Landmark, Pencil, Sprout, Store, Trash2, type LucideIcon } from "lucide-react";
+import { HOME_HERO, HOME_SECTORS, HOME_STATS } from "@/lib/website/home-defaults";
 import { StatsStrip } from "@/components/public/stats-strip";
 import { Reveal } from "@/components/reveal";
 import { QuoteForm } from "@/components/quote-form";
@@ -716,30 +716,56 @@ function ExperienceCultureSection({ owner, content }: { owner?: RenderableSectio
   );
 }
 
-function SectorsSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
-  const heading = str(content, "heading", "Built to support every kind of site.");
-  const description = str(content, "description", "Focused planning. Professional coordination. Practical delivery.");
-  const sectors = arr(content, "sectors");
+/** Lucide icon by sector name (the CMS list stores names only). One icon set, one stroke weight. */
+function sectorIcon(name: string): LucideIcon {
+  const n = name.toLowerCase();
+  if (/industr|factory|manufactur/.test(n)) return Factory;
+  if (/real estate|realty|builder|develop/.test(n)) return Building2;
+  if (/government|tender|institution|public|civic/.test(n)) return Landmark;
+  if (/residen|home|housing|villa/.test(n)) return Home;
+  if (/agri|farm/.test(n)) return Sprout;
+  if (/commercial|retail|mall/.test(n)) return Store;
+  if (/infrastructure|construction/.test(n)) return Construction;
+  return Droplets;
+}
+
+export function SectorsSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
+  const eyebrow = str(content, "eyebrow", HOME_SECTORS.eyebrow);
+  const heading = str(content, "heading", HOME_SECTORS.heading);
+  const description = str(content, "description");
+  const listed = arr(content, "sectors").filter((s) => str(s, "name"));
+  const sectors: Array<Record<string, unknown>> = listed.length > 0 ? listed : HOME_SECTORS.sectors.map((s) => ({ ...s }));
   const target = asSection(owner);
   return (
-    <section className="bg-neutral-100 px-4 py-12 sm:px-5 sm:py-24 text-black lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <section className="theme-public section-y">
+      <div className="container-x">
         <Reveal>
-          <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-            <h2 className="max-w-3xl font-display text-3xl sm:text-5xl lg:text-6xl font-bold uppercase leading-tight sm:leading-none">{heading}</h2>
+          <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
+            <p className="t-eyebrow">{eyebrow}</p>
           </Editable>
-          {description && <p className="mt-4 sm:mt-6 max-w-2xl text-sm leading-relaxed sm:text-base sm:leading-8 text-black/55">{description}</p>}
+          <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
+            <h2 className="t-h2 mt-u2 text-block">{heading}</h2>
+          </Editable>
+          {description && <p className="t-body measure mt-u2">{description}</p>}
         </Reveal>
-        <div className="mt-8 sm:mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-0">
-          {sectors.map((sec, i) => (
-            <Reveal key={i} delay={i * 0.05}>
-              <div className="group border border-black/10 p-5 sm:p-8 transition hover:bg-black hover:text-white">
-                <h3 className="mt-4 sm:mt-8 font-display text-2xl sm:text-3xl uppercase">{str(sec, "name")}</h3>
-                {str(sec, "description") && <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-black/50 group-hover:text-white/50 leading-relaxed">{str(sec, "description")}</p>}
-              </div>
-            </Reveal>
-          ))}
-        </div>
+        <ul className="mt-u5 grid auto-rows-fr grid-cols-2 gap-u2 md:grid-cols-4 lg:gap-u3">
+          {sectors.map((sec, i) => {
+            const name = str(sec, "name");
+            const Icon = sectorIcon(name);
+            const note = str(sec, "description");
+            return (
+              <li key={`${name}-${i}`}>
+                <Reveal delay={i * 0.05} className="h-full">
+                  <div className="tile flex h-full flex-col gap-u3 p-u2 md:p-u3">
+                    <Icon size={28} strokeWidth={1.75} className="shrink-0 text-stbs-brand-mid" aria-hidden />
+                    <h3 className="t-h3">{name}</h3>
+                    {note && <p className="text-sm text-stbs-muted">{note}</p>}
+                  </div>
+                </Reveal>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </section>
   );
