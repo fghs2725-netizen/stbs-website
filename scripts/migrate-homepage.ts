@@ -11,6 +11,8 @@
  *   3. hero     home/hero copy -> commercial headline, subheadline, "Get a site assessment" +
  *               "Download company profile" (/company-profile placeholder). The uploaded hero
  *               image is KEPT; only its alt text is corrected. Draft + published stay in sync.
+ *   4. stats    home/stats items -> the four headline stats (34+, 1200+, 20+, Haryana & NCR),
+ *               replacing the six current items (incl. "Modern fleet", "Water infra").
  *   2. cta      "Request a quote" / "Request quote" / "Request A Quote" -> "Request a proposal"
  *               (whole-string matches only, inside section content/publishedContent).
  *
@@ -20,7 +22,7 @@
  */
 import fs from "node:fs";
 import { prisma } from "../lib/prisma";
-import { HOME_HERO } from "../lib/website/home-defaults";
+import { HOME_HERO, HOME_STATS } from "../lib/website/home-defaults";
 
 type Op = { label: string; before: unknown; run: () => Promise<unknown> };
 const ops: Op[] = [];
@@ -112,11 +114,32 @@ async function planHero() {
   if (Object.keys(data).length) ops.push({ label: `hero ${hero.id}`, before, run: () => prisma.websiteSection.update({ where: { id: hero.id }, data: data as never }) });
 }
 
+// ── 4. stats ──────────────────────────────────────────────────────────────
+async function planStats() {
+  const sec = await prisma.websiteSection.findFirst({ where: { type: "stats", page: { slug: "home" }, deletedAt: null } });
+  if (!sec) { console.log("  (no home stats section found)"); return; }
+  const items = HOME_STATS.map((s) => ({ label: s.label, value: s.value }));
+  const data: Record<string, unknown> = {};
+  const before: Record<string, unknown> = { id: sec.id };
+  for (const col of ["content", "publishedContent"] as const) {
+    const cur = sec[col] as Record<string, unknown> | null;
+    if (!cur) continue;
+    if (JSON.stringify(cur.items) === JSON.stringify(items)) continue;
+    before[col] = cur; data[col] = { ...cur, items };
+    const old = Array.isArray(cur.items) ? (cur.items as Array<{ value?: string; label?: string }>).map((i) => `${i.value} ${i.label}`).join(" | ") : "(none)";
+    console.log(`  ~ stats ${col}:
+      was: ${old}
+      now: ${items.map((i) => `${i.value} ${i.label}`).join(" | ")}`);
+  }
+  if (Object.keys(data).length) ops.push({ label: `stats ${sec.id}`, before, run: () => prisma.websiteSection.update({ where: { id: sec.id }, data: data as never }) });
+}
+
 async function main() {
   const apply = process.argv.includes("--apply");
   console.log("Step 1: navigation"); await planNav();
   console.log("Step 2: CTA label");  await planCta();
   console.log("Step 3: hero copy");  await planHero();
+  console.log("Step 4: stats strip"); await planStats();
   console.log(`\n${ops.length} change(s) planned.`);
   if (!apply) { console.log("DRY RUN — nothing written. Re-run with --apply to write."); await prisma.$disconnect(); return; }
   if (!ops.length) { await prisma.$disconnect(); return; }

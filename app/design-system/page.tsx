@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Building2, Check, Drill, Factory, Home, Landmark } from "lucide-react";
 import { Reveal } from "@/components/reveal";
 import { SiteHeader } from "@/components/site-header";
-import { HeroSection } from "@/components/public/sections";
+import { HeroSection, StatsSection } from "@/components/public/sections";
 
 // Development-only style guide for the public design system. 404s in production.
 export const metadata: Metadata = { title: "Design system", robots: { index: false, follow: false } };
@@ -66,15 +66,7 @@ export default function DesignSystem() {
         </div>
       </section>
 
-      <section className="band-deep">
-        <div className="container-x section-y">
-          <ul className="grid grid-cols-2 gap-x-u3 gap-y-u5 lg:grid-cols-4">
-            {[["34+", "Years in operation", true], ["1200+", "Projects completed", true], ["[NEEDS DATA]", "Commercial & industrial clients", false], ["Haryana & NCR", "Service area", false]].map(([n, l, numeric]) => (
-              <li key={l as string}><p className={numeric ? "t-stat" : "t-h2"}>{n}</p><p className="t-eyebrow mt-u1">{l}</p></li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      <StatsSection content={{}} />
 
       <section className="section-y">
         <div className="container-x">

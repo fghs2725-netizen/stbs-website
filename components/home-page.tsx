@@ -5,8 +5,8 @@ import { ArrowRight, CheckCircle2, Award, MapPin, Wrench, Leaf } from "lucide-re
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/reveal";
-import { company, services, trustItems, whyChoose, processSteps } from "@/lib/company";
-import { HeroSection } from "@/components/public/sections";
+import { company, services, whyChoose, processSteps } from "@/lib/company";
+import { HeroSection, StatsSection } from "@/components/public/sections";
 
 function WhyChooseCard({ item, i }: { item: typeof whyChoose[0]; i: number }) {
   return (
@@ -66,17 +66,8 @@ export function HomePage() {
       {/* Hero — same component the CMS renders, with its defaults */}
       <HeroSection content={{}} />
 
-      {/* Stats */}
-      <section className="water-surface-dark waterline text-white">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 lg:grid-cols-4">
-          {trustItems.map((s) => (
-            <div key={s.label} className="border-b border-black/15 p-4 sm:p-8 last:border-r-0 lg:border-b-0 lg:border-r">
-              <p className="font-display text-3xl font-bold sm:text-4xl lg:text-5xl">{s.value}</p>
-              <p className="mt-1 text-[10px] font-extrabold uppercase tracking-[.16em] opacity-60">{s.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* Stats: same component the CMS renders, with its defaults */}
+      <StatsSection content={{}} />
 
       {/* Why Choose */}
       <section className="water-surface-dark px-4 py-12 sm:px-5 sm:py-20 lg:px-8 lg:py-28">

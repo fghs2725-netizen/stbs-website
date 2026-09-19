@@ -4,7 +4,8 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Copy, Download, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
-import { HOME_HERO } from "@/lib/website/home-defaults";
+import { HOME_HERO, HOME_STATS } from "@/lib/website/home-defaults";
+import { StatsStrip } from "@/components/public/stats-strip";
 import { Reveal } from "@/components/reveal";
 import { QuoteForm } from "@/components/quote-form";
 import type { SerializedSection } from "@/lib/website/action-types";
@@ -85,7 +86,6 @@ export interface RenderableSection {
 /* ── static fallback imports ─────────────────────────────────────────────── */
 import {
   services as staticServices,
-  trustItems,
   whyChoose,
   processSteps,
   company,
@@ -251,21 +251,9 @@ function PageHeroSection({ owner, content }: { owner?: RenderableSection; conten
   );
 }
 
-function StatsSection({ _owner, content }: { _owner?: RenderableSection; content: Record<string, unknown> }) {
-  const items = arr(content, "items");
-  const stats = items.length > 0 ? items : trustItems;
-  return (
-    <section className="water-surface-dark waterline text-white">
-      <div className="mx-auto grid max-w-7xl grid-cols-2 lg:grid-cols-4">
-        {stats.map((s, i) => (
-          <div key={i} className="border-b border-cyan-100/10 p-4 sm:p-8 last:border-r-0 lg:border-b-0 lg:border-r">
-            <p className="font-display text-3xl font-bold text-water-accent sm:text-4xl lg:text-5xl">{str(s, "value")}</p>
-            <p className="mt-1 text-[10px] font-extrabold uppercase tracking-[.16em] text-white/60">{str(s, "label")}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
+export function StatsSection({ content }: { _owner?: RenderableSection; content: Record<string, unknown> }) {
+  const items = arr(content, "items").map((i) => ({ value: str(i, "value"), label: str(i, "label") })).filter((i) => i.value);
+  return <StatsStrip items={items.length > 0 ? items : HOME_STATS} />;
 }
 
 function WhyChooseSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {

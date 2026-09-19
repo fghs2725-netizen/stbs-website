@@ -22,15 +22,6 @@ export const services = [
   { title: "Tubewell Construction", icon: Construction, text: "End-to-end tubewell construction with disciplined execution, quality materials and site coordination." },
 ];
 
-export const trustItems = [
-  { label: "Years of Experience", value: "34+" },
-  { label: "Projects Completed", value: "1200+" },
-  { label: "Service Areas", value: "Haryana & NCR" },
-  { label: "Professional Equipment", value: "Modern fleet" },
-  { label: "Trusted Since", value: "1992" },
-  { label: "Industry Experience", value: "Water infra" },
-];
-
 export const whyChoose = [
   { title: "34+ Years", text: "34 years of hands-on field experience across borewell and tubewell projects." },
   { title: "Modern Equipment", text: "A maintained fleet of drilling rigs and recharge systems built for tough ground." },

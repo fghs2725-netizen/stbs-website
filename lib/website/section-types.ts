@@ -79,9 +79,9 @@ export const SECTION_TYPE_DEFS: Record<string, SectionTypeDef> = {
   },
   stats: {
     label: "Statistics Bar",
-    description: "Strip of headline statistics (e.g. 34+ years).",
+    description: "Four headline stats on a dark band. Numeric values (34+, 1200+) count up on scroll; text values (Haryana & NCR) show as-is. Keep labels short.",
     lists: [
-      { key: "items", label: "Statistics", fields: [{ key: "label", label: "Label", type: "text", placeholder: "Years of Experience" }, { key: "value", label: "Value", type: "text", placeholder: "34+" }] },
+      { key: "items", label: "Statistics", fields: [{ key: "label", label: "Label", type: "text", placeholder: "Years in operation" }, { key: "value", label: "Value", type: "text", placeholder: "34+" }] },
     ],
   },
   why_choose: {

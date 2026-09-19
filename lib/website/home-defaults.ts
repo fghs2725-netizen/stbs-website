@@ -19,3 +19,15 @@ export const HOME_HERO = {
   heroImage: "/stbs-drilling-rig-real.png",
   heroImageAlt: "STBS borewell drilling rig on an industrial site, with two crew members in safety gear beside stacked casing pipes",
 } as const;
+
+/**
+ * Stats strip. 34 = 2026 - 1992. "20+" comes from the owner's own client list (20 named
+ * clients, described as "some of my clients"); it spans industrial, commercial and
+ * institutional sites, so the label says so rather than claiming "commercial & industrial" only.
+ */
+export const HOME_STATS = [
+  { value: "34+", label: "Years in operation" },
+  { value: "1200+", label: "Projects completed" },
+  { value: "20+", label: "Industrial, commercial & institutional clients" },
+  { value: "Haryana & NCR", label: "Service area" },
+] as const;

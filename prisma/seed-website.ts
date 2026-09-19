@@ -25,14 +25,13 @@ import {
   company,
   services as staticServices,
   clients as staticClients,
-  trustItems,
   whyChoose,
   processSteps,
   founderBio,
   founderName,
   founderTitle,
 } from "../lib/company";
-import { HOME_HERO } from "../lib/website/home-defaults";
+import { HOME_HERO, HOME_STATS } from "../lib/website/home-defaults";
 
 const prisma = new PrismaClient();
 
@@ -76,7 +75,7 @@ async function seedPages() {
           name: "Statistics",
           position: 2,
           content: {
-            items: trustItems.map((t) => ({ label: t.label, value: t.value })),
+            items: HOME_STATS.map((t) => ({ label: t.label, value: t.value })),
           },
         },
         {
