@@ -1,4 +1,5 @@
 import type { QuotationState } from "./quotation-model";
+import { quotationFilename } from "@/lib/quotation-filename";
 
 export function pdfFailureMessage(error: unknown) {
   if (error instanceof Error && error.message.startsWith("PDF generation failed at stage:")) return error.message;
@@ -50,8 +51,8 @@ export async function requestQuotationPdf(quotation: QuotationState) {
 export async function openQuotationPdf(quotation: QuotationState): Promise<PdfAction> {
   const blob = await requestQuotationPdf(quotation);
   if (blob.type && !blob.type.toLowerCase().includes("application/pdf")) throw new Error("PDF generation failed.");
-  const base = (quotation.quotationReference || "quotation").replace(/[^a-zA-Z0-9_-]/g, "_");
-  const filename = `${base}.pdf`;
+  const filename = quotationFilename(quotation, "pdf");
+  const base = filename.replace(/\.pdf$/, "");
   const url = URL.createObjectURL(blob);
   try {
     const file = new File([blob], filename, { type: "application/pdf" });

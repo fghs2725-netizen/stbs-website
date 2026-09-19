@@ -10,6 +10,7 @@ import { AdminBackLink } from "@/components/admin-back-link";
 import type { ReusableClient } from "@/lib/quotation-management";
 import { QuotationPrintDocument } from "./QuotationPrintDocument";
 import { openQuotationPdf, pdfActionMessage, pdfFailureMessage } from "./requestQuotationPdf";
+import { downloadQuotationDocx } from "./requestQuotationDocx";
 import { fitScaleForWidth } from "./useQuotationPreviewFit";
 import { ItemsTable } from "./items-table";
 import { PricingPanel } from "./pricing-panel";
@@ -83,6 +84,8 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
   const savingRef = useRef(false);
   const failedJson = useRef("");
   const [pdfBusy, setPdfBusy] = useState(false);
+  const [wordBusy, setWordBusy] = useState(false);
+  const persistRef = useRef<(mode: "manual" | "auto") => Promise<boolean>>(async () => false);
   const [finalizing, setFinalizing] = useState(false);
   const [confirm, setConfirm] = useState<Confirm>(null);
   const [focusId, setFocusId] = useState<string | null>(null);
@@ -140,10 +143,25 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
   const generatePdf = useCallback(async () => {
     if (!canGenerateQuotation || page4Overflow || pdfBusy) return;
     setPdfBusy(true);
-    try { push("success", pdfActionMessage(await openQuotationPdf(qRef.current))); }
-    catch (error) { push("error", pdfFailureMessage(error)); }
+    try {
+      // The server renders the SAVED quotation, so pending edits are saved first or the PDF would be stale.
+      if (qRef.current.id && qRef.current.status === "DRAFT" && JSON.stringify(qRef.current) !== savedJson.current && !(await persistRef.current("auto"))) throw new Error("Could not save your latest changes first, so no PDF was generated.");
+      push("success", pdfActionMessage(await openQuotationPdf(qRef.current)));
+    }
+    catch (error) { push("error", error instanceof Error && error.message.startsWith("Could not save") ? error.message : pdfFailureMessage(error)); }
     finally { setPdfBusy(false); }
   }, [canGenerateQuotation, page4Overflow, pdfBusy, push]);
+
+  const exportWord = useCallback(async () => {
+    if (!canGenerateQuotation || wordBusy) return;
+    if (!qRef.current.id) { push("error", "Save the draft first (Ctrl+S), then export to Word."); return; }
+    setWordBusy(true);
+    try {
+      if (qRef.current.status === "DRAFT" && JSON.stringify(qRef.current) !== savedJson.current && !(await persistRef.current("auto"))) throw new Error("Could not save your latest changes first, so no Word file was created.");
+      push("success", `Word document downloaded: ${await downloadQuotationDocx(qRef.current)}`);
+    } catch (error) { push("error", error instanceof Error ? error.message : "Word export failed. Please try again."); }
+    finally { setWordBusy(false); }
+  }, [canGenerateQuotation, wordBusy, push]);
 
   useEffect(() => {
     const panel = previewPanelRef.current;
@@ -182,6 +200,7 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
       setSaveTick((n) => n + 1);
     }
   }, [push, router, step]);
+  persistRef.current = persist;
 
   // Autosave existing drafts a few seconds after the last edit. A brand-new quotation is created by an explicit save.
   useEffect(() => {
@@ -285,6 +304,8 @@ export function QuotationEditor({ initial, backHref, backLabel, clients = [] }: 
     <>
       <button className="generate-pdf" onClick={() => void persist("manual")} disabled={saveState === "saving" || isFinal} title="Save draft (Ctrl+S)">{saveState === "saving" ? "Saving..." : "Save Draft"}</button>
       <button className="generate-pdf save-to-pdf" disabled={pdfDisabled} title={pdfTitle} onClick={() => void generatePdf()}>{pdfBusy ? "Generating..." : "Generate PDF"}</button>
+      <button className="generate-pdf" disabled={!canGenerateQuotation || wordBusy || !q.id} title={q.id ? "Download an editable Word version" : "Save the draft first"} onClick={() => void exportWord()}>{wordBusy ? "Preparing..." : "Word"}</button>
+      <button className="generate-pdf" onClick={() => window.print()} title="Print the quotation">Print</button>
       <button className="generate-pdf" onClick={() => setConfirm({ kind: "finalize" })} disabled={saveState === "saving" || finalizing || !q.id || isFinal || missing.length > 0} title={missing.length ? `Still needed: ${missing.join(", ")}` : "Lock this quotation"}>{finalizing ? "Finalizing..." : "Finalize"}</button>
     </>
   );

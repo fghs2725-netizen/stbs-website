@@ -4,6 +4,7 @@ import { getQuotation } from "@/lib/quotation-management";
 import { generateQuotationPdf } from "@/lib/quotation-pdf";
 import { isQuotationPdfReady } from "@/components/quotation/quotation-model";
 import { deploymentContext } from "@/lib/deployment-info";
+import { quotationFilename } from "@/lib/quotation-filename";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -33,7 +34,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const pdf = await generateQuotationPdf(quotation, new URL(request.url).origin, emit);
     stage = "RESPONSE_SUCCESS";
     emit("RESPONSE_SUCCESS", { pdfBytes: pdf.length, ...deploymentContext() });
-    return new Response(pdf, { headers: { "Content-Type": "application/pdf", "Content-Disposition": `attachment; filename="${quotation.quotationReference.replace(/[^a-zA-Z0-9_-]/g, "_")}.pdf"`, "Cache-Control": "private, no-store" } });
+    return new Response(pdf, { headers: { "Content-Type": "application/pdf", "Content-Disposition": `attachment; filename="${quotationFilename(quotation, "pdf")}"`, "Cache-Control": "private, no-store" } });
   } catch (error) {
     let errorName = "UnknownError";
     let errorMessage = "Unknown PDF error";

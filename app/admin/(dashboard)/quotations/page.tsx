@@ -117,7 +117,7 @@ export default async function QuotationsPage({
                   <Link href={sortHref("created")} className="inline-flex w-24 items-center gap-1 hover:text-white" aria-label="Sort by created date">Created{sort === "created" && (dir === "asc" ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />)}</Link>
                   <span className="w-32 text-right">Amount</span>
                   <span className="w-20">Status</span>
-                  <span className="w-[22rem]">Actions</span>
+                  <span className="w-[28rem]">Actions</span>
                 </div>
               )}
               {rows.map((q) => (
@@ -134,7 +134,7 @@ export default async function QuotationsPage({
                   <span className="text-sm text-white/60 md:w-24">{day(q.createdAt)}</span>
                   <span className="text-sm font-semibold tabular-nums md:w-32 md:text-right">{q.itemCount ? formatINR(q.amount) : "—"}</span>
                   <span className={`text-xs font-semibold md:w-20 ${q.status === "FINAL" ? "text-emerald-300" : "text-amber-200"}`}>{q.status === "FINAL" ? "Final" : "Draft"}</span>
-                  <div className="flex flex-wrap gap-2 md:w-[22rem]">
+                  <div className="flex flex-wrap gap-2 md:w-[28rem]">
                     <Button asChild size="sm">
                       <Link href={`/admin/quotations/${q.id}`}>View</Link>
                     </Button>
@@ -145,6 +145,9 @@ export default async function QuotationsPage({
                     )}
                     <Button asChild variant="secondary" size="sm">
                       <a href={`/api/quotations/${q.id}/pdf`} download><Download className="size-4" />PDF</a>
+                    </Button>
+                    <Button asChild variant="secondary" size="sm">
+                      <a href={`/api/quotations/${q.id}/docx`} download><Download className="size-4" />Word</a>
                     </Button>
                     <form action={duplicateAction.bind(null, q.id)}>
                       <DuplicateQuotationButton />
