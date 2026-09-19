@@ -777,7 +777,8 @@ function FeaturedClientsSection({ owner, content, data }: { owner?: RenderableSe
               <Editable target={{ kind: "clients" }} label="Edit Logo" className="h-full block">
                 <article className="group relative flex min-h-36 sm:min-h-48 flex-col justify-between overflow-hidden border border-white/10 bg-white/[.035] p-5 sm:p-7 transition duration-300 hover:-translate-y-1 hover:border-signal/60 hover:bg-white/[.07]">
                   <div>
-                    {c.logoUrl && <div className="flex h-12 sm:h-14 items-center"><Image src={c.logoUrl} alt={c.name} width={120} height={48} className="object-contain brightness-0 invert opacity-80" /></div>}
+                    {/* Full-colour logo on a white tile: an invert filter would turn logos into white silhouettes. */}
+                    {c.logoUrl && <div className="flex h-14 w-fit items-center rounded-[4px] bg-white px-3 sm:h-16"><Image src={c.logoUrl} alt={`${c.name} logo`} width={144} height={48} className="h-10 w-auto max-w-[144px] object-contain sm:h-12" /></div>}
                     <h3 className="mt-4 sm:mt-6 max-w-sm font-display text-xl sm:text-2xl uppercase leading-tight text-white transition group-hover:text-signal">{c.name}</h3>
                   </div>
                   <div className="mt-6 sm:mt-8 flex items-center justify-between border-t border-white/10 pt-3 sm:pt-4 text-[10px] font-bold uppercase tracking-[.2em] text-white/35">

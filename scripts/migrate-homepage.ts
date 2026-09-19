@@ -13,6 +13,9 @@
  *               image is KEPT; only its alt text is corrected. Draft + published stay in sync.
  *   4. stats    home/stats items -> the four headline stats (34+, 1200+, 20+, Haryana & NCR),
  *               replacing the six current items (incl. "Modern fleet", "Water infra").
+ *   5. logos    attach the staged client logos (public/clients/*) to the matching WebsiteClient rows
+ *               (draft + published snapshot) and add O.P. Jindal Global University, which the
+ *               owner named as a client but which is not in the CMS. Rows without a logo are untouched.
  *   2. cta      "Request a quote" / "Request quote" / "Request A Quote" -> "Request a proposal"
  *               (whole-string matches only, inside section content/publishedContent).
  *
@@ -134,12 +137,51 @@ async function planStats() {
   if (Object.keys(data).length) ops.push({ label: `stats ${sec.id}`, before, run: () => prisma.websiteSection.update({ where: { id: sec.id }, data: data as never }) });
 }
 
+// ── 5. client logos ───────────────────────────────────────────────────────
+const LOGOS: Array<{ name: string; logoUrl: string; altText: string }> = [
+  { name: "Ashoka University", logoUrl: "/clients/ashoka-university.png", altText: "Ashoka University logo" },
+  { name: "Amul Milk, Murthal", logoUrl: "/clients/amul.svg", altText: "Amul logo" },
+  { name: "BigBasket, Sonipat Site", logoUrl: "/clients/bigbasket.png", altText: "BigBasket logo" },
+  { name: "LT Overseas Pvt. Ltd. (Dawat Rice Mill)", logoUrl: "/clients/lt-foods.svg", altText: "LT Foods logo" },
+  { name: "Voestalpine VAE VKN India Pvt. Ltd.", logoUrl: "/clients/voestalpine.svg", altText: "voestalpine logo" },
+  { name: "Coral Drugs Pvt. Ltd.", logoUrl: "/clients/coral-drugs.svg", altText: "Coral Drugs logo" },
+  { name: "Rishi Laser Limited", logoUrl: "/clients/rishi-laser.webp", altText: "Rishi Laser Limited logo" },
+];
+const NEW_CLIENT = { name: "O.P. Jindal Global University", sector: "Institutional", logoUrl: "/clients/op-jindal-global-university.webp", altText: "O.P. Jindal Global University logo", featured: true };
+
+async function planLogos() {
+  const rows = await prisma.websiteClient.findMany({ where: { deletedAt: null }, orderBy: { position: "asc" } });
+  for (const l of LOGOS) {
+    const row = rows.find((r) => r.name === l.name);
+    if (!row) { console.log(`  ! no CMS client named "${l.name}" (skipped)`); continue; }
+    const ps = row.publishedData as Record<string, unknown> | null;
+    if (row.logoUrl === l.logoUrl && ps?.logoUrl === l.logoUrl) continue;
+    console.log(`  ~ logo "${row.name}": ${row.logoUrl ?? "(none)"} -> ${l.logoUrl}`);
+    ops.push({
+      label: `client ${row.id}`, before: row,
+      run: () => prisma.websiteClient.update({ where: { id: row.id }, data: { logoUrl: l.logoUrl, altText: l.altText, ...(ps ? { publishedData: { ...ps, logoUrl: l.logoUrl, altText: l.altText } } : {}) } }),
+    });
+  }
+  if (rows.some((r) => r.name === NEW_CLIENT.name)) return;
+  const position = rows.reduce((m, r) => Math.max(m, r.position), 0) + 1;
+  console.log(`  + client "${NEW_CLIENT.name}" (${NEW_CLIENT.sector}, featured, published) at position ${position}`);
+  ops.push({
+    label: `client create ${NEW_CLIENT.name}`, before: null,
+    run: async () => {
+      const snap = { name: NEW_CLIENT.name, logoUrl: NEW_CLIENT.logoUrl, websiteUrl: null, altText: NEW_CLIENT.altText, description: null, sector: NEW_CLIENT.sector, featured: true, position, visible: true };
+      const row = await prisma.websiteClient.create({ data: { ...snap, status: "PUBLISHED", publishedAt: new Date(), publishedData: snap } });
+      created.push(row.id);
+    },
+  });
+}
+
 async function main() {
   const apply = process.argv.includes("--apply");
   console.log("Step 1: navigation"); await planNav();
   console.log("Step 2: CTA label");  await planCta();
   console.log("Step 3: hero copy");  await planHero();
   console.log("Step 4: stats strip"); await planStats();
+  console.log("Step 5: client logos"); await planLogos();
   console.log(`\n${ops.length} change(s) planned.`);
   if (!apply) { console.log("DRY RUN — nothing written. Re-run with --apply to write."); await prisma.$disconnect(); return; }
   if (!ops.length) { await prisma.$disconnect(); return; }
@@ -149,7 +191,7 @@ async function main() {
   fs.writeFileSync(file, JSON.stringify({ ops: ops.map((o) => ({ label: o.label, before: o.before })) }, null, 2));
   console.log("Backup written:", file);
   for (const o of ops) { await o.run(); console.log("  done", o.label); }
-  fs.writeFileSync(file, JSON.stringify({ ops: ops.map((o) => ({ label: o.label, before: o.before })), createdNavIds: created }, null, 2));
+  fs.writeFileSync(file, JSON.stringify({ ops: ops.map((o) => ({ label: o.label, before: o.before })), createdIds: created }, null, 2));
   await prisma.$disconnect();
 }
 main().catch((e) => { console.error(e); process.exit(1); });
