@@ -214,9 +214,11 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
           <Editable target={{ kind: "section", section: target }} label="Primary CTA">
             <CtaLink href={primaryCtaUrl} className="btn btn-primary w-full sm:w-auto">{primaryCtaText}</CtaLink>
           </Editable>
-          <Editable target={{ kind: "section", section: target }} label="Secondary CTA">
-            <CtaLink href={secondaryCtaUrl} className="btn btn-secondary-dark w-full sm:w-auto"><Download size={18} strokeWidth={1.75} aria-hidden />{secondaryCtaText}</CtaLink>
-          </Editable>
+          {secondaryCtaText && secondaryCtaUrl && (
+            <Editable target={{ kind: "section", section: target }} label="Secondary CTA">
+              <CtaLink href={secondaryCtaUrl} className="btn btn-secondary-dark w-full sm:w-auto"><Download size={18} strokeWidth={1.75} aria-hidden />{secondaryCtaText}</CtaLink>
+            </Editable>
+          )}
         </div>
       </div>
     </section>

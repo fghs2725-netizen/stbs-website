@@ -191,7 +191,7 @@ export function QuotationDocument({ quotation, isEditorPreview = false }: {
         <div className="glance">
           <div className="glance-head"><span>AT A GLANCE</span><small>STBS / FIELD RECORD</small></div>
           <div className="glance-grid">
-            <div><b>30+</b><span>Years Experience</span></div>
+            <div><b>34+</b><span>Years Experience</span></div>
             <div><b>500+</b><span>Projects Delivered</span></div>
             <div><b>100%</b><span>ISI Certified</span></div>
             <div><b>24/7</b><span>Site Support</span></div>

@@ -9,6 +9,7 @@
     "lint": "next lint",
     "test:quotation": "npx tsx scripts/test-quotation-validation.ts",
     "test:quotation-snapshot": "npx tsx scripts/test-quotation-snapshot.ts",
+    "test:quotation-reference": "npx tsx scripts/test-quotation-reference.ts",
     "test:amount-in-words": "npx tsx scripts/test-amount-in-words.ts",
     "test:quotation-totals": "npx tsx scripts/test-quotation-totals.ts",
     "test:quotation-pagination": "npx tsx scripts/test-quotation-pagination.ts",

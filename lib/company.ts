@@ -19,18 +19,18 @@ export const company = {
  * See docs/TODO.md for what the owner still needs to supply.
  */
 export const businessInfo = {
-  /** Existing site copy (contact page + JSON-LD); NOT verified by the owner yet. */
-  hours: ["Monday to Saturday: 8:00 AM to 7:00 PM", "Sunday: Emergency support only"],
+  /** Confirmed by the owner 2026-09-19. */
+  hours: ["Monday to Sunday: 8:00 AM to 7:00 PM"],
   /** Machine-readable form of the same hours, for JSON-LD. */
-  openingHours: "Mo-Sa 08:00-19:00",
+  openingHours: "Mo-Su 08:00-19:00",
   /** Areas named in the owner's brief; Gurugram was requested there. */
   serviceAreas: ["Sonipat", "Panipat", "Kundli", "Rohtak", "Gurugram", "Delhi NCR"],
-  /** OWNER TO SUPPLY. Documents show Dipalpur Road, Bhalgarh, Sonipat (pincode 131021 vs 131001): unconfirmed. */
-  registeredOffice: "",
-  /** OWNER TO CONFIRM before publishing (appears on client documents, not yet approved for the site). */
+  /** Supplied by the owner 2026-09-19 (spelling as given: "Bahalgarh"). */
+  registeredOffice: "12, New market, Bahalgarh, Sonipat",
+  pinCode: "131001",
+  /** Supplied by the owner, who confirmed it may be shown publicly (2026-09-19). */
   gstin: "06AWTPS2732A1ZI",
-  /** OWNER TO SUPPLY. */
-  legalName: "",
+  legalName: "Saini Tubewell Boring Service",
   mapsUrl: "https://www.google.com/maps?q=Sonipat,Haryana",
 };
 

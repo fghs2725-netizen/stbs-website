@@ -11,11 +11,10 @@ export const HOME_HERO = {
   supportingText: "Borewell drilling, tubewell construction and rainwater recharge across Haryana & NCR.",
   primaryCtaText: "Get a site assessment",
   primaryCtaUrl: "/quote",
-  secondaryCtaText: "Download company profile",
-  // Placeholder route (app/company-profile/route.ts). When the real capability statement
-  // exists, upload it as public/docs/stbs-company-profile.pdf and point this URL at
-  // /docs/stbs-company-profile.pdf in Website -> Home -> Hero (no code change needed).
-  secondaryCtaUrl: "/company-profile",
+  // No company profile PDF exists yet (owner, 2026-09-19), so there is no secondary button.
+  // To add one later: upload public/docs/stbs-company-profile.pdf and set these two fields in Website -> Home -> Hero.
+  secondaryCtaText: "",
+  secondaryCtaUrl: "",
   heroImage: "/stbs-drilling-rig-real.png",
   heroImageAlt: "STBS borewell drilling rig on an industrial site, with two crew members in safety gear beside stacked casing pipes",
 } as const;

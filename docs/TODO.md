@@ -51,7 +51,16 @@ Last updated 2026-09-19, after Phase 7b (discount / GST / multi-page quotation) 
 
 ## C. Needed from the owner (not invented; placeholders until supplied)
 
-**Answer these in the owner questionnaire** (private artifact: https://claude.ai/artifact/7N4Qy8DEasb9hip7h3ZwHU). It holds only the still-open items; answers save there and can be read back.
+**Owner answered the questionnaire on 2026-09-19.** Applied in code: financial-year quotation numbers (`STBS/2026-27/0142`, new quotations only, counter continues), page 3 "34+ Years", registered address / pincode 131001 / legal name / hours Mon-Sun 08:00-19:00 (footer, JSON-LD), GSTIN stays public, company-profile button removed. Left as printed at the owner's instruction: "500+ Projects", "100% ISI Certified", "24/7 Site Support".
+
+**Open after the answers (need a decision or go-ahead):**
+- [ ] Testimonials: owner asked me to write them; declined, since a testimonial must come from a real client. Section stays hidden until real approved quotes exist.
+- [ ] Owner said `site_pic.jpeg` and `Site_pic_2.jpeg` are NOT confirmed as their own (only the founder portrait was ticked). Both are used on the About page and gallery. Confirm ownership or replace.
+- [ ] FAQ / timeline answers live in the database (per-service), not code. Owner supplied: borewell diameter 100-400 mm (entered under "depth", almost certainly diameter), typical completion 2-4 days / under 4 days. Depth still unknown. Needs a go-ahead to write to the live database.
+- [ ] Saved terms and standard-items libraries: approved in principle; needs a migration and UI (SQL shown before running).
+- [ ] Homepage content migration: owner marked "Done" but has not said to apply; rehearse first, then apply.
+- [ ] Hero photo: owner needs help arranging one.
+- [ ] Page 3 says 500+ projects while the site says 1,200+; page 3 says 24/7 support while hours are 08:00-19:00.
 
 ### Decisions (quotation)
 Settled: GST (optional, per quotation), discount (one, on the subtotal), amount in words, page overflow (price offer paginates), logo layout. Still open in the questionnaire: specification column, numbering scheme, the "30+ years" / "500+ projects" / "100% ISI" / "24/7" claims on page 3, GST defaults, saved libraries, expiry date.

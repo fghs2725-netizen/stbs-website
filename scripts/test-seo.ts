@@ -36,13 +36,18 @@ check("logo and image are absolute URLs on the canonical host", () => {
 });
 
 // The guard that matters most: unverified owner data must not be invented.
-check("no address, geo or legalName is emitted while the owner has not supplied them; the GSTIN is supplied but not part of the JSON-LD", () => {
-  assert.equal(businessInfo.registeredOffice, "");
-  assert.equal(businessInfo.legalName, "");
-  assert.equal("address" in ld, false);
+check("the supplied address, legal name and hours are emitted; geo is still omitted until supplied", () => {
+  assert.equal(businessInfo.registeredOffice, "12, New market, Bahalgarh, Sonipat");
+  assert.equal(businessInfo.pinCode, "131001");
+  assert.equal(businessInfo.legalName, "Saini Tubewell Boring Service");
+  const address = ld.address as Record<string, string>;
+  assert.equal(address.streetAddress, "12, New market, Bahalgarh, Sonipat");
+  assert.equal(address.postalCode, "131001");
+  assert.equal(ld.legalName, "Saini Tubewell Boring Service");
+  assert.equal(ld.openingHours, "Mo-Su 08:00-19:00");
   assert.equal("geo" in ld, false);
-  assert.equal("legalName" in ld, false);
-  assert.doesNotMatch(json, /06AWTPS|AWTPS2732A|Dipalpur|Bhalgarh|131021|131001/i);
+  // The GSTIN is shown in the footer but is not part of the structured data, and the unconfirmed pincode never leaks.
+  assert.doesNotMatch(json, /06AWTPS|131021|Dipalpur/i);
 });
 check("no undefined / null values leak into the JSON", () => assert.doesNotMatch(json, /undefined|null/));
 
