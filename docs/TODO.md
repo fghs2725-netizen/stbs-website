@@ -51,18 +51,14 @@ Last updated 2026-09-19, after Phase 7b (discount / GST / multi-page quotation) 
 
 ## C. Needed from the owner (not invented; placeholders until supplied)
 
-### Decisions (quotation, blocks Phase 7)
-- [ ] Q1 GST: add real CGST/SGST/IGST lines (changes the locked output) or keep the prose term?
-- [ ] Q2 Discount: add?
-- [ ] Q3 Amount in words: add? (adds a totals row)
-- [ ] Q4 Line items: add a "specification / size" column (seventh column)?
-- [ ] Q5 Numbering: existing `STBS/{year}/{NNN}`; migrate to financial-year `STBS/2026-27/0142`, apply to new only, or keep?
-- [ ] Q6 Page 4 is a hard cap (PDF fails on any other page count): allow the price offer to paginate?
-- [ ] The quotation template hardcodes "30+" (years) on page 3, which contradicts 34. It is locked; change it?
+**Answer these in the owner questionnaire** (private artifact: https://claude.ai/artifact/7N4Qy8DEasb9hip7h3ZwHU). It holds only the still-open items; answers save there and can be read back.
+
+### Decisions (quotation)
+Settled: GST (optional, per quotation), discount (one, on the subtotal), amount in words, page overflow (price offer paginates), logo layout. Still open in the questionnaire: specification column, numbering scheme, the "30+ years" / "500+ projects" / "100% ISI" / "24/7" claims on page 3, GST defaults, saved libraries, expiry date.
 
 ### Business data
 - [ ] Registered office address and pincode (documents show Dipalpur Road, Bhalgarh, Sonipat; 131021 in most, 131001 in one)
-- [ ] GSTIN (consistent on your documents) and permission to publish it
+- [x] GSTIN supplied and in use; confirm it may stay in the public footer (questionnaire)
 - [ ] Business hours: the contact page says Mon-Sat 8:00-19:00, Sunday emergency only. Existing copy, unverified.
 - [ ] Geo coordinates for JSON-LD; a real map location once an address is public
 - [ ] Email delivery for the quote form: set `SMTP_HOST/PORT/USER/PASS/FROM` (or `RESEND_API_KEY`) in Vercel, and optionally `QUOTE_TO_EMAIL` (defaults to stbs2025@gmail.com). Until then the form shows its failure state with Call / WhatsApp / Email.
