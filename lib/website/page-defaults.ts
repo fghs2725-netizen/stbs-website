@@ -172,3 +172,71 @@ export function fallbackClientRows() {
     return { id: "fallback-" + i, name, logoUrl: logo?.logoUrl ?? null, altText: logo?.altText ?? null, websiteUrl: null, sector: null, description: null, featured: false, position: i };
   });
 }
+
+export const CONTACT_SECTIONS: DefaultSection[] = [
+  {
+    type: "page_hero",
+    name: "Page hero",
+    position: 0,
+    content: {
+      eyebrow: "Contact",
+      heading: "Start with the requirement.",
+      text: "Tell us what service you need and where the project is located. We will use that information to guide the next conversation.",
+    },
+  },
+  {
+    type: "contact_info",
+    name: "Contact information",
+    position: 1,
+    content: {
+      heading: "Get in touch",
+      description:
+        "Call or email our team directly, or use the quote request to send the service, location and project details in one place.",
+      ctaText: "Request a proposal",
+      ctaUrl: "/quote",
+    },
+  },
+  {
+    type: "map",
+    name: "Map",
+    position: 2,
+    content: {
+      eyebrow: "Find us",
+      embedUrl: "https://www.google.com/maps?q=Sonipat,Haryana&output=embed",
+    },
+  },
+];
+
+export const QUOTE_SECTIONS: DefaultSection[] = [
+  {
+    type: "page_hero",
+    name: "Page hero",
+    position: 0,
+    content: {
+      eyebrow: "Start a project",
+      heading: "Tell us what the site needs.",
+      text: "Share the basic project details. The request form is structured to help the team understand your service and site requirements.",
+    },
+  },
+  {
+    type: "quote_intro",
+    name: "Useful project details",
+    position: 1,
+    content: {
+      eyebrow: "Before we begin",
+      heading: "Useful project details",
+      steps: [
+        "Required service",
+        "Project or site location",
+        "Known depth or capacity needs",
+        "Preferred project timeline",
+      ],
+    },
+  },
+  {
+    type: "quote_form",
+    name: "Quote form",
+    position: 2,
+    content: {},
+  },
+];

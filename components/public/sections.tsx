@@ -3,13 +3,14 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain, Construction, Copy, Download, Drill, Droplets, Eye, EyeOff, Factory, Home, Landmark, MapPin, Pencil, Sprout, Store, Trash2, type LucideIcon } from "lucide-react";
+import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain, Construction, Copy, Download, Drill, Droplets, Eye, EyeOff, Factory, Home, Landmark, Mail, MapPin, MessageCircle, Pencil, Phone, Sprout, Store, Trash2, type LucideIcon } from "lucide-react";
 import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "@/lib/website/home-defaults";
 import { SERVICE_PAGES, serviceHref, servicePageFor } from "@/lib/website/service-pages";
 import { SERVICE_ICONS } from "@/components/public/service-icons";
 import { HOME_PROJECTS, resolveProjects } from "@/lib/website/projects-data";
 import { StatsStrip } from "@/components/public/stats-strip";
 import { PagePhoto } from "@/components/public/photo";
+import { formatIndianPhone, telHref } from "@/lib/phone";
 import { Reveal } from "@/components/reveal";
 import { QuoteForm } from "@/components/quote-form";
 import type { SerializedSection } from "@/lib/website/action-types";
@@ -413,48 +414,41 @@ function TestimonialsSection({ owner, content, data }: { owner?: RenderableSecti
 function GallerySection({ owner, content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {
   const eyebrow = str(content, "eyebrow", "From the field");
   const heading = str(content, "heading", "Work in motion");
-  const linkText = str(content, "linkText", "View gallery");
   const maxItems = num(content, "maxItems", 6);
   const target = asSection(owner);
   const cms = data.gallery;
   const items = cms && cms.length > 0
-    ? cms.slice(0, maxItems).map(g => ({ src: g.mediaUrl, alt: g.altText ?? g.caption ?? "", label: g.caption ?? g.altText ?? "" }))
+    ? cms.slice(0, maxItems).map((g) => ({ src: g.mediaUrl, alt: g.altText || g.caption || "Project photograph", caption: g.caption ?? "" }))
     : null;
 
-  // No published gallery images → do not render stock-image placeholders.
+  // No published gallery images: do not render stock-image placeholders.
   if (!items || items.length === 0) return null;
 
   return (
-    <section className="bg-black px-4 pb-12 sm:px-5 sm:pb-24 lg:px-8 lg:pb-32">
-      <div className="mx-auto max-w-7xl">
+    <section className="theme-public section-y">
+      <div className="container-x">
         <Reveal>
-          <div className="mb-8 sm:mb-12 flex items-end justify-between">
-            <div>
-              <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-                <p className="mb-3 sm:mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
-              </Editable>
-              <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-                <h2 className="font-display text-3xl sm:text-5xl lg:text-7xl font-bold uppercase">{heading}</h2>
-              </Editable>
-            </div>
-            <Link href="/gallery" className="hidden items-center gap-2 text-xs font-bold uppercase tracking-widest text-signal md:flex">
-              {linkText} <ArrowRight size={16} />
-            </Link>
-          </div>
+          <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
+            <p className="t-eyebrow">{eyebrow}</p>
+          </Editable>
+          <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
+            <h2 className="t-h2 mt-u2 text-block">{heading}</h2>
+          </Editable>
         </Reveal>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" style={{ gridAutoRows: "minmax(200px, 240px)" }}>
+        <ul className="mt-u5 grid gap-u2 sm:grid-cols-2 lg:grid-cols-3 lg:gap-u3">
           {items.map((item, i) => (
-            <Reveal key={i} delay={i * 0.05}>
-              <Editable target={{ kind: "gallery" }} label="Edit Image" className="h-full block">
-                <Link href="/gallery" className="group relative block h-full overflow-hidden">
-                  <Image src={item.src} alt={item.alt} fill className="object-cover grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" sizes="(max-width:768px) 100vw,33vw" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
-                  <p className="absolute bottom-4 left-4 font-display text-lg sm:text-xl uppercase text-white transition group-hover:text-signal">{item.label}</p>
-                </Link>
-              </Editable>
-            </Reveal>
+            <li key={i}>
+              <Reveal delay={(i % 3) * 0.05}>
+                <Editable target={{ kind: "gallery" }} label="Edit Image" className="block">
+                  <figure className="m-0">
+                    <PagePhoto src={item.src} alt={item.alt} sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw" />
+                    {item.caption && <figcaption className="mt-u1 text-sm text-stbs-muted">{item.caption}</figcaption>}
+                  </figure>
+                </Editable>
+              </Reveal>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );
@@ -846,60 +840,100 @@ function ContactInfoSection({ owner, content, data }: { owner?: RenderableSectio
   const description = str(content, "description");
   const ctaText = str(content, "ctaText", "Request a proposal");
   const ctaUrl = str(content, "ctaUrl", "/quote");
+  // Hours and service area are existing site copy, not verified data: confirm them (see TODO) or edit here.
+  const hours = str(content, "hours", "Monday to Saturday: 8:00 AM to 7:00 PM\nSunday: Emergency support only").split(/\r?\n/).filter(Boolean);
+  const serviceArea = str(content, "serviceArea", "Sonipat, Panipat, Kundli, Rohtak and across Haryana and Delhi NCR");
   const target = asSection(owner);
   const s = data.settings;
-  const phone = s?.phone ?? "";
-  const phone2 = s?.phone2 ?? "";
+  const phones = [s?.phone, s?.phone2].filter((p): p is string => Boolean(p));
   const email = s?.email ?? "";
   const address = s?.address ?? "";
+  const whatsapp = s?.whatsapp || phones[0] || "";
+  const waHref = whatsapp ? `https://wa.me/91${whatsapp.replace(/\D/g, "").replace(/^91(?=\d{10}$)/, "")}?text=${encodeURIComponent("Hi, I'd like a proposal for borewell drilling.")}` : "";
+  const tile = "hairline-card flex flex-col gap-u1 p-u3";
+  const link = "inline-flex min-h-[48px] items-center font-medium text-stbs-brand-mid hover:underline";
 
   return (
-    <section className="bg-neutral-100 px-4 py-12 sm:px-5 sm:py-24 text-black lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <section className="theme-public section-y">
+      <div className="container-x grid gap-u6 lg:grid-cols-2 lg:gap-u8">
         <Reveal>
           <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-            <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl font-bold uppercase leading-tight sm:leading-none">{heading}</h2>
+            <h2 className="t-h2 text-block">{heading}</h2>
           </Editable>
-          {description && <p className="mt-4 sm:mt-6 max-w-2xl text-sm leading-relaxed sm:leading-8 text-black/55">{description}</p>}
+          {description && <p className="t-body measure mt-u3">{description}</p>}
+          <Link href={ctaUrl} className="btn btn-primary mt-u4 w-full sm:w-auto">{ctaText}</Link>
+          <dl className="mt-u5 border-t border-stbs-hairline">
+            <div className="grid gap-u1 border-b border-stbs-hairline py-u3 sm:grid-cols-[10rem_minmax(0,1fr)]">
+              <dt className="t-eyebrow">Working hours</dt>
+              <dd className="t-body m-0">{hours.map((h) => <span key={h} className="block">{h}</span>)}</dd>
+            </div>
+            <div className="grid gap-u1 border-b border-stbs-hairline py-u3 sm:grid-cols-[10rem_minmax(0,1fr)]">
+              <dt className="t-eyebrow">Service area</dt>
+              <dd className="t-body m-0">{serviceArea}</dd>
+            </div>
+          </dl>
         </Reveal>
-        <div className="mt-8 sm:mt-14 grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {(phone || phone2) && (
-            <Reveal className="border border-black/10 bg-white p-5 sm:p-8">
-              <p className="font-display text-xl sm:text-2xl uppercase">Call us</p>
-              <p className="mt-2 sm:mt-3 text-sm text-black/60">{phone && <>+91 {phone}<br />{phone2 && <>+91 {phone2}</>}</>}</p>
-            </Reveal>
-          )}
-          {email && (
-            <Reveal delay={0.05} className="border border-black/10 bg-white p-5 sm:p-8">
-              <p className="font-display text-xl sm:text-2xl uppercase">Email us</p>
-              <p className="mt-2 sm:mt-3 break-all text-sm text-black/60">{email}</p>
-            </Reveal>
-          )}
-          <Reveal delay={0.1} className="border border-black/10 bg-white p-5 sm:p-8">
-            <p className="font-display text-xl sm:text-2xl uppercase">Visit us</p>
-            {address && <p className="mt-2 sm:mt-3 text-sm text-black/60">{address}</p>}
-            <Link href={ctaUrl} className="mt-4 sm:mt-5 inline-flex items-center gap-2 text-sm font-bold text-signal hover:underline">{ctaText} <ArrowRight size={14} /></Link>
-          </Reveal>
-        </div>
+        <Reveal delay={0.1}>
+          <ul className="grid gap-u2 sm:grid-cols-2">
+            {phones.length > 0 && (
+              <li className={tile}>
+                <Phone size={28} strokeWidth={1.75} className="text-stbs-brand-mid" aria-hidden />
+                <h3 className="t-h3 mt-u2">Call us</h3>
+                {phones.map((p) => (
+                  <a key={p} href={telHref(p)} className={`${link} tabular-nums`}>{formatIndianPhone(p)}</a>
+                ))}
+              </li>
+            )}
+            {waHref && (
+              <li className={tile}>
+                <MessageCircle size={28} strokeWidth={1.75} className="text-stbs-brand-mid" aria-hidden />
+                <h3 className="t-h3 mt-u2">WhatsApp</h3>
+                <a href={waHref} target="_blank" rel="noopener noreferrer" className={link}>Message us</a>
+              </li>
+            )}
+            {email && (
+              <li className={tile}>
+                <Mail size={28} strokeWidth={1.75} className="text-stbs-brand-mid" aria-hidden />
+                <h3 className="t-h3 mt-u2">Email us</h3>
+                <a href={`mailto:${email}`} className={`${link} break-all`}>{email}</a>
+              </li>
+            )}
+            {address && (
+              <li className={tile}>
+                <MapPin size={28} strokeWidth={1.75} className="text-stbs-brand-mid" aria-hidden />
+                <h3 className="t-h3 mt-u2">Visit us</h3>
+                <p className="t-body">{address}</p>
+              </li>
+            )}
+            <li className={`${tile} sm:col-span-2`}>
+              <h3 className="t-h3">{company.managingDirector}</h3>
+              <p className="t-eyebrow">Managing Director</p>
+            </li>
+          </ul>
+        </Reveal>
       </div>
     </section>
   );
 }
 
 function MapSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
-  const eyebrow = str(content, "eyebrow", "Find us");
+  const eyebrow = str(content, "eyebrow", "Service area");
   const embedUrl = str(content, "embedUrl", "https://www.google.com/maps?q=Sonipat,Haryana&output=embed");
+  const openUrl = embedUrl.replace(/&output=embed/, "");
   const target = asSection(owner);
   return (
-    <section className="bg-black px-4 py-12 sm:px-5 sm:py-16 lg:px-8 lg:py-20">
-      <div className="mx-auto max-w-7xl">
+    <section className="theme-public band-alt section-y">
+      <div className="container-x">
         <Reveal>
           <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-            <p className="mb-4 sm:mb-6 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
+            <p className="t-eyebrow">{eyebrow}</p>
           </Editable>
-          <div className="overflow-hidden border border-white/10">
-            <iframe title="Saini Tubewell Boring Service location" src={embedUrl} className="h-[300px] sm:h-[400px] w-full grayscale" loading="lazy" />
+          <h2 className="t-h2 mt-u2 text-block">Where we work</h2>
+          {/* The map is centred on Sonipat (the service area), not a street address: none is published yet. */}
+          <div className="img-zoom mt-u4 border border-stbs-hairline">
+            <iframe title="Map of Sonipat, Haryana: our service area" src={embedUrl} className="block h-[320px] w-full sm:h-[400px]" loading="lazy" />
           </div>
+          <a href={openUrl} target="_blank" rel="noopener noreferrer" className="mt-u2 inline-flex min-h-[48px] items-center font-medium text-stbs-brand-mid hover:underline">Open in Google Maps</a>
         </Reveal>
       </div>
     </section>
@@ -911,25 +945,27 @@ function QuoteIntroSection({ owner, content }: { owner?: RenderableSection; cont
   const heading = str(content, "heading", "Tell us what the site needs.");
   const steps = arr(content, "steps");
   const target = asSection(owner);
-  const displaySteps = steps.length > 0
-    ? steps.map(s => str(s, "step"))
-    : ["Required service", "Project or site location", "Known depth or capacity needs", "Preferred project timeline"];
+  // Seed data stores plain strings; the editor stores { step } rows. Accept both.
+  const fromContent = (steps as unknown[]).map((s) => (typeof s === "string" ? s : str(s as Record<string, unknown>, "step"))).filter(Boolean);
+  const displaySteps = fromContent.length > 0 ? fromContent : ["Required service", "Project or site location", "Known depth or capacity needs", "Preferred project timeline"];
 
   return (
-    <section className="bg-black px-4 py-12 sm:px-5 sm:py-24 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <section className="theme-public section-y">
+      <div className="container-x grid gap-u5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-u8">
         <Reveal>
           <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-            <p className="text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
+            <p className="t-eyebrow">{eyebrow}</p>
           </Editable>
           <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-            <h2 className="mt-4 sm:mt-5 font-display text-2xl sm:text-4xl font-bold uppercase">{heading}</h2>
+            <h2 className="t-h2 mt-u2 text-block">{heading}</h2>
           </Editable>
-          <ol className="mt-6 sm:mt-8 space-y-4 sm:space-y-6">
+        </Reveal>
+        <Reveal delay={0.1}>
+          <ol className="border-b border-stbs-hairline">
             {displaySteps.map((step, i) => (
-              <li key={i} className="flex items-center gap-3 sm:gap-4 border-b border-white/10 pb-4 sm:pb-5">
-                <span className="font-display text-xl sm:text-2xl text-signal">0{i + 1}</span>
-                <span className="text-sm text-white/60">{step}</span>
+              <li key={i} className="rule flex items-baseline gap-u3 py-u2">
+                <span className="font-heading text-lg font-bold tabular-nums text-stbs-brand-mid">0{i + 1}</span>
+                <span className="t-body">{step}</span>
               </li>
             ))}
           </ol>
@@ -941,15 +977,16 @@ function QuoteIntroSection({ owner, content }: { owner?: RenderableSection; cont
 
 function QuoteFormSection() {
   return (
-    <section className="bg-black px-4 py-12 sm:px-5 sm:py-24 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <QuoteForm />
+    <section className="theme-public band-alt section-y">
+      <div className="container-x">
+        <h2 className="t-h2 text-block">Your details</h2>
+        <div className="tile mt-u4 max-w-[880px] p-u3 md:p-u5">
+          <QuoteForm />
+        </div>
       </div>
     </section>
   );
 }
-
-/* ── section dispatcher ──────────────────────────────────────────────────── */
 
 export function SectionRenderer({
   section,

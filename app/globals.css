@@ -89,6 +89,7 @@
   --accent: #D18B35;          /* primary CTA ONLY (= existing --color-engineering-amber) */
   --accent-hover: #C27B28;
   --verified: #1F7A52;        /* checkmarks, trust badges (reference value) */
+  --danger: #B42318;          /* form validation only (6.5:1 on white) */
   /* Text on --brand-deep bands */
   --ink-on-dark: #F4F7F6;
   --muted-on-dark: #9DB0BF;
@@ -156,8 +157,18 @@
   .img-zoom img { transition: transform var(--t-fast) var(--ease-out); }
   .img-zoom:hover img, .hairline-card:hover .img-zoom img { transform: scale(1.02); }
 
+  /* ---- forms ---- */
+  .label-public { display: block; font-size: .9375rem; font-weight: 500; line-height: 1.3; color: var(--ink); }
+  .field-public { display: block; width: 100%; min-height: 48px; margin-top: var(--s1); padding: 0 var(--s2); background: var(--surface); color: var(--ink); border: 1px solid var(--hairline-strong); border-radius: var(--radius); font: inherit; font-size: 1rem; line-height: 1.5; transition: border-color var(--t-fast) var(--ease-out); }
+  textarea.field-public { padding-block: var(--s1); resize: vertical; }
+  .field-public::placeholder { color: var(--muted); }
+  .field-public:hover { border-color: var(--muted); }
+  .field-public[aria-invalid="true"] { border-color: var(--danger); }
+  .error-text { margin-top: var(--s1); font-size: .875rem; line-height: 1.4; color: var(--danger); }
+
   /* ---- buttons: accent is reserved for the primary CTA ---- */
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--s1); min-height: 48px; padding: 0 var(--s3); border-radius: var(--radius); font-family: var(--font-body), Inter, system-ui, sans-serif; font-weight: 500; font-size: 1rem; line-height: 1.2; text-decoration: none; border: 1px solid transparent; transition: background-color var(--t-fast) var(--ease-out), border-color var(--t-fast) var(--ease-out); }
+  .btn:disabled { opacity: .6; cursor: not-allowed; }
   .btn-primary { background: var(--accent); color: var(--ink); }               /* ink on amber = 5.7:1; white would be 2.8:1 */
   .btn-primary:hover { background: var(--accent-hover); }
   .btn-secondary { background: transparent; color: var(--ink); border-color: var(--hairline-strong); }

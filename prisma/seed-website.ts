@@ -31,7 +31,7 @@ import {
 } from "../lib/company";
 import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "../lib/website/home-defaults";
 import { HOME_PROJECTS, PROJECTS } from "../lib/website/projects-data";
-import { ABOUT_SECTIONS, CLIENTS_SECTIONS } from "../lib/website/page-defaults";
+import { ABOUT_SECTIONS, CLIENTS_SECTIONS, CONTACT_SECTIONS, QUOTE_SECTIONS } from "../lib/website/page-defaults";
 
 const prisma = new PrismaClient();
 
@@ -166,39 +166,7 @@ async function seedPages() {
       seoTitle: "Contact | Saini Tubewell",
       metaDescription:
         "Contact Saini Tubewell Boring Service to discuss borewell and tubewell requirements. Call, email, or request a proposal.",
-      sections: [
-        {
-          type: "page_hero",
-          name: "Page hero",
-          position: 0,
-          content: {
-            eyebrow: "Contact",
-            heading: "Start with the requirement.",
-            text: "Tell us what service you need and where the project is located. We will use that information to guide the next conversation.",
-          },
-        },
-        {
-          type: "contact_info",
-          name: "Contact information",
-          position: 1,
-          content: {
-            heading: "Get in touch",
-            description:
-              "Call or email our team directly, or use the quote request to send the service, location and project details in one place.",
-            ctaText: "Request a proposal",
-            ctaUrl: "/quote",
-          },
-        },
-        {
-          type: "map",
-          name: "Map",
-          position: 2,
-          content: {
-            eyebrow: "Find us",
-            embedUrl: "https://www.google.com/maps?q=Sonipat,Haryana&output=embed",
-          },
-        },
-      ],
+      sections: CONTACT_SECTIONS,
     },
     {
       slug: "quote",
@@ -207,39 +175,7 @@ async function seedPages() {
       seoTitle: "Request a Proposal | Saini Tubewell",
       metaDescription:
         "Request a proposal for borewell drilling, rainwater harvesting, material supply or tubewell construction.",
-      sections: [
-        {
-          type: "page_hero",
-          name: "Page hero",
-          position: 0,
-          content: {
-            eyebrow: "Start a project",
-            heading: "Tell us what the site needs.",
-            text: "Share the basic project details. The request form is structured to help the team understand your service and site requirements.",
-          },
-        },
-        {
-          type: "quote_intro",
-          name: "Useful project details",
-          position: 1,
-          content: {
-            eyebrow: "Before we begin",
-            heading: "Useful project details",
-            steps: [
-              "Required service",
-              "Project or site location",
-              "Known depth or capacity needs",
-              "Preferred project timeline",
-            ],
-          },
-        },
-        {
-          type: "quote_form",
-          name: "Quote form",
-          position: 2,
-          content: {},
-        },
-      ],
+      sections: QUOTE_SECTIONS,
     },
   ];
 

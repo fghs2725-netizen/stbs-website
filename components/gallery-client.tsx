@@ -1,25 +1,18 @@
-"use client";
-
+import Link from "next/link";
 import { PageHero } from "@/components/page-hero";
 
+/**
+ * Honest empty state, shown only when no gallery photo is published anywhere. It says what is
+ * true for a visitor (photos are on their way) and points at the projects page that already has
+ * real content, rather than exposing admin instructions.
+ */
 export function GalleryClient() {
   return (
     <>
-      <PageHero
-        eyebrow="Our work"
-        title="Proof in practice."
-        text="Project photos from our field operations will appear here as they are published."
-      />
-
-      <section className="bg-black px-5 py-24 lg:px-8 lg:py-32">
-        <div className="mx-auto max-w-7xl text-center">
-          <p className="font-display text-3xl font-bold uppercase text-white/60 sm:text-4xl lg:text-6xl">
-            Gallery coming soon
-          </p>
-          <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-white/45">
-            No project photographs have been published yet. Images uploaded through the website admin
-            will be shown here once they are approved and published.
-          </p>
+      <PageHero eyebrow="Our work" title="Project photographs are being prepared." text="Photos from our field operations will be published here. Meanwhile, the projects page describes recent work in detail." />
+      <section className="theme-public section-y">
+        <div className="container-x">
+          <Link href="/projects" className="btn btn-primary w-full sm:w-auto">See selected projects</Link>
         </div>
       </section>
     </>
