@@ -145,30 +145,6 @@ export interface PageHeroContent {
   text?: string;
 }
 
-// ─── Section Type Registry ───────────────────────────────────────────────────
-
-export const SECTION_TYPES: Record<string, string> = {
-  hero: "Hero",
-  page_hero: "Page Hero",
-  stats: "Statistics Bar",
-  why_choose: "Why Choose Us",
-  process: "Process Steps",
-  services: "Services",
-  testimonials: "Testimonials",
-  gallery: "Gallery Preview",
-  cta: "Call to Action",
-  text_image: "Text & Image",
-  mission_vision: "Mission & Vision",
-  founder: "Founder",
-  why_stbs: "Why STBS",
-  experience_culture: "Experience & Culture",
-  sectors: "Client Sectors",
-  featured_clients: "Featured Clients",
-  contact_info: "Contact Information",
-  map: "Map",
-  quote_intro: "Quote Introduction",
-};
-
 // ─── Serialization ───────────────────────────────────────────────────────────
 // Converts Prisma objects (with Date, BigInt, Decimal) into plain JSON-safe objects
 // for passing across the server/client boundary.

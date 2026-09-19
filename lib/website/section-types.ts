@@ -42,7 +42,8 @@ export const SECTION_TYPES: Record<string, string> = {
   founder: "Founder",
   why_stbs: "Why STBS",
   experience_culture: "Experience & Culture",
-  sectors: "Client Sectors",
+  sectors: "Sectors Served",
+  case_studies: "Featured Projects",
   featured_clients: "Featured Clients",
   contact_info: "Contact Information",
   map: "Map",
@@ -209,6 +210,32 @@ export const SECTION_TYPE_DEFS: Record<string, SectionTypeDef> = {
     lists: [
       { key: "sections", label: "Story sections", fields: [{ key: "title", label: "Section title", type: "text" }, { key: "body", label: "Body", type: "textarea" }] },
       { key: "values", label: "Core values", fields: [{ key: "value", label: "Value", type: "text" }] },
+    ],
+  },
+  case_studies: {
+    label: "Featured Projects",
+    description: "Project cards: sector, title, location and a one-line summary of what was delivered (the homepage shows the first three; /projects lists all). Use only facts from the client's work order or a verified result.",
+    fields: [
+      { key: "eyebrow", label: "Eyebrow", type: "text", placeholder: "Projects" },
+      { key: "heading", label: "Heading", type: "text", placeholder: "Selected projects" },
+      { key: "ctaText", label: "Link text", type: "text", placeholder: "View all projects" },
+      { key: "ctaUrl", label: "Link URL", type: "url", placeholder: "/projects" },
+    ],
+    lists: [
+      {
+        key: "projects",
+        label: "Projects",
+        fields: [
+          { key: "title", label: "Project title", type: "text", placeholder: "Rainwater harvesting pit, <client>" },
+          { key: "location", label: "Location", type: "text", placeholder: "Area, town" },
+          { key: "sector", label: "Sector", type: "text", placeholder: "Industrial" },
+          { key: "summary", label: "One line: what was delivered", type: "textarea" },
+          { key: "scope", label: "Scope (one item per line, shown on /projects)", type: "textarea" },
+          { key: "depth", label: "Depth (only if stated in the order)", type: "text", placeholder: "Up to 40 m" },
+          { key: "output", label: "Output (only a measured, verified result)", type: "text" },
+          { key: "year", label: "Year ordered (not completed)", type: "text", placeholder: "2022" },
+        ],
+      },
     ],
   },
   sectors: {

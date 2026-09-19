@@ -10,6 +10,7 @@
     "test:quotation": "npx tsx scripts/test-quotation-validation.ts",
     "test:website": "npx tsx scripts/test-website-config.ts",
     "test:services": "npx tsx scripts/test-service-pages.ts",
+    "test:projects": "npx tsx scripts/test-projects-data.ts",
     "test:storage": "npx tsx scripts/test-storage-e2e.ts",
     "test:storage-blob": "npx tsx scripts/test-storage-blob-e2e.ts",
     "test:publish": "npx tsx scripts/test-publish-e2e.ts",

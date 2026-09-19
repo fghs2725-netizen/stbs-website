@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/reveal";
 import { company, services, whyChoose, processSteps } from "@/lib/company";
-import { HeroSection, SectorsSection, ServicesSection, StatsSection } from "@/components/public/sections";
+import { CaseStudiesSection, HeroSection, SectorsSection, ServicesSection, StatsSection } from "@/components/public/sections";
 
 function WhyChooseCard({ item, i }: { item: typeof whyChoose[0]; i: number }) {
   return (
@@ -118,6 +118,9 @@ export function HomePage() {
 
       {/* Services: same component the CMS renders, with its defaults */}
       <ServicesSection content={{}} data={{}} />
+
+      {/* Projects: same component the CMS renders, with its defaults */}
+      <CaseStudiesSection content={{}} />
 
       {/* CTA */}
       <section className="relative overflow-hidden bg-signal px-4 py-12 sm:px-5 sm:py-16 text-black lg:px-8">

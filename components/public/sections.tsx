@@ -3,9 +3,10 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain, Construction, Copy, Download, Drill, Droplets, Eye, EyeOff, Factory, Home, Landmark, Pencil, Sprout, Store, Trash2, type LucideIcon } from "lucide-react";
+import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain, Construction, Copy, Download, Drill, Droplets, Eye, EyeOff, Factory, Home, Landmark, MapPin, Pencil, Sprout, Store, Trash2, type LucideIcon } from "lucide-react";
 import { HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "@/lib/website/home-defaults";
 import { SERVICE_PAGES, serviceHref, servicePageFor, type ServiceIconKey } from "@/lib/website/service-pages";
+import { HOME_PROJECTS, resolveProjects } from "@/lib/website/projects-data";
 import { StatsStrip } from "@/components/public/stats-strip";
 import { Reveal } from "@/components/reveal";
 import { QuoteForm } from "@/components/quote-form";
@@ -761,6 +762,51 @@ export function SectorsSection({ owner, content }: { owner?: RenderableSection; 
   );
 }
 
+export function CaseStudiesSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
+  const eyebrow = str(content, "eyebrow", HOME_PROJECTS.eyebrow);
+  const heading = str(content, "heading", HOME_PROJECTS.heading);
+  const ctaText = str(content, "ctaText", HOME_PROJECTS.ctaText);
+  const ctaUrl = str(content, "ctaUrl", HOME_PROJECTS.ctaUrl);
+  const projects = resolveProjects(content.projects).slice(0, 3);
+  const target = asSection(owner);
+  return (
+    <section className="theme-public section-y">
+      <div className="container-x">
+        <Reveal>
+          <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
+            <p className="t-eyebrow">{eyebrow}</p>
+          </Editable>
+          <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
+            <h2 className="t-h2 mt-u2 text-block">{heading}</h2>
+          </Editable>
+        </Reveal>
+        <ul className="mt-u5 grid auto-rows-fr gap-u2 lg:grid-cols-3 lg:gap-u3">
+          {projects.map((p, i) => (
+            <li key={`${p.title}-${i}`}>
+              <Reveal delay={i * 0.05} className="h-full">
+                <Editable target={{ kind: "section", section: target }} label="Edit projects" className="block h-full">
+                  <article className="tile flex h-full flex-col p-u3">
+                    {p.sector && <p className="t-eyebrow">{p.sector}</p>}
+                    <h3 className="t-h3 mt-u1">{p.title}</h3>
+                    <p className="mt-u2 flex items-start gap-u1 text-sm text-stbs-muted">
+                      <MapPin size={16} strokeWidth={1.75} className="mt-[2px] shrink-0 text-stbs-brand-mid" aria-hidden />
+                      {p.location}
+                    </p>
+                    {p.summary && <p className="t-body mt-u2">{p.summary}</p>}
+                  </article>
+                </Editable>
+              </Reveal>
+            </li>
+          ))}
+        </ul>
+        {ctaText && ctaUrl && (
+          <Link href={ctaUrl} className="btn btn-secondary mt-u5 w-full sm:w-auto">{ctaText}</Link>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function FeaturedClientsSection({ owner, content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {
   const eyebrow = str(content, "eyebrow", "Selected partners");
   const heading = str(content, "heading", "Trusted on demanding sites.");
@@ -947,6 +993,7 @@ export function SectionRenderer({
     case "why_stbs": body = <WhyStbsSection owner={section} content={content} />; break;
     case "experience_culture": body = <ExperienceCultureSection owner={section} content={content} />; break;
     case "sectors": body = <SectorsSection owner={section} content={content} />; break;
+    case "case_studies": body = <CaseStudiesSection owner={section} content={content} />; break;
     case "featured_clients": body = <FeaturedClientsSection owner={section} content={content} data={data} />; break;
     case "contact_info": body = <ContactInfoSection owner={section} content={content} data={data} />; break;
     case "map": body = <MapSection owner={section} content={content} />; break;

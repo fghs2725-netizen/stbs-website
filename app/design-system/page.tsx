@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Building2, Check, Drill, Factory, Home, Landmark } from "lucide-react";
 import { Reveal } from "@/components/reveal";
 import { SiteHeader } from "@/components/site-header";
-import { HeroSection, SectorsSection, ServicesSection, StatsSection } from "@/components/public/sections";
+import { CaseStudiesSection, HeroSection, SectorsSection, ServicesSection, StatsSection } from "@/components/public/sections";
 
 // Development-only style guide for the public design system. 404s in production.
 export const metadata: Metadata = { title: "Design system", robots: { index: false, follow: false } };
@@ -69,6 +69,7 @@ export default function DesignSystem() {
       <StatsSection content={{}} />
       <SectorsSection content={{}} />
       <ServicesSection content={{}} data={{}} />
+      <CaseStudiesSection content={{}} />
 
       <section className="section-y">
         <div className="container-x">
