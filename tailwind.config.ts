@@ -13,6 +13,15 @@ export default {
         surface: "#0b1f33",
         water: { primary: "#1677a8", dark: "#0d537a", accent: "#56c5d5", light: "#edf4f3", text: "#102235", deep: "#07131f" },
 
+        // Public design-system tokens (values live in app/globals.css :root). Namespaced
+        // under "stbs" because `ink`/`surface` above already exist with other meanings.
+        stbs: {
+          ink: "var(--ink)", body: "var(--body)", muted: "var(--muted)", hairline: "var(--hairline)",
+          "hairline-strong": "var(--hairline-strong)", surface: "var(--surface)", "surface-alt": "var(--surface-alt)",
+          "brand-deep": "var(--brand-deep)", "brand-mid": "var(--brand-mid)", accent: "var(--accent)", verified: "var(--verified)",
+          "ink-on-dark": "var(--ink-on-dark)", "muted-on-dark": "var(--muted-on-dark)", "hairline-on-dark": "var(--hairline-on-dark)",
+        },
+
         // Document system colors
         navy: {
           50: "#eef4ff",
@@ -50,9 +59,14 @@ export default {
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+        heading: ["var(--font-heading)", "Archivo", "system-ui", "sans-serif"],
+        body: ["var(--font-body)", "Inter", "system-ui", "sans-serif"],
         display: ["Noto Sans", "system-ui", "sans-serif"],
       },
       spacing: {
+        // 8px scale for the public design system: p-u2 = 16px, gap-u3 = 24px, py-u7 = 56px, ...
+        u1: "8px", u2: "16px", u3: "24px", u4: "32px", u5: "40px", u6: "48px", u7: "56px",
+        u8: "64px", u9: "72px", u10: "80px", u11: "88px", u12: "96px", u13: "104px", u14: "112px",
         "1": "0.25rem", "2": "0.5rem", "3": "0.75rem", "4": "1rem", "5": "1.5rem", "6": "2rem", "7": "3rem", "8": "3rem", "9": "3rem",
       },
       borderRadius: {

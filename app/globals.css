@@ -65,3 +65,104 @@
 @media (hover: hover) and (pointer: fine) {
   .water-card:hover { transform: translateY(-2px); }
 }
+
+/* ==========================================================================
+   PUBLIC DESIGN SYSTEM — "industrial confidence"
+   Flat colour, hairline borders, 4px radii, 8px spacing. No gradients, glass
+   or shadows beyond 0 1px 2px. Scoped behind .theme-public so the admin UI
+   (which owns the dark body defaults above) is untouched.
+   Ratio: 60% neutral / 30% brand dark / 10% accent.
+   ========================================================================== */
+:root {
+  /* Colour slots (each maps to an existing brand value unless noted) */
+  --ink: #102235;             /* headings, nav — never pure #000 (= existing --color-text-dark) */
+  --body: #4A5A66;            /* paragraph text (reference value, 7.1:1 on white) */
+  --muted: #5F6F7A;           /* labels, captions. Reference #7C8B96 fails AA (3.5:1); this is 5.2:1 */
+  --hairline: #E2E8EB;        /* every border (reference value) */
+  --hairline-strong: #C7D1D7; /* border on hover — "darkens one step" */
+  --surface: #FFFFFF;         /* cards */
+  --surface-alt: #F4F7F6;     /* alternating sections (= existing --color-mist) */
+  --brand-deep: #0B1F33;      /* dark bands, stats strip, footer (= --color-groundwater-900) */
+  --brand-mid: #1677A8;       /* links, icons (= existing signal / --color-primary) */
+  --accent: #D18B35;          /* primary CTA ONLY (= existing --color-engineering-amber) */
+  --accent-hover: #C27B28;
+  --verified: #1F7A52;        /* checkmarks, trust badges (reference value) */
+  /* Text on --brand-deep bands */
+  --ink-on-dark: #F4F7F6;
+  --muted-on-dark: #9DB0BF;
+  --hairline-on-dark: #28425A;
+
+  /* 8px base scale — every gap is a multiple of 8 */
+  --s1: 8px;  --s2: 16px; --s3: 24px; --s4: 32px; --s5: 40px; --s6: 48px; --s7: 56px;
+  --s8: 64px; --s9: 72px; --s10: 80px; --s11: 88px; --s12: 96px; --s13: 104px; --s14: 112px;
+  --section-y: var(--s7);     /* 56px mobile; 112px from 1024px */
+  --gutter: var(--s2);        /* 16px mobile; 32px from 1024px */
+  --radius: 4px;
+  --nav-h: 68px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-fast: 250ms;
+}
+@media (min-width: 1024px) {
+  :root { --section-y: var(--s14); --gutter: var(--s4); }
+}
+
+/* Typography families: Archivo 700 for headings; Inter 400/500 for everything else. */
+.theme-public {
+  background: var(--surface);
+  color: var(--body);
+  font-family: var(--font-body), Inter, system-ui, sans-serif;
+  font-weight: 400;
+  font-size: clamp(1rem, calc(0.9741rem + 0.1105vw), 1.0625rem);
+  line-height: 1.6;
+  text-align: left;
+  -webkit-font-smoothing: antialiased;
+}
+.theme-public h1, .theme-public h2, .theme-public h3, .theme-public h4 { color: var(--ink); }
+
+@layer components {
+  /* ---- type scale (fluid between 375px and 1280px viewports) ---- */
+  .t-h1 { font-family: var(--font-heading), Archivo, system-ui, sans-serif; font-weight: 700; font-size: clamp(2.5rem, calc(1.5677rem + 3.9779vw), 4.75rem); line-height: .95; letter-spacing: -.03em; color: var(--ink); }
+  .t-h2 { font-family: var(--font-heading), Archivo, system-ui, sans-serif; font-weight: 700; font-size: clamp(1.75rem, calc(1.3356rem + 1.7680vw), 2.75rem); line-height: 1.1; letter-spacing: -.02em; color: var(--ink); }
+  .t-h3 { font-family: var(--font-heading), Archivo, system-ui, sans-serif; font-weight: 700; font-size: clamp(1.125rem, calc(1.0214rem + 0.4420vw), 1.375rem); line-height: 1.3; letter-spacing: -.01em; color: var(--ink); }
+  .t-body { font-size: clamp(1rem, calc(0.9741rem + 0.1105vw), 1.0625rem); line-height: 1.6; letter-spacing: 0; }
+  .t-eyebrow { font-family: var(--font-body), Inter, system-ui, sans-serif; font-weight: 500; font-size: clamp(0.75rem, calc(0.7241rem + 0.1105vw), 0.8125rem); line-height: 1.2; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .t-stat { font-family: var(--font-heading), Archivo, system-ui, sans-serif; font-weight: 700; font-size: clamp(2.75rem, calc(2.0249rem + 3.0939vw), 4.5rem); line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  /* ---- layout ---- */
+  .container-x { width: 100%; max-width: 1280px; margin-inline: auto; padding-inline: var(--gutter); }
+  .section-y { padding-block: var(--section-y); }
+  .measure { max-width: 65ch; }        /* body text */
+  .text-block { max-width: 680px; }    /* headline + intro blocks */
+  .rule { border-top: 1px solid var(--hairline); }          /* thin rule between major sections */
+  .rule-on-dark { border-top: 1px solid var(--hairline-on-dark); }
+  .band-alt { background: var(--surface-alt); }
+  .band-deep { background: var(--brand-deep); color: var(--ink-on-dark); }
+  .band-deep .t-h1, .band-deep .t-h2, .band-deep .t-h3 { color: var(--ink-on-dark); }
+  .band-deep .t-eyebrow { color: var(--muted-on-dark); }
+
+  /* ---- surfaces: 1px hairline instead of shadows, 4px radius ---- */
+  .hairline-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius); transition: border-color var(--t-fast) var(--ease-out); }
+  .hairline-card:hover, .hairline-card:focus-within { border-color: var(--hairline-strong); }
+  .img-zoom { overflow: hidden; border-radius: var(--radius); }
+  .img-zoom img { transition: transform var(--t-fast) var(--ease-out); }
+  .img-zoom:hover img, .hairline-card:hover .img-zoom img { transform: scale(1.02); }
+
+  /* ---- buttons: accent is reserved for the primary CTA ---- */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--s1); min-height: 48px; padding: 0 var(--s3); border-radius: var(--radius); font-family: var(--font-body), Inter, system-ui, sans-serif; font-weight: 500; font-size: 1rem; line-height: 1.2; text-decoration: none; border: 1px solid transparent; transition: background-color var(--t-fast) var(--ease-out), border-color var(--t-fast) var(--ease-out); }
+  .btn-primary { background: var(--accent); color: var(--ink); }               /* ink on amber = 5.7:1; white would be 2.8:1 */
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-secondary { background: transparent; color: var(--ink); border-color: var(--hairline-strong); }
+  .btn-secondary:hover { border-color: var(--ink); }
+  .btn-secondary-dark { background: transparent; color: var(--ink-on-dark); border-color: var(--hairline-on-dark); }
+  .btn-secondary-dark:hover { border-color: var(--ink-on-dark); }
+  .link { color: var(--brand-mid); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .link:hover { color: #0D537A; }
+  .theme-public :focus-visible { outline: 2px solid var(--brand-mid); outline-offset: 2px; }
+  .band-deep :focus-visible { outline-color: var(--ink-on-dark); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hairline-card, .img-zoom img, .btn { transition: none; }
+  .img-zoom:hover img, .hairline-card:hover .img-zoom img { transform: none; }
+}

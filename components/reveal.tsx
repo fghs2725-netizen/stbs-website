@@ -1,27 +1,61 @@
 "use client";
-import { motion } from "framer-motion";
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
+type Phase = "visible" | "hidden" | "shown";
+
+/**
+ * Section-entry motion: 250ms ease-out fade-up, fires once.
+ *
+ * Server render and first client render are identical (content visible), so there is
+ * no hydration mismatch and the page is fully readable without JS. After mount, only
+ * elements that start below the fold are armed (hidden), then revealed once as they
+ * scroll into view. Under prefers-reduced-motion nothing is ever hidden or moved.
+ * No parallax, no bounce, no scroll-jacking.
+ */
 export function Reveal({
   children,
   delay = 0,
   className = "",
-  y = 28,
+  y = 16,
 }: {
   children: ReactNode;
   delay?: number;
   className?: string;
   y?: number;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [phase, setPhase] = useState<Phase>("visible");
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) return; // already on screen: leave it be
+    setPhase("hidden");
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setPhase("shown");
+          io.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  const style =
+    phase === "hidden"
+      ? { opacity: 0, transform: `translateY(${y}px)` }
+      : phase === "shown"
+        ? { opacity: 1, transform: "none", transition: `opacity 250ms cubic-bezier(0.16,1,0.3,1) ${delay}s, transform 250ms cubic-bezier(0.16,1,0.3,1) ${delay}s` }
+        : undefined;
+
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
-    >
+    <div ref={ref} className={className} style={style}>
       {children}
-    </motion.div>
+    </div>
   );
 }
