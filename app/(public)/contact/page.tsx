@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { PageRenderer } from "@/components/public/page-renderer";
 import { pageMetadata } from "@/lib/page-metadata";
+import { SEO } from "@/lib/website/seo-copy";
 import { CONTACT_SECTIONS } from "@/lib/website/page-defaults";
 import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
 
 export const dynamic = "force-dynamic";
 
 const SLUG = "contact";
-const DESCRIPTION = "Contact Saini Tubewell Boring Service to discuss borewell and tubewell requirements. Call, email, or request a proposal.";
 
 export async function generateMetadata(): Promise<Metadata> {
   const meta = await getPublishedPageMeta(SLUG);
-  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? DESCRIPTION, path: "/contact", image: meta.ogImage });
-  return pageMetadata({ title: "Contact", description: DESCRIPTION, path: "/contact" });
+  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? SEO.contact.description, path: "/contact", image: meta.ogImage });
+  return pageMetadata({ ...SEO.contact, path: "/contact", absoluteTitle: true });
 }
 
 export default async function Contact() {

@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { PageRenderer } from "@/components/public/page-renderer";
 import { pageMetadata } from "@/lib/page-metadata";
+import { SEO } from "@/lib/website/seo-copy";
 import { CLIENTS_SECTIONS, fallbackClientRows } from "@/lib/website/page-defaults";
 import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
 
 export const dynamic = "force-dynamic";
 
 const SLUG = "clients";
-const DESCRIPTION = "Water infrastructure support for residential, agricultural, commercial, institutional and industrial requirements.";
 
 export async function generateMetadata(): Promise<Metadata> {
   const meta = await getPublishedPageMeta(SLUG);
-  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? DESCRIPTION, path: "/clients", image: meta.ogImage });
-  return pageMetadata({ title: "Clients", description: DESCRIPTION, path: "/clients" });
+  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? SEO.clients.description, path: "/clients", image: meta.ogImage });
+  return pageMetadata({ ...SEO.clients, path: "/clients", absoluteTitle: true });
 }
 
 export default async function Clients() {

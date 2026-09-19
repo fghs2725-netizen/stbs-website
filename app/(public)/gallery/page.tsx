@@ -3,6 +3,7 @@ import { GalleryClient } from "@/components/gallery-client";
 import { PageRenderer } from "@/components/public/page-renderer";
 import { getPublishedGalleryItems, getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
 import { pageMetadata } from "@/lib/page-metadata";
+import { SEO } from "@/lib/website/seo-copy";
 
 export const dynamic = "force-dynamic";
 
@@ -32,8 +33,8 @@ const FALLBACK_SECTIONS = [
 
 export async function generateMetadata(): Promise<Metadata> {
   const meta = await getPublishedPageMeta(SLUG);
-  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? "Proof of work: images of drilling, installation, and completed projects from our field operations.", path: "/gallery", image: meta.ogImage });
-  return pageMetadata({ title: "Gallery", description: "Proof of work: images of drilling, installation, and completed projects from our field operations.", path: "/gallery" });
+  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? SEO.gallery.description, path: "/gallery", image: meta.ogImage });
+  return pageMetadata({ ...SEO.gallery, path: "/gallery", absoluteTitle: true });
 }
 
 export default async function Gallery() {

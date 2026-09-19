@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { PageRenderer } from "@/components/public/page-renderer";
 import { pageMetadata } from "@/lib/page-metadata";
+import { SEO } from "@/lib/website/seo-copy";
 import { ABOUT_SECTIONS } from "@/lib/website/page-defaults";
 import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
 
 export const dynamic = "force-dynamic";
 
 const SLUG = "about";
-const DESCRIPTION = "Learn about Saini Tubewell Boring Service, providing professional water infrastructure services since 1992.";
 
 export async function generateMetadata(): Promise<Metadata> {
   const meta = await getPublishedPageMeta(SLUG);
-  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? DESCRIPTION, path: "/about", image: meta.ogImage });
-  return pageMetadata({ title: "About", description: DESCRIPTION, path: "/about" });
+  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? SEO.about.description, path: "/about", image: meta.ogImage });
+  return pageMetadata({ ...SEO.about, path: "/about", absoluteTitle: true });
 }
 
 export default async function About() {

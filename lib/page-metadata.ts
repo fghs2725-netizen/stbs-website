@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { absolutePath, SITE_OG_IMAGE } from "@/lib/site-url";
+import { SEO } from "@/lib/website/seo-copy";
 
 export const SITE_NAME = "Saini Tubewell Boring Service";
-export const SITE_DEFAULT_TITLE = "Saini Tubewell Boring Service | Since 1992";
-export const SITE_DEFAULT_DESCRIPTION = "Professional borewell drilling, rainwater harvesting, borewell material supply and tubewell construction services since 1992.";
+export const SITE_DEFAULT_TITLE: string = SEO.home.title;
+export const SITE_DEFAULT_DESCRIPTION: string = SEO.home.description;
 const TITLE_SUFFIX = "Saini Tubewell";
 
 interface PageMetadataInput {

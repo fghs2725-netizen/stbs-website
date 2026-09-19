@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { WebsiteFrame } from "@/components/website/website-frame";
 import { getPublicSiteConfig } from "@/lib/website/public-config";
 import { getPublicSeoMetadata } from "@/lib/website/seo";
-import { absolutePath, canonicalSiteUrl } from "@/lib/site-url";
+import { buildLocalBusiness } from "@/lib/website/structured-data";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function PublicLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const { navLinks, settings, phone } = await getPublicSiteConfig();
-  const localBusiness = { "@context": "https://schema.org", "@type": "HomeAndConstructionBusiness", name: "Saini Tubewell Boring Service", image: absolutePath("/logo.png"), telephone: ["+919812003001", "+917988024114"], email: "stbs2025@gmail.com", areaServed: ["Sonipat", "Panipat", "Kundli", "Rohtak", "Haryana", "Delhi NCR"], foundingDate: "1992", url: canonicalSiteUrl(), openingHours: "Mo-Sa 08:00-19:00" };
-  return <WebsiteFrame navLinks={navLinks} settings={settings} phone={phone}><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusiness) }} />{children}</WebsiteFrame>;
+  // "<" is escaped so structured data can never terminate the script element.
+  const localBusiness = JSON.stringify(buildLocalBusiness()).replace(/</g, "\\u003c");
+  return <WebsiteFrame navLinks={navLinks} settings={settings} phone={phone}><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: localBusiness }} />{children}</WebsiteFrame>;
 }

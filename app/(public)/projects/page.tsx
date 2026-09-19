@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
 import { ProjectsList } from "@/components/public/projects-list";
 import { pageMetadata } from "@/lib/page-metadata";
+import { SEO } from "@/lib/website/seo-copy";
 import { resolveProjects } from "@/lib/website/projects-data";
 import { getPublishedPage } from "@/lib/website/queries";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = pageMetadata({
-  title: "Projects",
-  description: "Rainwater harvesting and borewell projects by Saini Tubewell Boring Service for industrial, institutional and commercial sites in Sonipat and Kundli, Haryana.",
-  path: "/projects",
-});
+export const metadata: Metadata = pageMetadata({ ...SEO.projects, path: "/projects", absoluteTitle: true });
 
 /**
  * The project list is edited once, in the homepage's Featured Projects section

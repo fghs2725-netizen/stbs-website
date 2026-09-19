@@ -36,7 +36,10 @@
  *               the Borewell Drilling and Tubewell Construction pages.
  *  11. about    about-page copy fixes in the CMS rows: the two photo alt texts (the old ones did not
  *               describe the images) and the unmeasurable "100% Focus" stat card -> "20+ Clients".
- *   2. cta      "Request a quote" / "Request quote" / "Request A Quote" -> "Request a proposal"
+ *  12. seo      page titles/descriptions (home, services, clients, about, contact, quote, gallery) and the
+ *               global SEO row -> lib/website/seo-copy.ts (local keywords, no unearned claims); also the
+ *               global canonicalUrl https://stbs.in -> https://www.stbs.in (www is the live host).
+ *   2. cta"Request a quote" / "Request quote" / "Request A Quote" -> "Request a proposal"
  *               (whole-string matches only, inside section content/publishedContent).
  *
  * Before --apply it writes every original row it will change to backups/homepage-<ts>.json
@@ -51,6 +54,7 @@ const prisma = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL_UNPOOL
 import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "../lib/website/home-defaults";
 import { HOME_PROJECTS, PROJECTS } from "../lib/website/projects-data";
 import { CLIENT_LOGOS } from "../lib/website/client-logos";
+import { SEO } from "../lib/website/seo-copy";
 
 type Db = Prisma.TransactionClient;
 type Op = { label: string; before: unknown; run: (db: Db) => Promise<unknown> };
@@ -364,6 +368,36 @@ async function planAbout() {
   }
 }
 
+// ── 12. SEO copy ──────────────────────────────────────────────────────────
+async function planSeo() {
+  const pages = await prisma.websitePage.findMany({ where: { deletedAt: null } });
+  for (const page of pages) {
+    const key = page.slug as keyof typeof SEO;
+    const seo = SEO[key];
+    if (!seo) continue;
+    const ps = page.publishedData as Record<string, unknown> | null;
+    if (page.seoTitle === seo.title && page.metaDescription === seo.description && (!ps || (ps.seoTitle === seo.title && ps.metaDescription === seo.description))) continue;
+    console.log(`  ~ page "${page.slug}" title: ${JSON.stringify(page.seoTitle)} -> ${JSON.stringify(seo.title)}`);
+    ops.push({
+      label: `seo page ${page.slug}`, before: { id: page.id, seoTitle: page.seoTitle, metaDescription: page.metaDescription, publishedData: page.publishedData },
+      run: (db) => db.websitePage.update({ where: { id: page.id }, data: { seoTitle: seo.title, metaDescription: seo.description, ...(ps ? { publishedData: { ...ps, seoTitle: seo.title, metaDescription: seo.description } } : {}) } }),
+    });
+  }
+  const g = await prisma.websiteSeo.findFirst();
+  if (g) {
+    const ps = g.publishedData as Record<string, unknown> | null;
+    const canonical = "https://www.stbs.in";
+    const same = g.globalTitle === SEO.home.title && g.globalDescription === SEO.home.description && g.canonicalUrl === canonical && (!ps || (ps.globalTitle === SEO.home.title && ps.canonicalUrl === canonical));
+    if (!same) {
+      console.log(`  ~ global SEO: title -> ${JSON.stringify(SEO.home.title)}; canonicalUrl ${JSON.stringify(g.canonicalUrl)} -> ${JSON.stringify(canonical)}`);
+      ops.push({
+        label: "seo global", before: g,
+        run: (db) => db.websiteSeo.update({ where: { id: g.id }, data: { globalTitle: SEO.home.title, globalDescription: SEO.home.description, canonicalUrl: canonical, ...(ps ? { publishedData: { ...ps, globalTitle: SEO.home.title, globalDescription: SEO.home.description, canonicalUrl: canonical } } : {}) } }),
+      });
+    }
+  }
+}
+
 async function main() {
   const apply = process.argv.includes("--apply");
   const rehearse = process.argv.includes("--rehearse");
@@ -377,6 +411,7 @@ async function main() {
   console.log("Step 8: featured projects"); await planProjects();
   console.log("Step 9: closing CTA"); await planClosingCta();
   console.log("Step 11: about-page copy"); await planAbout();
+  console.log("Step 12: SEO titles and descriptions"); await planSeo();
   console.log("Step 10: final order + relocations"); await planOrder();   // must stay LAST
   console.log(`\n${ops.length} change(s) planned.`);
   if (!apply && !rehearse) { console.log("DRY RUN — nothing written. Re-run with --rehearse (rolled back) or --apply (writes)."); await prisma.$disconnect(); return; }

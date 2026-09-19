@@ -5,9 +5,10 @@ import { PageHero } from "@/components/page-hero";
 import { CtaSection } from "@/components/public/sections";
 import { SERVICE_ICONS } from "@/components/public/service-icons";
 import { pageMetadata } from "@/lib/page-metadata";
+import { SEO } from "@/lib/website/seo-copy";
 import { SERVICE_PAGES } from "@/lib/website/service-pages";
 
-export const metadata: Metadata = pageMetadata({ title: "Services", description: "Explore borewell drilling, rainwater harvesting, material supply and tubewell construction.", path: "/services" });
+export const metadata: Metadata = pageMetadata({ ...SEO["services"], path: "/services", absoluteTitle: true });
 
 export default function Services() {
   return (
