@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import type { QuotationState } from "@/components/quotation/quotation-model";
-import { isQuotationPdfReady } from "@/components/quotation/quotation-model";
+import { calcTotal, getValidItems, isQuotationPdfReady } from "@/components/quotation/quotation-model";
 
 export async function requireAdmin() { const session = await auth(); if (!session?.user) throw new Error("UNAUTHORIZED"); }
 function input(q: QuotationState) { return { date:q.quotationDate, validity:q.validity, serviceType:q.serviceType, customServiceType:q.customServiceType || null, subject:q.subject, clientCompanyName:q.client.companyName, clientContactPerson:q.client.contactPerson || null, clientAddressLine1:q.client.addressLine1 || null, clientAddressLine2:q.client.addressLine2 || null, clientCity:q.client.city || null, clientState:q.client.state || null, clientPinCode:q.client.pinCode || null, clientPhone:q.client.phone || null, clientEmail:q.client.email || null }; }
@@ -10,7 +10,12 @@ async function reference(tx:any) { const year = new Date().getFullYear(); const 
 export async function saveQuotation(q: QuotationState) { await requireAdmin(); return prisma.$transaction(async tx => { const data=input(q); const items={create:q.items.map((i,n)=>({position:n,description:i.description,unit:i.unit,quantity:i.quantity,rate:i.rate}))}; let clientId=q.clientId; if(q.saveClientForFuture && !clientId){ const existing=await tx.client.findFirst({where:{companyName:data.clientCompanyName,phone:data.clientPhone||undefined,email:data.clientEmail||undefined}}); const client=existing || await tx.client.create({data:{companyName:data.clientCompanyName,contactPerson:data.clientContactPerson,addressLine1:data.clientAddressLine1,addressLine2:data.clientAddressLine2,city:data.clientCity,state:data.clientState,pinCode:data.clientPinCode,phone:data.clientPhone,email:data.clientEmail}}); clientId=client.id; } if(q.id){ const old=await tx.quotation.findUnique({where:{id:q.id}}); if(!old) throw new Error("NOT_FOUND"); if(old.status !== "DRAFT") throw new Error("FINAL_READ_ONLY"); return state(await tx.quotation.update({where:{id:q.id},data:{...data,clientId,items:{deleteMany:{},...items}} ,include:{items:{orderBy:{position:"asc"}}}})); } const referenceValue=await reference(tx); return state(await tx.quotation.create({data:{...data,clientId,reference:referenceValue,items},include:{items:true}})); }); }
 export async function getQuotation(id:string){await requireAdmin(); const x=await prisma.quotation.findUnique({where:{id},include:{items:{orderBy:{position:"asc"}}}}); return x?state(x):null;}
 export async function getQuotationForPdfRender(id:string){const x=await prisma.quotation.findUnique({where:{id},include:{items:{orderBy:{position:"asc"}}}}); return x?state(x):null;}
-export async function listQuotations(search = "", status = "ALL", page = 1, pageSize = 20) {
+export type QuotationSort = "updated" | "created" | "reference" | "client" | "amount";
+export type QuotationListOptions = { sort?: QuotationSort; dir?: "asc" | "desc"; from?: string; to?: string };
+const SORT_FIELDS: Record<Exclude<QuotationSort, "amount">, string> = { updated: "updatedAt", created: "createdAt", reference: "reference", client: "clientCompanyName" };
+const isoDay = (v?: string) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
+
+export async function listQuotations(search = "", status = "ALL", page = 1, pageSize = 20, opts: QuotationListOptions = {}) {
   await requireAdmin();
   const where: any = { deletedAt: null };
   if (status !== "ALL") where.status = status;
@@ -21,28 +26,39 @@ export async function listQuotations(search = "", status = "ALL", page = 1, page
       { serviceType: { contains: search, mode: "insensitive" } },
     ];
   }
-  // Offset pagination: staff navigate by page number and filtered views must
-  // stay shareable URLs; datasets here are small enough that skip/take is
-  // simpler and sufficient. id tiebreaker keeps ordering deterministic.
+  // Date range applies to when the quotation was created.
+  const from = isoDay(opts.from), to = isoDay(opts.to);
+  if (from || to) where.createdAt = { ...(from ? { gte: new Date(`${from}T00:00:00.000Z`) } : {}), ...(to ? { lte: new Date(`${to}T23:59:59.999Z`) } : {}) };
+  const dir = opts.dir === "asc" ? "asc" : "desc";
+  const sort = opts.sort && opts.sort !== "amount" && opts.sort in SORT_FIELDS ? opts.sort : "updated";
+  // Offset pagination: staff navigate by page number and filtered views must stay shareable URLs.
+  // id tiebreaker keeps ordering deterministic. Amount is derived from items, so it is display-only (not a sort key).
   const [rows, total] = await Promise.all([
     prisma.quotation.findMany({
       where,
-      orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+      orderBy: [{ [SORT_FIELDS[sort as keyof typeof SORT_FIELDS]]: dir }, { id: "desc" }],
       take: pageSize,
       skip: (page - 1) * pageSize,
-      include: { _count: { select: { items: true } } },
+      include: { items: { select: { quantity: true, rate: true } } },
     }),
     prisma.quotation.count({ where }),
   ]);
   return {
-    rows: rows.map((x: any) => ({
-      ...state({ ...x, items: [] }),
-      itemCount: x._count?.items ?? 0,
-    })),
+    rows: rows.map((x: any) => {
+      const items = x.items.map((i: any) => ({ id: "", description: "x", unit: "x", quantity: Number(i.quantity), rate: Number(i.rate) }));
+      return { ...state({ ...x, items: [] }), createdAt: x.createdAt.toISOString(), itemCount: items.length, amount: calcTotal(getValidItems(items)) };
+    }),
     total,
     totalPages: Math.max(1, Math.ceil(total / pageSize)),
     page,
   };
+}
+export async function deleteQuotation(id: string) {
+  await requireAdmin();
+  const found = await prisma.quotation.findFirst({ where: { id, deletedAt: null }, select: { id: true } });
+  if (!found) throw new Error("NOT_FOUND");
+  // Soft delete: the row and its items stay in the database and can be restored by clearing deletedAt.
+  await prisma.quotation.update({ where: { id }, data: { deletedAt: new Date() } });
 }
 export async function finalizeQuotation(id:string){await requireAdmin(); const q=await getQuotation(id); if(!q) throw new Error("NOT_FOUND"); if(q.status==="FINAL") throw new Error("ALREADY_FINALIZED"); if(!isQuotationPdfReady(q)) throw new Error("INVALID"); await prisma.quotation.update({where:{id},data:{status:"FINAL",finalizedAt:new Date()}});}
 export async function duplicateQuotation(id:string){

@@ -1,5 +1,5 @@
 "use server";
-import { saveQuotation, finalizeQuotation, duplicateQuotation } from "@/lib/quotation-management";
+import { saveQuotation, finalizeQuotation, duplicateQuotation, deleteQuotation } from "@/lib/quotation-management";
 import type { QuotationState } from "@/components/quotation/quotation-model";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -9,4 +9,8 @@ export async function duplicateAction(id:string){
   const duplicate = await duplicateQuotation(id);
   revalidatePath("/admin/quotations");
   redirect(`/admin/quotations/${duplicate.id}/edit`);
+}
+export async function deleteAction(id: string) {
+  await deleteQuotation(id);
+  revalidatePath("/admin/quotations");
 }

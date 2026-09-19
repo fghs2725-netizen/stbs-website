@@ -1,6 +1,6 @@
 # STBS rebuild: TODO
 
-Last updated 2026-09-19, after Phase 6 (stopped before the quotation editor). Nothing here has been pushed or applied to production.
+Last updated 2026-09-19, after Phase 7 (quotation editor, owner-independent parts). Nothing here has been pushed or applied to production.
 
 ## A. Done: Phases 4c, 5 and 6
 
@@ -36,7 +36,10 @@ Last updated 2026-09-19, after Phase 6 (stopped before the quotation editor). No
 ### Brief 2: admin panel (analysis done; code not started)
 - [x] Phase 6: quotation snapshot regression test (done)
 - Finding for Q6: the price table sits on a fixed 297mm page with `overflow:hidden`; a long item list is clipped, not paginated (see `many-items` baseline)
-- [ ] Phase 7: quotation editor rebuild. **Blocked on Q1-Q6** below.
+- [x] Phase 7 (done, no template / schema change): line-items table (add, delete with confirm, duplicate, drag + arrow reorder, Tab / Enter / Escape, Indian grouping on blur, numeric-only), undo / redo (Ctrl+Z / Ctrl+Y), autosave of existing drafts with Saved / Saving / Unsaved / Not saved state, Ctrl+S save and Ctrl+P PDF, toasts, confirm dialogs (delete row, finalize, new), inline "what is missing" before finalize, preview debounced 200 ms, list view with search, status, created-date range, sort, amount, view / edit / PDF / duplicate / delete (soft delete via `deletedAt`, restorable).
+- [ ] Phase 7 remainder, **blocked on owner answers (Q1-Q6)** because the template has none of these and I was told not to invent tax logic: specification column, discount, GST (CGST / SGST / IGST), amount in words, financial-year numbering (current scheme `STBS/{calendar year}/{NNN}` is kept), page-4 overflow policy (today the editor warns and blocks PDF, the template clips)
+- [ ] Phase 7 remainder, needs a schema change (migration to be shown before running): saved library of terms and standard line items; expiry date field
+- [ ] Not browser-tested: the full editor (autosave, finalize, list actions) because saving writes to the database in `.env`, which is production. Table, keyboard, undo and dialogs are covered by `npm run test:quotation-items-ui` on a dev-only harness (`/internal/quotation-items-harness`). Please click through the editor once on a non-production database.
 - [ ] Phase 8: DOCX export (PDF export already exists and is server-side)
 - [ ] Phase 9: website editor: zod schemas, character counters, required alt text, client-side image compression, last-10-versions history with rollback, unsaved-changes warning, publish confirmation
 

@@ -1,0 +1,18 @@
+/* Toasts and confirm dialog (used by the editor and the quotation list) */
+.q-toaster{position:fixed;right:16px;bottom:16px;z-index:100;display:flex;flex-direction:column;gap:8px;max-width:min(380px,calc(100vw - 32px))}
+.q-toast{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:#1c2021;border:1px solid #3a3d3e;border-left:3px solid #8ab4d8;color:#f5f0e7;font:600 11px/1.4 var(--font-inter),Arial}
+.q-toast.success{border-left-color:#5f9f6f}
+.q-toast.error{border-left-color:#d06060}
+.q-toast span{flex:1}
+.q-toast button{background:none;border:0;color:#a9a59c;cursor:pointer;font-size:16px;line-height:1}
+@media(max-width:900px){.q-toaster{bottom:76px}}
+
+.q-dialog-backdrop{position:fixed;inset:0;z-index:110;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);padding:16px}
+.q-dialog{width:min(420px,100%);background:#101213;border:1px solid #3a3d3e;padding:20px;color:#f5f0e7;font-family:var(--font-inter),Arial}
+.q-dialog h3{margin:0 0 8px;font:700 14px var(--font-manrope),Arial;color:#d2a65b}
+.q-dialog p{margin:0 0 18px;font-size:12px;line-height:1.5;color:#c9c2b6}
+.q-dialog-actions{display:flex;justify-content:flex-end;gap:8px}
+.q-dialog-actions button{min-height:36px;padding:0 14px;border:1px solid #50504a;background:#1c2021;color:#eee;font:700 10px var(--font-manrope),Arial;letter-spacing:.08em;cursor:pointer}
+.q-dialog-actions button.primary{background:#bf9141;border-color:#bf9141;color:#0b0d0e}
+.q-dialog-actions button.danger{background:#7a2a2a;border-color:#a04040;color:#fff}
+.q-dialog-actions button:disabled{opacity:.5;cursor:not-allowed}
