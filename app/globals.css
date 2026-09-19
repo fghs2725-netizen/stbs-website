@@ -53,3 +53,15 @@ p, li, blockquote { text-wrap: pretty; }
   .admin-input:focus { outline:2px solid var(--admin-accent); outline-offset:2px; border-color:var(--admin-accent); }
   .admin-label { display:block; margin-bottom:4px; color:var(--admin-secondary); font-size:12px; font-weight:500; line-height:1.4; }
 }
+
+/* Mobile: disable hover effects on touch devices */
+@media (max-width: 768px) {
+  .water-card { transition: none; }
+  .water-card:hover { transform: none; border-color: rgba(86,197,213,.2); }
+  img { filter: none !important; }
+}
+
+/* Desktop only: preserve hover effects */
+@media (hover: hover) and (pointer: fine) {
+  .water-card:hover { transform: translateY(-2px); }
+}
