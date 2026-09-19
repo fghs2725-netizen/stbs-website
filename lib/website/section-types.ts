@@ -107,12 +107,10 @@ export const SECTION_TYPE_DEFS: Record<string, SectionTypeDef> = {
   },
   services: {
     label: "Services",
-    description: "Section showing published services.",
+    description: "Icon + short title cards for the published services (managed under Website -> Services). Each card opens that service's own page.",
     fields: [
-      { key: "eyebrow", label: "Eyebrow", type: "text", placeholder: "What we do" },
-      { key: "heading", label: "Heading", type: "text" },
-      { key: "headingHighlight", label: "Highlighted word", type: "text" },
-      { key: "description", label: "Intro text", type: "textarea" },
+      { key: "eyebrow", label: "Eyebrow", type: "text", placeholder: "Services" },
+      { key: "heading", label: "Heading", type: "text", placeholder: "What we deliver" },
     ],
   },
   testimonials: {

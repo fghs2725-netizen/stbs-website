@@ -19,6 +19,10 @@
  *   6. sectors  create the home "Sectors served" section (Industrial, Real estate, Government & tenders,
  *               Residential) with draft + published content. Its position is provisional (100):
  *               the final ordering step places every home section.
+ *   7. services home/services content -> "Services / What we deliver" (icon + title cards; the old
+ *               description and highlighted-word fields are dropped), and the CMS service
+ *               "Borewell Material Supply" is renamed "Material Supply" (draft + snapshot) so the
+ *               card matches the brief. Slugs/URLs are untouched.
  *   2. cta      "Request a quote" / "Request quote" / "Request A Quote" -> "Request a proposal"
  *               (whole-string matches only, inside section content/publishedContent).
  *
@@ -28,7 +32,7 @@
  */
 import fs from "node:fs";
 import { prisma } from "../lib/prisma";
-import { HOME_HERO, HOME_SECTORS, HOME_STATS } from "../lib/website/home-defaults";
+import { HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "../lib/website/home-defaults";
 
 type Op = { label: string; before: unknown; run: () => Promise<unknown> };
 const ops: Op[] = [];
@@ -195,6 +199,30 @@ async function planSectors() {
   });
 }
 
+// ── 7. services ───────────────────────────────────────────────────────────
+async function planServices() {
+  const sec = await prisma.websiteSection.findFirst({ where: { type: "services", page: { slug: "home" }, deletedAt: null } });
+  if (!sec) console.log("  (no home services section found)");
+  else {
+    const next = { eyebrow: HOME_SERVICES.eyebrow, heading: HOME_SERVICES.heading };
+    const data: Record<string, unknown> = {};
+    const before: Record<string, unknown> = { id: sec.id };
+    for (const col of ["content", "publishedContent"] as const) {
+      const cur = sec[col] as Record<string, unknown> | null;
+      if (!cur || JSON.stringify(cur) === JSON.stringify(next)) continue;
+      before[col] = cur; data[col] = next;
+      console.log(`  ~ services section ${col}: "${cur.eyebrow}" / "${cur.heading}${cur.headingHighlight ? " " + cur.headingHighlight : ""}"  ->  "${next.eyebrow}" / "${next.heading}"  (drops: ${Object.keys(cur).filter((k) => !(k in next)).join(", ")})`);
+    }
+    if (Object.keys(data).length) ops.push({ label: `services section ${sec.id}`, before, run: () => prisma.websiteSection.update({ where: { id: sec.id }, data: data as never }) });
+  }
+  const row = await prisma.websiteService.findFirst({ where: { slug: "borewell-material-supply", deletedAt: null } });
+  if (row && row.title !== "Material Supply") {
+    const ps = row.publishedData as Record<string, unknown> | null;
+    console.log(`  ~ service "${row.title}" -> "Material Supply" (slug ${row.slug} unchanged)`);
+    ops.push({ label: `service ${row.id}`, before: row, run: () => prisma.websiteService.update({ where: { id: row.id }, data: { title: "Material Supply", ...(ps ? { publishedData: { ...ps, title: "Material Supply" } } : {}) } }) });
+  }
+}
+
 async function main() {
   const apply = process.argv.includes("--apply");
   console.log("Step 1: navigation"); await planNav();
@@ -203,6 +231,7 @@ async function main() {
   console.log("Step 4: stats strip"); await planStats();
   console.log("Step 5: client logos"); await planLogos();
   console.log("Step 6: sectors section"); await planSectors();
+  console.log("Step 7: services cards"); await planServices();
   console.log(`\n${ops.length} change(s) planned.`);
   if (!apply) { console.log("DRY RUN — nothing written. Re-run with --apply to write."); await prisma.$disconnect(); return; }
   if (!ops.length) { await prisma.$disconnect(); return; }

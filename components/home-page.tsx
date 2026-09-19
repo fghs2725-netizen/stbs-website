@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/reveal";
 import { company, services, whyChoose, processSteps } from "@/lib/company";
-import { HeroSection, SectorsSection, StatsSection } from "@/components/public/sections";
+import { HeroSection, SectorsSection, ServicesSection, StatsSection } from "@/components/public/sections";
 
 function WhyChooseCard({ item, i }: { item: typeof whyChoose[0]; i: number }) {
   return (
@@ -116,40 +116,8 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Services */}
-      <section className="water-surface-dark px-4 py-12 sm:px-5 sm:py-20 lg:px-8 lg:py-28">
-        <div className="mx-auto max-w-7xl">
-          <Reveal>
-            <div className="mb-8 sm:mb-12 flex flex-col gap-4 sm:gap-6 md:flex-row md:items-end">
-              <div>
-                <p className="mb-3 sm:mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">What we do</p>
-                <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl font-bold uppercase leading-none">
-                  Complete water<br /><span className="text-signal">infrastructure</span>
-                </h2>
-              </div>
-              <p className="max-w-md text-sm leading-relaxed sm:leading-7 text-white/50">
-                From the first site assessment to final construction and supply, every service is delivered with field discipline and practical expertise.
-              </p>
-            </div>
-          </Reveal>
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
-            {services.map((s, i) => (
-              <Reveal key={s.title} delay={i * 0.08}>
-                <Link href={["/borewell-drilling", "/rainwater-harvesting", "/borewell-material-supply", "/tubewell-construction"][i]} className="water-card group flex flex-col gap-5 sm:gap-6 p-5 sm:p-8 transition-all hover:-translate-y-1 hover:border-signal/60">
-                  <div className="flex items-start justify-between">
-                    <div className="grid size-12 sm:size-14 place-items-center bg-signal/10 text-signal transition group-hover:bg-signal group-hover:text-black">
-                      <s.icon size={22} />
-                    </div>
-                    <span className="font-display text-4xl lg:text-6xl text-white/5">0{i + 1}</span>
-                  </div>
-                  <h3 className="font-display text-2xl sm:text-3xl font-semibold uppercase">{s.title}</h3>
-                  <p className="text-sm leading-relaxed sm:leading-7 text-white/60">{s.text}</p>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Services: same component the CMS renders, with its defaults */}
+      <ServicesSection content={{}} data={{}} />
 
       {/* CTA */}
       <section className="relative overflow-hidden bg-signal px-4 py-12 sm:px-5 sm:py-16 text-black lg:px-8">

@@ -3,8 +3,9 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Building2, Construction, Copy, Download, Droplets, Eye, EyeOff, Factory, Home, Landmark, Pencil, Sprout, Store, Trash2, type LucideIcon } from "lucide-react";
-import { HOME_HERO, HOME_SECTORS, HOME_STATS } from "@/lib/website/home-defaults";
+import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain, Construction, Copy, Download, Drill, Droplets, Eye, EyeOff, Factory, Home, Landmark, Pencil, Sprout, Store, Trash2, type LucideIcon } from "lucide-react";
+import { HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "@/lib/website/home-defaults";
+import { SERVICE_PAGES, serviceHref, servicePageFor, type ServiceIconKey } from "@/lib/website/service-pages";
 import { StatsStrip } from "@/components/public/stats-strip";
 import { Reveal } from "@/components/reveal";
 import { QuoteForm } from "@/components/quote-form";
@@ -85,7 +86,6 @@ export interface RenderableSection {
 
 /* ── static fallback imports ─────────────────────────────────────────────── */
 import {
-  services as staticServices,
   whyChoose,
   processSteps,
   company,
@@ -321,57 +321,47 @@ function ProcessSection({ owner, content }: { owner?: RenderableSection; content
   );
 }
 
-function ServicesSection({ owner, content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {
-  const eyebrow = str(content, "eyebrow", "What we do");
-  const heading = str(content, "heading", "Complete water");
-  const headingHighlight = str(content, "headingHighlight", "infrastructure");
-  const description = str(content, "description", "From the first site assessment to final construction and supply, every service is delivered with field discipline and practical expertise.");
-  const target = asSection(owner);
+const SERVICE_ICONS: Record<ServiceIconKey, LucideIcon> = { drill: Drill, rain: CloudRain, supply: Boxes, tubewell: Construction };
 
-  const cmsServices = data.services;
-  const useCms = cmsServices && cmsServices.length > 0;
-  const displayServices = useCms
-    ? cmsServices.map(s => ({ title: s.title, text: s.shortDescription ?? "", image: s.image, slug: s.slug }))
-    : staticServices.map(s => ({ title: s.title, text: s.text, image: null, slug: "/services" }));
+export function ServicesSection({ owner, content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {
+  const eyebrow = str(content, "eyebrow", HOME_SERVICES.eyebrow);
+  // Older content split the heading in two (heading + highlighted word); join them.
+  const heading = [str(content, "heading", HOME_SERVICES.heading), str(content, "headingHighlight")].filter(Boolean).join(" ");
+  const target = asSection(owner);
+  const cms = data.services;
+  const items = cms && cms.length > 0
+    ? cms.map((s) => ({ title: s.title, slug: s.slug }))
+    : SERVICE_PAGES.map((s) => ({ title: s.title, slug: s.slug }));
 
   return (
-    <section className="water-surface-dark px-4 py-12 sm:px-5 sm:py-24 lg:px-8 lg:py-32">
-      <div className="mx-auto max-w-7xl">
+    <section className="theme-public band-alt section-y">
+      <div className="container-x">
         <Reveal>
-          <div className="mb-10 sm:mb-16 flex flex-col gap-4 sm:gap-6 md:flex-row md:items-end">
-            <div>
-              <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-                <p className="mb-3 sm:mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
-              </Editable>
-              <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-                <h2 className="font-display text-3xl sm:text-5xl lg:text-7xl font-bold uppercase leading-none">
-                  {heading}<br /><span className="text-signal">{headingHighlight}</span>
-                </h2>
-              </Editable>
-            </div>
-            {description && <p className="max-w-md text-sm leading-relaxed sm:leading-7 text-white/50">{description}</p>}
-          </div>
+          <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
+            <p className="t-eyebrow">{eyebrow}</p>
+          </Editable>
+          <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
+            <h2 className="t-h2 mt-u2 text-block">{heading}</h2>
+          </Editable>
         </Reveal>
-        <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
-          {displayServices.map((s, i) => (
-            <Reveal key={s.title} delay={i * 0.08}>
-              <Editable target={{ kind: "services" }} label="Edit service" className="h-full block">
-                <Link href={s.slug} className="water-card group flex h-full flex-col gap-5 sm:gap-6 p-5 sm:p-8 transition-all hover:-translate-y-1 hover:border-signal/60">
-                  {s.image && (
-                    <div className="relative -mx-5 -mt-5 sm:-mx-8 sm:-mt-8 h-40 sm:h-48 overflow-hidden border-b border-white/10">
-                      <Image src={s.image} alt={`${s.title} service`} fill className="object-cover grayscale transition duration-700 group-hover:scale-105 group-hover:grayscale-0" sizes="(max-width:768px) 100vw, 50vw" />
-                    </div>
-                  )}
-                  <div className="flex items-start justify-between">
-                    <span className="font-display text-4xl sm:text-4xl text-water-accent/20">0{i + 1}</span>
-                  </div>
-                  <h3 className="font-display text-2xl sm:text-3xl font-semibold uppercase">{s.title}</h3>
-                  <p className="text-sm leading-relaxed sm:leading-7 text-white/60">{s.text}</p>
-                </Link>
-              </Editable>
-            </Reveal>
-          ))}
-        </div>
+        <ul className="mt-u5 grid auto-rows-fr grid-cols-2 gap-u2 lg:grid-cols-4 lg:gap-u3">
+          {items.map((s, i) => {
+            const page = servicePageFor(s.slug);
+            const Icon = page ? SERVICE_ICONS[page.icon] : Droplets;
+            return (
+              <li key={`${s.slug}-${i}`}>
+                <Reveal delay={i * 0.05} className="h-full">
+                  <Editable target={{ kind: "services" }} label="Edit service" className="block h-full">
+                    <Link href={serviceHref(s.slug)} className="hairline-card flex h-full flex-col gap-u3 p-u2 md:p-u3">
+                      <Icon size={32} strokeWidth={1.75} className="shrink-0 text-stbs-brand-mid" aria-hidden />
+                      <h3 className="t-h3">{s.title}</h3>
+                    </Link>
+                  </Editable>
+                </Reveal>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </section>
   );

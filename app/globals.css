@@ -120,6 +120,7 @@
   text-align: left;
   -webkit-font-smoothing: antialiased;
 }
+.theme-public.band-alt { background: var(--surface-alt); }
 .theme-public h1, .theme-public h2, .theme-public h3, .theme-public h4 { color: var(--ink); }
 
 @layer components {

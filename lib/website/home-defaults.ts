@@ -38,3 +38,9 @@ export const HOME_SECTORS = {
   heading: "Who we build for",
   sectors: [{ name: "Industrial" }, { name: "Real estate" }, { name: "Government & tenders" }, { name: "Residential" }],
 } as const;
+
+/** Services cards: icon + short title only. Titles/links come from lib/website/service-pages.ts. */
+export const HOME_SERVICES = {
+  eyebrow: "Services",
+  heading: "What we deliver",
+} as const;
