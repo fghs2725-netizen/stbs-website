@@ -1,78 +1,122 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, ArrowUpRight, Pencil } from "lucide-react";
-import { useState } from "react";
-import { motion, useMotionValueEvent, useScroll } from "framer-motion";
+import { Menu, X, Phone, Pencil } from "lucide-react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useWebsiteEditor } from "@/lib/website/editor-context";
+import { DEFAULT_NAV_LINKS, isActiveNavLink, isPublicNavLink, type NavLink } from "@/lib/website/nav-defaults";
+import { formatIndianPhone, telHref } from "@/lib/phone";
 
-const DEFAULT_LINKS = ["About", "Services", "Clients", "Gallery", "Contact"];
+const CTA_LABEL = "Request a proposal";
+const CTA_HREF = "/quote";
 
-export function SiteHeader({ navLinks, businessName, logoUrl, mobileLogoUrl }: { navLinks?: Array<{ label: string; href: string }>; businessName?: string; logoUrl?: string; mobileLogoUrl?: string }) {
-  const links = navLinks?.length
-    ? navLinks.filter(l => !l.href.startsWith("/admin") && !l.href.startsWith("/quote") && l.label.toLowerCase() !== "admin").map(l => l.label)
-    : DEFAULT_LINKS;
+/**
+ * Sticky 68px navbar on --brand-deep with a hairline bottom border. It sits on the dark
+ * brand colour because the STBS logo is a white wordmark. Flat: no blur, no shadow.
+ * Links are CMS-driven (Website -> Navigation); admin links and the quote page are
+ * never rendered here (the quote page is the CTA button).
+ */
+export function SiteHeader({ navLinks, businessName, logoUrl, mobileLogoUrl, phone }: { navLinks?: NavLink[]; businessName?: string; logoUrl?: string; mobileLogoUrl?: string; phone?: string }) {
+  const links = (navLinks?.length ? navLinks : DEFAULT_NAV_LINKS).filter(isPublicNavLink);
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const { scrollY } = useScroll();
-  useMotionValueEvent(scrollY, "change", latest => setScrolled(latest > 24));
   const editor = useWebsiteEditor();
   const isEditor = editor.isEditor;
+  const phoneText = phone ? formatIndianPhone(phone) : "";
 
-  const headerPositionClass = isEditor
-    ? "absolute inset-x-0 top-0 z-40 border-b border-white/10 bg-black/85 backdrop-blur-xl"
-    : `fixed inset-x-0 top-0 z-50 border-b transition-all duration-500 ${scrolled || open ? "border-white/10 bg-black/85 shadow-[0_18px_70px_rgba(0,0,0,.35)] backdrop-blur-xl" : "border-white/0 bg-black/25 backdrop-blur-sm"}`;
+  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
-  return <motion.header initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: .6, ease: [0.22, 1, 0.36, 1] }} className={headerPositionClass}>
-    <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-5 lg:px-8">
-      <div className="flex items-center gap-2">
-        <Link
-          href="/"
-          data-editor-safe
-          className="flex items-center gap-3 transition-opacity hover:opacity-90"
-          aria-label={businessName && businessName.length > 0 ? `${businessName} home` : "Home"}
-        >
-          <motion.span animate={{ scale: scrolled ? .94 : 1 }} transition={{ duration: .35 }} className="relative block h-[50px] w-36 sm:h-[68px] sm:w-44">
-            <Image src={logoUrl || "/stbs-logo-only.png"} alt="STBS logo" fill className={`object-contain object-left ${mobileLogoUrl ? "hidden sm:block" : ""}`} sizes="176px" priority />
-            {mobileLogoUrl && <Image src={mobileLogoUrl} alt="STBS logo" fill className="object-contain object-left sm:hidden" sizes="176px" priority />}
-          </motion.span>
-        </Link>
-        {isEditor && editor.mode === "edit" && (
+  const focus = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stbs-ink-on-dark";
+  const linkBase = `inline-flex min-h-[48px] items-center font-body text-[0.9375rem] font-medium transition-colors duration-[250ms] ${focus}`;
+
+  return (
+    <header className={`${isEditor ? "absolute" : "sticky"} inset-x-0 top-0 z-50 h-[68px] border-b border-stbs-hairline-on-dark bg-stbs-brand-deep font-body`}>
+      <div className="container-x flex h-full items-center justify-between gap-u2">
+        <div className="flex items-center gap-u2">
+          <Link href="/" data-editor-safe className={`flex items-center ${focus}`} aria-label={businessName ? `${businessName} home` : "Home"}>
+            <span className="relative block h-[44px] w-[104px]">
+              <Image src={logoUrl || "/stbs-logo-only.png"} alt="STBS logo" fill className={`object-contain object-left ${mobileLogoUrl ? "hidden sm:block" : ""}`} sizes="104px" priority />
+              {mobileLogoUrl && <Image src={mobileLogoUrl} alt="STBS logo" fill className="object-contain object-left sm:hidden" sizes="104px" priority />}
+            </span>
+          </Link>
+          {isEditor && editor.mode === "edit" && (
+            <button
+              type="button"
+              data-editor-safe
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); editor.openEditor({ kind: "settings" }); }}
+              className="inline-flex min-h-8 shrink-0 items-center gap-1 rounded-[4px] bg-stbs-ink-on-dark px-2 text-[10px] font-medium uppercase text-stbs-brand-deep"
+              title="Edit Logo in Settings"
+            >
+              <Pencil size={11} strokeWidth={1.75} /> Edit Logo
+            </button>
+          )}
+        </div>
+
+        <nav className="hidden items-center gap-u1 lg:flex" aria-label="Main navigation">
+          {links.map((l) => {
+            const active = isActiveNavLink(l.href, pathname);
+            return (
+              <Link key={l.href} href={l.href} aria-current={active ? "page" : undefined} className={`${linkBase} px-u2 ${active ? "text-stbs-ink-on-dark" : "text-stbs-muted-on-dark hover:text-stbs-ink-on-dark"}`}>
+                <span className={`border-b py-[2px] ${active ? "border-stbs-ink-on-dark" : "border-transparent"}`}>{l.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="flex items-center gap-u2">
+          {phoneText && (
+            <a href={telHref(phone!)} className={`${linkBase} hidden gap-u1 text-stbs-ink-on-dark md:inline-flex`} aria-label={`Call ${phoneText}`}>
+              <Phone size={18} strokeWidth={1.75} aria-hidden /> <span className="tabular-nums">{phoneText}</span>
+            </a>
+          )}
+          <Link href={CTA_HREF} className={`btn btn-primary hidden md:inline-flex ${focus}`}>{CTA_LABEL}</Link>
+          {phoneText && (
+            <a href={telHref(phone!)} className={`inline-flex min-h-[48px] min-w-[48px] items-center justify-center text-stbs-ink-on-dark md:hidden ${focus}`} aria-label={`Call ${phoneText}`}>
+              <Phone size={22} strokeWidth={1.75} aria-hidden />
+            </a>
+          )}
           <button
             type="button"
-            data-editor-safe
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              editor.openEditor({ kind: "settings" });
-            }}
-            className="inline-flex min-h-8 items-center gap-1 rounded bg-signal/90 px-2 text-[10px] font-bold uppercase text-black hover:bg-white shadow-sm transition shrink-0"
-            title="Edit Logo in Settings"
+            className={`inline-flex min-h-[48px] min-w-[48px] items-center justify-center text-stbs-ink-on-dark lg:hidden ${focus}`}
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            aria-label={open ? "Close menu" : "Open menu"}
           >
-            <Pencil size={11} /> Edit Logo
+            {open ? <X size={24} strokeWidth={1.75} aria-hidden /> : <Menu size={24} strokeWidth={1.75} aria-hidden />}
           </button>
-        )}
-      </div>
-      <nav className="hidden items-center gap-7 lg:flex" aria-label="Main navigation">
-        <div className="flex items-center gap-1">
-          {links.map(link => {
-          const href = navLinks?.length ? (navLinks.find(l => l.label === link)?.href ?? `/${link.toLowerCase()}`) : `/${link.toLowerCase()}`;
-          const active = pathname === href || (href !== "/about" && pathname.startsWith(`${href}/`));
-            return <Link key={link} href={href} className={`group relative px-3 py-2 text-[11px] font-semibold uppercase tracking-[.13em] transition-colors duration-300 ${active ? "text-white" : "text-white/55 hover:text-white"}`}>
-            {link}
-            <span className={`absolute bottom-0 left-1/2 h-px -translate-x-1/2 bg-signal transition-all duration-300 ease-out ${active ? "w-3/5 opacity-90" : "w-0 opacity-0 group-hover:w-3/5 group-hover:opacity-100"}`} />
-            </Link>;
-          })}
         </div>
-        <Link href="/quote" className="flex h-11 items-center gap-2 rounded-xl bg-signal px-5 text-xs font-extrabold uppercase tracking-wider text-white transition hover:-translate-y-0.5 hover:bg-water-dark">Request Quote <ArrowUpRight size={16}/></Link>
-      </nav>
-      <button className="inline-flex min-h-11 min-w-11 items-center justify-center text-white lg:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu">{open ? <X/> : <Menu/>}</button>
-    </div>
-    {open && <nav className="border-t border-white/10 bg-black px-5 py-6 lg:hidden">{[...links, "Quote"].map(link => {
-      const href = navLinks?.length ? (navLinks.find(l => l.label === link)?.href ?? `/${link.toLowerCase()}`) : `/${link.toLowerCase()}`;
-      return <Link onClick={() => setOpen(false)} key={link} href={href} className="block border-b border-white/10 py-4 font-display text-2xl uppercase text-white">{link}</Link>;
-    })}</nav>}
-  </motion.header>;
+      </div>
+
+      {open && (
+        <nav id="mobile-nav" aria-label="Mobile navigation" className="absolute inset-x-0 top-full border-b border-stbs-hairline-on-dark bg-stbs-brand-deep">
+          <div className="container-x pb-u3">
+            <ul>
+              {links.map((l) => {
+                const active = isActiveNavLink(l.href, pathname);
+                return (
+                  <li key={l.href} className="border-b border-stbs-hairline-on-dark">
+                    <Link href={l.href} aria-current={active ? "page" : undefined} className={`flex min-h-[56px] items-center font-body text-lg font-medium ${active ? "text-stbs-ink-on-dark" : "text-stbs-muted-on-dark"} ${focus}`}>{l.label}</Link>
+                  </li>
+                );
+              })}
+            </ul>
+            {phoneText && (
+              <a href={telHref(phone!)} className={`mt-u2 flex min-h-[48px] items-center gap-u1 text-stbs-ink-on-dark ${focus}`}>
+                <Phone size={18} strokeWidth={1.75} aria-hidden /> <span className="tabular-nums">{phoneText}</span>
+              </a>
+            )}
+            <Link href={CTA_HREF} className={`btn btn-primary mt-u2 w-full ${focus}`}>{CTA_LABEL}</Link>
+          </div>
+        </nav>
+      )}
+    </header>
+  );
 }

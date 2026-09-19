@@ -243,23 +243,24 @@ async function main() {
   {
     const navItems = await prisma.websiteNavItem.findMany({ where: { deletedAt: null }, orderBy: { position: "asc" } });
     const first = navItems[0];
+    const originalLabel = first.label;
     check(`baseline: ${navItems.length} nav rows, none published`, (await getPublishedNavigation()) === null, "");
 
     // edit first label (draft) — mirrors updateNavItem (only content + status)
     await prisma.websiteNavItem.update({ where: { id: first.id }, data: { label: "About Test V1", status: "DRAFT" } });
     let cfg = await getPublicSiteConfig();
-    check("edit draft -> public nav unchanged (DEFAULT_LINKS)", cfg.navLinks[0].label === "About", cfg.navLinks[0].label);
+    check("edit draft -> public nav unchanged (fallback links)", cfg.navLinks[0].label === "Services", cfg.navLinks[0].label);
     let h = await html("/about");
     check("edit draft -> live header unchanged", h.includes("About Test V1") === false, "no test label in header");
 
-    // publish all 5 (mirror publishNavItem)
+    // publish all rows (mirror publishNavItem)
     for (const n of navItems) {
       const dsnap = { label: n.id === first.id ? "About Test V1" : n.label, url: n.url, position: n.position, visible: true, openNewTab: n.openNewTab, parentId: n.parentId };
       await prisma.websiteNavItem.update({ where: { id: n.id }, data: { status: "PUBLISHED", publishedAt: new Date(), publishedData: dsnap as Prisma.InputJsonValue } });
     }
     cfg = await getPublicSiteConfig();
     const liveNav = await getPublishedNavigation();
-    check("publish -> CMS nav live with edited label", cfg.navLinks[0].label === "About Test V1" && (liveNav as unknown[]).length === 5, `nav[0]='${cfg.navLinks[0].label}'`);
+    check("publish -> CMS nav live with edited label", cfg.navLinks[0].label === "About Test V1" && (liveNav as unknown[]).length === navItems.length, `nav[0]='${cfg.navLinks[0].label}'`);
     h = await html("/about");
     check("publish -> live header shows edited label", h.includes("About Test V1"), "");
 
@@ -275,12 +276,12 @@ async function main() {
       navItems.map((n) => prisma.websiteNavItem.update({ where: { id: n.id }, data: { status: "DRAFT", publishedAt: null, publishedData: Prisma.DbNull } }))
     );
     cfg = await getPublicSiteConfig();
-    check("unpublish -> public nav falls back to DEFAULT_LINKS", cfg.navLinks[0].label === "About", cfg.navLinks[0].label);
+    check("unpublish -> public nav falls back to the default links", cfg.navLinks[0].label === "Services", cfg.navLinks[0].label);
     h = await html("/about");
     check("unpublish -> live header back to static fallback", !h.includes("About Test"), "");
 
     // restore original label
-    await prisma.websiteNavItem.update({ where: { id: first.id }, data: { label: "About", status: "DRAFT", publishedData: Prisma.DbNull, publishedAt: null } });
+    await prisma.websiteNavItem.update({ where: { id: first.id }, data: { label: originalLabel, status: "DRAFT", publishedData: Prisma.DbNull, publishedAt: null } });
     console.log("");
   }
 

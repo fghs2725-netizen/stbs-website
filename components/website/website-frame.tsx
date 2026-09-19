@@ -28,6 +28,7 @@ export function WebsiteFrame({
         businessName={settings?.businessName ?? undefined}
         logoUrl={settings?.primaryLogoUrl ?? settings?.lightLogoUrl ?? settings?.darkLogoUrl ?? settings?.logoUrl ?? undefined}
         mobileLogoUrl={settings?.mobileLogoUrl ?? undefined}
+        phone={settings?.phone || phone || undefined}
       />
       <main className="min-w-0 w-full">{children}</main>
       <SiteFooter settings={settings} navLinks={navLinks} />

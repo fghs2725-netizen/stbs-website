@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Building2, Check, Drill, Factory, Home, Landmark } from "lucide-react";
 import { Reveal } from "@/components/reveal";
+import { SiteHeader } from "@/components/site-header";
 
 // Development-only style guide for the public design system. 404s in production.
 export const metadata: Metadata = { title: "Design system", robots: { index: false, follow: false } };
@@ -18,6 +19,8 @@ export default function DesignSystem() {
   if (process.env.NODE_ENV === "production") notFound();
   return (
     <div className="theme-public min-h-screen">
+      {/* Real navbar with default links, independent of what the CMS nav table currently holds. */}
+      <SiteHeader phone="9812003001" businessName="Saini Tubewell Boring Service" />
       <section className="section-y">
         <div className="container-x">
           <p className="t-eyebrow">Design system</p>

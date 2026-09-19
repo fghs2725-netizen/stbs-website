@@ -1,14 +1,8 @@
 import { getPublishedNavigation, getPublishedSettings } from "@/lib/website/queries";
 import { company } from "@/lib/company";
 import type { CmsSettings } from "@/components/public/sections";
+import { DEFAULT_NAV_LINKS } from "@/lib/website/nav-defaults";
 
-const DEFAULT_LINKS = [
-  { label: "About", href: "/about" },
-  { label: "Services", href: "/services" },
-  { label: "Clients", href: "/clients" },
-  { label: "Gallery", href: "/gallery" },
-  { label: "Contact", href: "/contact" },
-];
 
 export interface PublicSiteConfig {
   navLinks: Array<{ label: string; href: string }>;
@@ -43,7 +37,7 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     : [];
 
   return {
-    navLinks: navItems.length > 0 ? navItems : DEFAULT_LINKS,
+    navLinks: navItems.length > 0 ? navItems : DEFAULT_NAV_LINKS,
     settings: s,
     phone,
   };

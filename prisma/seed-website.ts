@@ -64,7 +64,7 @@ async function seedPages() {
             heading: "Go deeper.",
             headingLine2: "Build stronger.",
             supportingText: company.tagline,
-            primaryCtaText: "Request a quote",
+            primaryCtaText: "Request a proposal",
             primaryCtaUrl: "/quote",
             secondaryCtaText: "Call now",
             secondaryCtaUrl: `tel:+91${company.phones[0]}`,
@@ -146,7 +146,7 @@ async function seedPages() {
           position: 7,
           content: {
             heading: "Let us get your project moving.",
-            ctaText: "Request quote",
+            ctaText: "Request a proposal",
             ctaUrl: "/quote",
             backgroundText: "1992",
           },
@@ -296,7 +296,7 @@ async function seedPages() {
           position: 2,
           content: {
             heading: "Discuss your site requirements.",
-            ctaText: "Request quote",
+            ctaText: "Request a proposal",
             ctaUrl: "/quote",
             backgroundText: "1992",
           },
@@ -389,7 +389,7 @@ async function seedPages() {
       title: "Contact",
       seoTitle: "Contact | Saini Tubewell",
       metaDescription:
-        "Contact Saini Tubewell Boring Service to discuss borewell and tubewell requirements. Call, email, or request a quote.",
+        "Contact Saini Tubewell Boring Service to discuss borewell and tubewell requirements. Call, email, or request a proposal.",
       sections: [
         {
           type: "page_hero",
@@ -409,7 +409,7 @@ async function seedPages() {
             heading: "Get in touch",
             description:
               "Call or email our team directly, or use the quote request to send the service, location and project details in one place.",
-            ctaText: "Request a quote",
+            ctaText: "Request a proposal",
             ctaUrl: "/quote",
           },
         },
@@ -426,11 +426,11 @@ async function seedPages() {
     },
     {
       slug: "quote",
-      name: "Request a Quote",
-      title: "Request a Quote",
-      seoTitle: "Request a Quote | Saini Tubewell",
+      name: "Request a Proposal",
+      title: "Request a Proposal",
+      seoTitle: "Request a Proposal | Saini Tubewell",
       metaDescription:
-        "Request a quote for borewell drilling, rainwater harvesting, material supply or tubewell construction.",
+        "Request a proposal for borewell drilling, rainwater harvesting, material supply or tubewell construction.",
       sections: [
         {
           type: "page_hero",
@@ -560,10 +560,10 @@ async function seedNav() {
     return;
   }
   const links = [
-    { label: "About", url: "/about" },
+    // Navbar order. About and Gallery stay live but are linked from the footer only.
     { label: "Services", url: "/services" },
     { label: "Clients", url: "/clients" },
-    { label: "Gallery", url: "/gallery" },
+    { label: "Projects", url: "/projects" },
     { label: "Contact", url: "/contact" },
   ];
   await prisma.websiteNavItem.createMany({

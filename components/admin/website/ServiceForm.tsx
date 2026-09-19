@@ -21,7 +21,7 @@ export function ServiceForm({ initial }: { initial?: SerializedService }) {
     fullDescription: initial?.fullDescription ?? "",
     icon: initial?.icon ?? "",
     image: initial?.image ?? "",
-    ctaText: initial?.ctaText ?? "Request a quote",
+    ctaText: initial?.ctaText ?? "Request a proposal",
     ctaUrl: initial?.ctaUrl ?? "/quote",
     seoTitle: initial?.seoTitle ?? "",
     seoDescription: initial?.seoDescription ?? "",

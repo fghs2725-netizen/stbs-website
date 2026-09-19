@@ -16,8 +16,8 @@ const SLUG = "contact";
 
 export async function generateMetadata(): Promise<Metadata> {
   const meta = await getPublishedPageMeta(SLUG);
-  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? "Contact Saini Tubewell Boring Service to discuss borewell and tubewell requirements. Call, email, or request a quote.", path: "/contact", image: meta.ogImage });
-  return pageMetadata({ title: "Contact", description: "Contact Saini Tubewell Boring Service to discuss borewell and tubewell requirements. Call, email, or request a quote.", path: "/contact" });
+  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? "Contact Saini Tubewell Boring Service to discuss borewell and tubewell requirements. Call, email, or request a proposal.", path: "/contact", image: meta.ogImage });
+  return pageMetadata({ title: "Contact", description: "Contact Saini Tubewell Boring Service to discuss borewell and tubewell requirements. Call, email, or request a proposal.", path: "/contact" });
 }
 
 function ContactStatic() {
@@ -38,7 +38,7 @@ function ContactStatic() {
               Call or email our team directly, or use the quote request to send the service, location and project details in one place.
             </p>
             <Button asChild variant="dark" size="lg" className="mt-8">
-              <Link href="/quote">Request a quote <ArrowRight size={17} /></Link>
+              <Link href="/quote">Request a proposal <ArrowRight size={17} /></Link>
             </Button>
 
             <div className="mt-12 space-y-6 border-t border-black/10 pt-10">

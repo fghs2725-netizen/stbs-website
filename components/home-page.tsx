@@ -139,7 +139,7 @@ export function HomePage() {
           >
             <Button asChild size="lg" className="h-12 rounded-lg bg-signal px-6 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-signal/90 sm:h-14 sm:px-8 sm:text-sm">
               <Link href="/quote">
-                Request A Quote <ArrowRight size={18} className="ml-2" />
+                Request a proposal <ArrowRight size={18} className="ml-2" />
               </Link>
             </Button>
           </motion.div>
@@ -276,7 +276,7 @@ export function HomePage() {
             Let us get your project moving.
           </h2>
           <Button asChild variant="dark" size="lg">
-            <Link href="/quote">Request quote <ArrowRight size={17} /></Link>
+            <Link href="/quote">Request a proposal <ArrowRight size={17} /></Link>
           </Button>
         </Reveal>
       </section>

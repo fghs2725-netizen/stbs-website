@@ -14,7 +14,7 @@ async function main() {
     heading: "Go deeper.",
     headingLine2: "Build stronger.",
     supportingText: company.tagline,
-    primaryCtaText: "Request a quote",
+    primaryCtaText: "Request a proposal",
     primaryCtaUrl: "/quote",
     secondaryCtaText: "Call now",
     secondaryCtaUrl: `tel:+91${company.phones[0]}`,

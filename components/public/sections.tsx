@@ -161,7 +161,7 @@ function HeroSection({ owner, content }: { owner?: RenderableSection; content: R
   const heading = str(content, "heading", "Go deeper.");
   const headingLine2 = str(content, "headingLine2", "Build stronger.");
   const supportingText = str(content, "supportingText", company.tagline);
-  const primaryCtaText = str(content, "primaryCtaText", "Request a quote");
+  const primaryCtaText = str(content, "primaryCtaText", "Request a proposal");
   const primaryCtaUrl = str(content, "primaryCtaUrl", "/quote");
   const secondaryCtaText = str(content, "secondaryCtaText", "Call now");
   const secondaryCtaUrl = str(content, "secondaryCtaUrl", `tel:+91${company.phones[0]}`);
@@ -478,7 +478,7 @@ function GallerySection({ owner, content, data }: { owner?: RenderableSection; c
 
 function CtaSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
   const heading = str(content, "heading", "Let us get your project moving.");
-  const ctaText = str(content, "ctaText", "Request quote");
+  const ctaText = str(content, "ctaText", "Request a proposal");
   const ctaUrl = str(content, "ctaUrl", "/quote");
   const backgroundText = str(content, "backgroundText", "1992");
   const target = asSection(owner);
@@ -789,7 +789,7 @@ function FeaturedClientsSection({ owner, content, data }: { owner?: RenderableSe
 function ContactInfoSection({ owner, content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {
   const heading = str(content, "heading", "Get in touch");
   const description = str(content, "description");
-  const ctaText = str(content, "ctaText", "Request a quote");
+  const ctaText = str(content, "ctaText", "Request a proposal");
   const ctaUrl = str(content, "ctaUrl", "/quote");
   const target = asSection(owner);
   const s = data.settings;

@@ -23,13 +23,7 @@ import type {
 } from "@/lib/website/action-types";
 import type { CmsClient, CmsGalleryItem, CmsService, CmsSettings, CmsTestimonial } from "@/components/public/sections";
 
-const DEFAULT_LINKS = [
-  { label: "About", href: "/about" },
-  { label: "Services", href: "/services" },
-  { label: "Clients", href: "/clients" },
-  { label: "Gallery", href: "/gallery" },
-  { label: "Contact", href: "/contact" },
-];
+import { DEFAULT_NAV_LINKS } from "@/lib/website/nav-defaults";
 
 export interface WebsiteEditorData {
   pages: SerializedPage[];
@@ -59,7 +53,7 @@ function buildPreviewData(input: WebsiteEditorData): { data: SectionData; navLin
 
   return {
     data: { services, testimonials, gallery, clients, featuredClients, settings },
-    navLinks: navItems.length > 0 ? navItems : DEFAULT_LINKS,
+    navLinks: navItems.length > 0 ? navItems : DEFAULT_NAV_LINKS,
     phone: primaryPhone(settings),
   };
 }

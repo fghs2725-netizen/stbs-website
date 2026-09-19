@@ -12,8 +12,8 @@ const SLUG = "quote";
 
 export async function generateMetadata(): Promise<Metadata> {
   const meta = await getPublishedPageMeta(SLUG);
-  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? "Request a quote for borewell drilling, rainwater harvesting, material supply or tubewell construction.", path: "/quote", image: meta.ogImage });
-  return pageMetadata({ title: "Request a Quote", description: "Request a quote for borewell drilling, rainwater harvesting, material supply or tubewell construction.", path: "/quote" });
+  if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? "Request a proposal for borewell drilling, rainwater harvesting, material supply or tubewell construction.", path: "/quote", image: meta.ogImage });
+  return pageMetadata({ title: "Request a Proposal", description: "Request a proposal for borewell drilling, rainwater harvesting, material supply or tubewell construction.", path: "/quote" });
 }
 
 function QuoteStatic() {

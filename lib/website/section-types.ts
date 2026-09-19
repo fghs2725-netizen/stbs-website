@@ -59,7 +59,7 @@ export const SECTION_TYPE_DEFS: Record<string, SectionTypeDef> = {
       { key: "heading", label: "Heading (line 1)", type: "text", placeholder: "Go deeper." },
       { key: "headingLine2", label: "Heading (line 2)", type: "text", placeholder: "Build stronger." },
       { key: "supportingText", label: "Supporting text", type: "text" },
-      { key: "primaryCtaText", label: "Primary CTA text", type: "text", placeholder: "Request a quote" },
+      { key: "primaryCtaText", label: "Primary CTA text", type: "text", placeholder: "Request a proposal" },
       { key: "primaryCtaUrl", label: "Primary CTA URL", type: "url", placeholder: "/quote" },
       { key: "secondaryCtaText", label: "Secondary CTA text", type: "text", placeholder: "Call now" },
       { key: "secondaryCtaUrl", label: "Secondary CTA URL", type: "url", placeholder: "tel:+91..." },

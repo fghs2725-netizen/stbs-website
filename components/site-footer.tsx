@@ -4,15 +4,17 @@ import Image from "next/image";
 import { ArrowUpRight, Pencil } from "lucide-react";
 import type { CmsSettings } from "@/components/public/sections";
 import { useWebsiteEditor } from "@/lib/website/editor-context";
+import { DEFAULT_NAV_LINKS, FOOTER_ONLY_LINKS, isPublicNavLink } from "@/lib/website/nav-defaults";
 
-const DEFAULT_LINKS = ["About", "Services", "Clients", "Gallery", "Contact"];
 
 export function SiteFooter({ settings, navLinks }: { settings?: Pick<CmsSettings, 'businessName' | 'shortDescription' | 'phone' | 'phone2' | 'email' | 'primaryLogoUrl' | 'lightLogoUrl' | 'darkLogoUrl' | 'logoUrl'> | null; navLinks?: Array<{ label: string; href: string }> }) {
   const phones = [settings?.phone, settings?.phone2].filter((p): p is string => Boolean(p));
   const email = settings?.email ?? "";
   const name = settings?.businessName ?? "";
   const tagline = settings?.shortDescription ?? "";
-  const links = navLinks?.length ? navLinks.filter(l => !l.href.startsWith("/admin") && !l.href.startsWith("/quote") && !l.label.toLowerCase().includes("quote") && l.label.toLowerCase() !== "admin").map(l => l.label) : DEFAULT_LINKS;
+  // Main nav links first, then footer-only pages (About, Gallery) that are no longer in the navbar.
+  const main = (navLinks?.length ? navLinks : DEFAULT_NAV_LINKS).filter(isPublicNavLink);
+  const links = [...main, ...FOOTER_ONLY_LINKS.filter(x => !main.some(m => m.href === x.href))];
   const editor = useWebsiteEditor();
   const isEditor = editor.isEditor;
 
@@ -55,10 +57,7 @@ export function SiteFooter({ settings, navLinks }: { settings?: Pick<CmsSettings
         </div>
         <div>
           <p className="mb-4 sm:mb-5 text-xs font-bold uppercase tracking-[.2em] text-signal">Navigate</p>
-          {links.map(x => {
-            const href = navLinks?.length ? (navLinks.find(l => l.label === x)?.href ?? `/${x.toLowerCase()}`) : `/${x.toLowerCase()}`;
-            return <Link className="mb-1 flex min-h-11 items-center text-sm text-white/60 hover:text-white" href={href} key={x}>{x}</Link>;
-          })}
+          {links.map(x => <Link className="mb-1 flex min-h-11 items-center text-sm text-white/60 hover:text-white" href={x.href} key={x.href}>{x.label}</Link>)}
         </div>
         <div>
           <p className="mb-4 sm:mb-5 text-xs font-bold uppercase tracking-[.2em] text-signal">Contact</p>
@@ -69,7 +68,7 @@ export function SiteFooter({ settings, navLinks }: { settings?: Pick<CmsSettings
             <a href={`mailto:${email}`} className="mb-1 flex min-h-11 items-center text-sm text-white/60 hover:text-white">{email}</a>
           )}
           <Link href="/quote" className="inline-flex min-h-11 items-center gap-2 border-b border-signal font-bold">
-            Request a quote <ArrowUpRight size={16}/>
+            Request a proposal <ArrowUpRight size={16}/>
           </Link>
         </div>
       </div>
