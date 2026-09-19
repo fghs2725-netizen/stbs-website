@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Award, MapPin, Wrench, Leaf } from "lucide-react";
@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/reveal";
 import { company, services, trustItems, whyChoose, processSteps } from "@/lib/company";
+import { HeroSection } from "@/components/public/sections";
 
 function WhyChooseCard({ item, i }: { item: typeof whyChoose[0]; i: number }) {
   return (
@@ -62,114 +63,8 @@ const heroFeatures = [
 export function HomePage() {
   return (
     <>
-      {/* Hero */}
-      <section className="relative flex min-h-[85vh] items-end overflow-hidden bg-[#07131f] pt-20 sm:pt-24 lg:min-h-[90vh]">
-        {/* Hero Image */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute inset-0"
-        >
-          <Image
-            src="/stbs-drilling-rig-real.png"
-            alt="STBS drilling rig on industrial construction site"
-            fill
-            priority
-            className="object-cover object-[65%_center] sm:object-[70%_center] lg:object-right"
-            sizes="100vw"
-          />
-        </motion.div>
-
-        {/* Dark gradient overlay - stronger on left for text legibility */}
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(7,19,31,0.95)_0%,rgba(7,19,31,0.85)_35%,rgba(7,19,31,0.4)_60%,rgba(7,19,31,0.2)_100%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,19,31,0.6)_0%,transparent_40%,transparent_70%,rgba(7,19,31,0.9)_100%)]" />
-
-        {/* Content */}
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-20 pt-16 sm:px-5 sm:pb-24 sm:pt-20 lg:px-8 lg:pb-28">
-          {/* Logo + Tagline */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.1 }}
-            className="mb-8 sm:mb-10"
-          >
-            <Link href="/" data-editor-safe className="inline-block transition-opacity hover:opacity-90">
-              <Image
-                src="/stbs-logo-only.png"
-                alt="STBS logo"
-                width={120}
-                height={60}
-                className="h-12 w-auto sm:h-14"
-                priority
-              />
-            </Link>
-            <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-signal sm:text-xs">
-              Groundwater Solutions For A Stronger Tomorrow
-            </p>
-          </motion.div>
-
-          {/* Main Headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.85, delay: 0.2 }}
-            className="max-w-4xl font-display text-[clamp(2.5rem,8vw,5rem)] font-bold uppercase leading-[0.9] text-white sm:text-[clamp(3.5rem,9vw,6rem)] lg:text-[clamp(4rem,10vw,7rem)]"
-          >
-            <span className="block">Reliable Water.</span>{" "}
-            <span className="block text-signal">Stronger Foundations.</span>
-          </motion.h1>
-
-          {/* Description */}
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="mt-5 max-w-xl text-sm leading-relaxed text-white/80 sm:mt-6 sm:text-base sm:leading-relaxed"
-          >
-            Professional borewell drilling, tubewell construction and water infrastructure solutions across Haryana and NCR.
-          </motion.p>
-
-          {/* CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="mt-6 sm:mt-8"
-          >
-            <Button asChild size="lg" className="h-12 rounded-lg bg-signal px-6 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-signal/90 sm:h-14 sm:px-8 sm:text-sm">
-              <Link href="/quote">
-                Request a proposal <ArrowRight size={18} className="ml-2" />
-              </Link>
-            </Button>
-          </motion.div>
-
-          {/* Feature Strip */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.7 }}
-            className="mt-12 grid grid-cols-2 gap-3 sm:mt-16 sm:gap-4 lg:grid-cols-5 lg:gap-6"
-          >
-            {heroFeatures.map((feature, i) => (
-              <div
-                key={feature.label}
-                className="flex flex-col items-start gap-2 border-l-2 border-signal/40 bg-black/30 p-3 backdrop-blur-sm sm:p-4"
-              >
-                <feature.icon size={20} className="text-signal sm:size-6" />
-                <div>
-                  <p className="font-display text-lg font-bold text-white sm:text-xl lg:text-2xl">
-                    {feature.value}
-                  </p>
-                  <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/60 sm:text-[10px]">
-                    {feature.label}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+      {/* Hero — same component the CMS renders, with its defaults */}
+      <HeroSection content={{}} />
 
       {/* Stats */}
       <section className="water-surface-dark waterline text-white">

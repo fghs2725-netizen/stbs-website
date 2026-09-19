@@ -58,7 +58,9 @@
 @media (max-width: 768px) {
   .water-card { transition: none; }
   .water-card:hover { transform: none; border-color: rgba(86,197,213,.2); }
-  img { filter: none !important; }
+  /* Old hover-to-colour grayscale images have no hover on touch, so un-gray them; images that
+     carry a deliberate filter (hero duotone) opt out with data-keep-filter. */
+  img:not([data-keep-filter]) { filter: none !important; }
 }
 
 /* Desktop only: preserve hover effects */
@@ -137,6 +139,7 @@
   .text-block { max-width: 680px; }    /* headline + intro blocks */
   .rule { border-top: 1px solid var(--hairline); }          /* thin rule between major sections */
   .rule-on-dark { border-top: 1px solid var(--hairline-on-dark); }
+  .hero-scrim { background: var(--brand-deep); opacity: .5; }  /* flat overlay, never a gradient */
   .band-alt { background: var(--surface-alt); }
   .band-deep { background: var(--brand-deep); color: var(--ink-on-dark); }
   .band-deep .t-h1, .band-deep .t-h2, .band-deep .t-h3 { color: var(--ink-on-dark); }
@@ -155,7 +158,7 @@
   .btn-primary:hover { background: var(--accent-hover); }
   .btn-secondary { background: transparent; color: var(--ink); border-color: var(--hairline-strong); }
   .btn-secondary:hover { border-color: var(--ink); }
-  .btn-secondary-dark { background: transparent; color: var(--ink-on-dark); border-color: var(--hairline-on-dark); }
+  .btn-secondary-dark { background: transparent; color: var(--ink-on-dark); border-color: var(--muted-on-dark); }
   .btn-secondary-dark:hover { border-color: var(--ink-on-dark); }
   .link { color: var(--brand-mid); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
   .link:hover { color: #0D537A; }

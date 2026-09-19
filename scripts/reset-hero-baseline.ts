@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
-import { company } from "../lib/company";
+import { HOME_HERO } from "../lib/website/home-defaults";
 
 async function main() {
   const homePage = await prisma.websitePage.findUniqueOrThrow({ where: { slug: "home" } });
@@ -9,18 +9,7 @@ async function main() {
     where: { pageId: homePage.id, type: "hero", deletedAt: null },
   });
 
-  const heroDefaults = {
-    eyebrow: "Trusted since 1992",
-    heading: "Go deeper.",
-    headingLine2: "Build stronger.",
-    supportingText: company.tagline,
-    primaryCtaText: "Request a proposal",
-    primaryCtaUrl: "/quote",
-    secondaryCtaText: "Call now",
-    secondaryCtaUrl: `tel:+91${company.phones[0]}`,
-    heroImage: "/hero-industrial-cross-section.png",
-    heroImageAlt: "Industrial site with a borewell cross-section showing groundwater layers",
-  };
+  const heroDefaults = { ...HOME_HERO };
 
   await prisma.websiteSection.update({
     where: { id: hero.id },

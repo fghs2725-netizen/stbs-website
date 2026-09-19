@@ -32,6 +32,7 @@ import {
   founderName,
   founderTitle,
 } from "../lib/company";
+import { HOME_HERO } from "../lib/website/home-defaults";
 
 const prisma = new PrismaClient();
 
@@ -59,19 +60,7 @@ async function seedPages() {
           type: "hero",
           name: "Hero",
           position: 0,
-          content: {
-            eyebrow: "Trusted since 1992",
-            heading: "Go deeper.",
-            headingLine2: "Build stronger.",
-            supportingText: company.tagline,
-            primaryCtaText: "Request a proposal",
-            primaryCtaUrl: "/quote",
-            secondaryCtaText: "Call now",
-            secondaryCtaUrl: `tel:+91${company.phones[0]}`,
-            heroImage: "/hero-industrial-cross-section.png",
-            heroImageAlt:
-              "Industrial site with a borewell cross-section showing groundwater layers",
-          },
+          content: { ...HOME_HERO },
         },
         {
           type: "why_choose",

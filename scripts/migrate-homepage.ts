@@ -7,6 +7,10 @@
  * Steps so far:
  *   1. nav      navbar becomes Services, Clients, Projects, Contact (About/Gallery leave the
  *               nav table; the footer links them from code). Draft + published snapshot kept in sync.
+
+ *   3. hero     home/hero copy -> commercial headline, subheadline, "Get a site assessment" +
+ *               "Download company profile" (/company-profile placeholder). The uploaded hero
+ *               image is KEPT; only its alt text is corrected. Draft + published stay in sync.
  *   2. cta      "Request a quote" / "Request quote" / "Request A Quote" -> "Request a proposal"
  *               (whole-string matches only, inside section content/publishedContent).
  *
@@ -16,6 +20,7 @@
  */
 import fs from "node:fs";
 import { prisma } from "../lib/prisma";
+import { HOME_HERO } from "../lib/website/home-defaults";
 
 type Op = { label: string; before: unknown; run: () => Promise<unknown> };
 const ops: Op[] = [];
@@ -85,10 +90,33 @@ async function planCta() {
   }
 }
 
+// ── 3. hero ───────────────────────────────────────────────────────────────
+async function planHero() {
+  const hero = await prisma.websiteSection.findFirst({ where: { type: "hero", page: { slug: "home" }, deletedAt: null } });
+  if (!hero) { console.log("  (no home hero section found)"); return; }
+  const data: Record<string, unknown> = {};
+  const before: Record<string, unknown> = { id: hero.id };
+  for (const col of ["content", "publishedContent"] as const) {
+    const cur = hero[col] as Record<string, unknown> | null;
+    if (!cur) continue; // never published -> nothing live to migrate
+    const next: Record<string, unknown> = { ...cur, ...HOME_HERO };
+    if (typeof cur.heroImage === "string" && cur.heroImage) next.heroImage = cur.heroImage; // keep the uploaded photo
+    if (cur.mobileImage) next.mobileImage = cur.mobileImage;
+    const keys = Object.keys(HOME_HERO).filter((k) => JSON.stringify(cur[k]) !== JSON.stringify(next[k]));
+    if (keys.length) {
+      before[col] = cur; data[col] = next;
+      console.log(`  ~ hero ${col}:`);
+      for (const k of keys) console.log(`      ${k}: ${JSON.stringify(cur[k])?.slice(0, 70)}  ->  ${JSON.stringify(next[k]).slice(0, 70)}`);
+    }
+  }
+  if (Object.keys(data).length) ops.push({ label: `hero ${hero.id}`, before, run: () => prisma.websiteSection.update({ where: { id: hero.id }, data: data as never }) });
+}
+
 async function main() {
   const apply = process.argv.includes("--apply");
   console.log("Step 1: navigation"); await planNav();
   console.log("Step 2: CTA label");  await planCta();
+  console.log("Step 3: hero copy");  await planHero();
   console.log(`\n${ops.length} change(s) planned.`);
   if (!apply) { console.log("DRY RUN — nothing written. Re-run with --apply to write."); await prisma.$disconnect(); return; }
   if (!ops.length) { await prisma.$disconnect(); return; }

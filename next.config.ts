@@ -19,6 +19,7 @@ if (process.env.NODE_ENV === "production") {
 const nextConfig: NextConfig = {
   outputFileTracingIncludes: { "/*": ["./node_modules/@sparticuz/chromium/bin/**"] },
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       // Vercel Blob hosts media uploaded through the Website CMS.
       { protocol: "https", hostname: "*.blob.vercel-storage.com" },

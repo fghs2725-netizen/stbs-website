@@ -3,7 +3,8 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowDown, ArrowUp, Copy, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
+import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Copy, Download, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
+import { HOME_HERO } from "@/lib/website/home-defaults";
 import { Reveal } from "@/components/reveal";
 import { QuoteForm } from "@/components/quote-form";
 import type { SerializedSection } from "@/lib/website/action-types";
@@ -156,54 +157,73 @@ function SectionChrome({ section, children }: { section: RenderableSection; chil
 
 /* ── individual section renderers ────────────────────────────────────────── */
 
-function HeroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
-  const eyebrow = str(content, "eyebrow", "Trusted since 1992");
-  const heading = str(content, "heading", "Go deeper.");
-  const headingLine2 = str(content, "headingLine2", "Build stronger.");
-  const supportingText = str(content, "supportingText", company.tagline);
-  const primaryCtaText = str(content, "primaryCtaText", "Request a proposal");
-  const primaryCtaUrl = str(content, "primaryCtaUrl", "/quote");
-  const secondaryCtaText = str(content, "secondaryCtaText", "Call now");
-  const secondaryCtaUrl = str(content, "secondaryCtaUrl", `tel:+91${company.phones[0]}`);
-  const heroImage = str(content, "heroImage", "/hero-industrial-cross-section.png");
+/** Downloads, tel: and external targets are plain anchors; only real app pages use next/link. */
+function CtaLink({ href, className, children }: { href: string; className: string; children: ReactNode }) {
+  const plain = /^(tel:|mailto:|https?:)/.test(href) || href.endsWith(".pdf") || href.startsWith("/company-profile");
+  if (!plain) return <Link href={href} className={className}>{children}</Link>;
+  return <a href={href} className={className} {...(href.endsWith(".pdf") || href.startsWith("/company-profile") ? { download: "STBS-Company-Profile.pdf" } : {})}>{children}</a>;
+}
+
+export function HeroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
+  const eyebrow = str(content, "eyebrow", HOME_HERO.eyebrow);
+  const heading = str(content, "heading", HOME_HERO.heading);
+  const headingLine2 = str(content, "headingLine2", HOME_HERO.headingLine2);
+  const supportingText = str(content, "supportingText", HOME_HERO.supportingText);
+  const primaryCtaText = str(content, "primaryCtaText", HOME_HERO.primaryCtaText);
+  const primaryCtaUrl = str(content, "primaryCtaUrl", HOME_HERO.primaryCtaUrl);
+  const secondaryCtaText = str(content, "secondaryCtaText", HOME_HERO.secondaryCtaText);
+  const secondaryCtaUrl = str(content, "secondaryCtaUrl", HOME_HERO.secondaryCtaUrl);
+  const heroImage = str(content, "heroImage", HOME_HERO.heroImage);
   const mobileImage = str(content, "mobileImage");
-  const heroImageAlt = str(content, "heroImageAlt", "Industrial site with a borewell cross-section showing groundwater layers");
+  const heroImageAlt = str(content, "heroImageAlt", HOME_HERO.heroImageAlt);
   const target = asSection(owner);
+  // Duotone: luminance mapped from --brand-deep (shadows) to a cool light steel (highlights).
+  const duotone = { filter: "url(#stbs-duotone)" } as const;
 
   return (
-    <section className="water-hero relative flex min-h-[75vh] items-center overflow-hidden pt-20 sm:pt-24 lg:min-h-[85vh]">
+    <section className="band-deep relative flex min-h-[560px] items-center overflow-hidden lg:min-h-[640px]">
+      <svg aria-hidden="true" focusable="false" width="0" height="0" className="absolute">
+        <defs>
+          <filter id="stbs-duotone" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="saturate" values="0" />
+            <feComponentTransfer>
+              <feFuncR type="table" tableValues="0.043 0.47" />
+              <feFuncG type="table" tableValues="0.122 0.59" />
+              <feFuncB type="table" tableValues="0.2 0.69" />
+            </feComponentTransfer>
+          </filter>
+        </defs>
+      </svg>
       <Editable target={{ kind: "section-field", section: target, fieldKey: "heroImage" }} label="Edit Image" className="absolute inset-0">
         <div className="absolute inset-0">
-          <Image src={heroImage} alt={heroImageAlt} fill priority className={`object-cover object-center opacity-[.58] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
-          {mobileImage && <Image src={mobileImage} alt={heroImageAlt} fill priority className="object-cover object-center opacity-[.58] sm:hidden" sizes="100vw" />}
+          <Image src={heroImage} alt={heroImageAlt} fill priority data-keep-filter="" style={duotone} className={`object-cover object-[70%_center] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
+          {mobileImage && <Image src={mobileImage} alt={heroImageAlt} fill priority data-keep-filter="" style={duotone} className="object-cover object-center sm:hidden" sizes="100vw" />}
         </div>
       </Editable>
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,19,31,.25),rgba(7,19,31,.2)_42%,rgba(7,19,31,.9))]" />
-      <div className="pointer-events-none absolute -right-24 top-24 h-72 w-[58rem] rotate-[-10deg] rounded-[50%] border border-cyan-200/15" />
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-12 pt-20 sm:px-5 sm:pb-16 sm:pt-24 lg:px-8 lg:pb-24">
-        <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-          <p className="mb-6 sm:mb-8 flex items-center gap-3 text-xs font-bold uppercase tracking-[.25em] text-signal">
-            <span className="h-px w-8 sm:w-12 bg-signal" />{eyebrow}
+      {/* Flat brand-deep scrim (no gradient) keeps text contrast independent of the photo. */}
+      <div className="hero-scrim pointer-events-none absolute inset-0" />
+      <div className="container-x relative z-10 section-y w-full">
+        <Editable target={{ kind: "section", section: target }} label="Badge" className="max-w-fit">
+          <p className="t-eyebrow inline-flex items-center gap-u1 rounded-[4px] border border-stbs-hairline-on-dark bg-stbs-brand-deep px-u2 py-u1">
+            <BadgeCheck size={16} strokeWidth={1.75} className="text-stbs-verified" aria-hidden />{eyebrow}
           </p>
         </Editable>
         <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-          <h1 className="max-w-4xl font-display text-4xl font-bold uppercase leading-[.9] text-white sm:text-7xl lg:text-[7.5rem]">
-            <span className="block">{heading}</span>
-            {headingLine2 && <>{" "}<span className="block text-signal">{headingLine2}</span></>}
+          <h1 className="t-h1 mt-u3 max-w-[880px]">
+            {heading}
+            {headingLine2 && <>{" "}<span className="block">{headingLine2}</span></>}
           </h1>
         </Editable>
-        <Editable target={{ kind: "section", section: target }} label="Supporting text" className="max-w-fit">
-          <p className="mt-6 sm:mt-8 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base sm:leading-8 lg:text-lg">{supportingText}</p>
+        <Editable target={{ kind: "section", section: target }} label="Subheadline" className="max-w-fit">
+          <p className="t-body mt-u3 max-w-[48rem] text-stbs-ink-on-dark">{supportingText}</p>
         </Editable>
-        <div className="mt-8 sm:mt-12 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <div className="mt-u5 flex flex-col gap-u2 sm:flex-row sm:items-center">
           <Editable target={{ kind: "section", section: target }} label="Primary CTA">
-            <Link href={primaryCtaUrl} className="public-cta">
-              {primaryCtaText} <ArrowRight size={16} />
-            </Link>
+            <CtaLink href={primaryCtaUrl} className="btn btn-primary w-full sm:w-auto">{primaryCtaText}</CtaLink>
           </Editable>
-          <Link href={secondaryCtaUrl} className="public-cta-secondary">
-            {secondaryCtaText}
-          </Link>
+          <Editable target={{ kind: "section", section: target }} label="Secondary CTA">
+            <CtaLink href={secondaryCtaUrl} className="btn btn-secondary-dark w-full sm:w-auto"><Download size={18} strokeWidth={1.75} aria-hidden />{secondaryCtaText}</CtaLink>
+          </Editable>
         </div>
       </div>
     </section>

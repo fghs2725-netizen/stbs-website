@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Building2, Check, Drill, Factory, Home, Landmark } from "lucide-react";
 import { Reveal } from "@/components/reveal";
 import { SiteHeader } from "@/components/site-header";
+import { HeroSection } from "@/components/public/sections";
 
 // Development-only style guide for the public design system. 404s in production.
 export const metadata: Metadata = { title: "Design system", robots: { index: false, follow: false } };
@@ -21,6 +22,9 @@ export default function DesignSystem() {
     <div className="theme-public min-h-screen">
       {/* Real navbar with default links, independent of what the CMS nav table currently holds. */}
       <SiteHeader phone="9812003001" businessName="Saini Tubewell Boring Service" />
+      {/* Real hero with its built-in defaults (what the CMS renders once migrated). */}
+      <HeroSection content={{}} />
+
       <section className="section-y">
         <div className="container-x">
           <p className="t-eyebrow">Design system</p>

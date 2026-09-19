@@ -4,6 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { prisma } from "../lib/prisma";
 import { Prisma } from "@prisma/client";
+import { HOME_HERO } from "../lib/website/home-defaults";
+
+const HERO_HEADING: string = HOME_HERO.heading;
 
 /**
  * Visual editor browser QA.
@@ -227,12 +230,12 @@ async function main() {
       editable: document.querySelectorAll('[role="button"][title^="Edit"]').length,
     }));
     check("public site renders zero editor chrome", pubChrome.chrome === 0 && pubChrome.editable === 0, JSON.stringify(pubChrome));
-    check("public home still static (unpublished)", await visibleText(page, "Go deeper."), "");
+    check("public home still static (unpublished)", await visibleText(page, HERO_HEADING), "");
     await page.goto(`${BASE}/admin/website?page=home`, { waitUntil: "networkidle2" });
     await waitFor(page, () => visibleText(page, "Publish website"), 20000, "editor reload");
 
     // hover chrome controls on hero
-    const heroWrap = await sectionWrapper(page, "Go deeper.");
+    const heroWrap = await sectionWrapper(page, HERO_HEADING);
     const hb = await heroWrap.asElement()?.boundingBox();
     if (hb) await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2);
     await new Promise((r) => setTimeout(r, 400));
@@ -247,7 +250,7 @@ async function main() {
     // (33/33). Here we open it via the hero section's chrome-row Edit Heading button
     // (the hover control) and verify the drawer + Save draft flow.
     await page.evaluate(() => {
-      const target = Array.from(document.querySelectorAll('[title="Edit Heading"]')).find((element) => element.textContent.includes("Go deeper."));
+      const target = Array.from(document.querySelectorAll('[title="Edit Heading"]')).find((element) => element.textContent.includes(HERO_HEADING));
       (target as HTMLElement | null)?.click();
     });
     await waitFor(page, () => visibleText(page, "Save draft"), 12000, "section editor drawer");
@@ -259,7 +262,7 @@ async function main() {
       return `${t}[ph=${ph.slice(0, 18)}]v=${v.slice(0, 20)}`;
     }));
     console.log("  drawer fields:", JSON.stringify(drawerFields));
-    await typeIntoInputWithValue(page, "Go deeper.", "Visual Editor QA V1");
+    await typeIntoInputWithValue(page, HERO_HEADING, "Visual Editor QA V1");
     await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.includes("Save draft")); (b as HTMLButtonElement)?.click(); });
     await waitFor(page, () => visibleText(page, "Draft saved. Publish this page to make it live."), 12000, "draft saved notice");
     check("edit hero heading → Save draft persists", true, "");
@@ -346,7 +349,7 @@ async function main() {
     // ── Public verification ──
     await page.goto(`${BASE}/`, { waitUntil: "networkidle2" });
     check("public / shows new hero heading", await visibleText(page, "Visual Editor QA V1"), "");
-    check("public / keeps hero line 2 (build stronger)", await visibleText(page, "Build stronger."), "");
+    check("public / keeps hero subheadline", await visibleText(page, HOME_HERO.supportingText), "");
     check("public / shows published nav (CMS header)", await visibleText(page, "About"), "");
     check("public / shows published QA service", await visibleText(page, "QA Borewell Drilling V1"), "");
     check("public / gallery preview shows published photo", await visibleText(page, "QA Field Test Photo"), "");
@@ -439,7 +442,7 @@ async function main() {
     // restore hero heading via UI so baseline doesn't leak into public static
     await page.evaluate(() => { (document.querySelector('[title="Edit Heading"]') as HTMLElement)?.click(); });
     await waitFor(page, () => page.evaluate(() => Array.from(document.querySelectorAll("input")).some((i) => (i as HTMLInputElement).value === "Visual Editor QA V1")), 12000, "hero panel");
-    await typeIntoInputWithValue(page, "Visual Editor QA V1", "Go deeper.");
+    await typeIntoInputWithValue(page, "Visual Editor QA V1", HERO_HEADING);
     await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.includes("Save draft")); (b as HTMLButtonElement)?.click(); });
     await waitFor(page, () => visibleText(page, "Draft saved. Publish this page to make it live."), 12000, "restore saved");
     check("hero heading restored to baseline via editor", true, "");
