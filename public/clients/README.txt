@@ -19,3 +19,9 @@ Not found / not used: Brackparts, Jupiter Laminator, Nidaan Hospital (only a gen
 placeholder was available), Devi Lal Park, Alaina Indane Gas (would imply an Indian Oil relationship),
 Maneta, Avicreations, Ajit Industries, Shreeji International School, Parker Mall, TDI City,
 ITEC Technopark / IIT Delhi Sonipat (would imply IIT Delhi endorsement), Marut Techno Tools, A-One Tex Tech.
+
+Tuned 2026-09-19 (scripts/tune-images.ts): ashoka-university.png had its transparent padding trimmed;
+bigbasket.png was enlarged 2x with a Lanczos resampler and a light sharpen so it does not blur when scaled.
+No detail was added: the BigBasket and Ashoka originals are still small (ashoka 437x156, bigbasket 322x130
+from a 161x65 source). Sharper originals from the clients would still improve print quality.
+Amul, Coral Drugs, LT Foods and voestalpine are vector or high-resolution and were left untouched.

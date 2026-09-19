@@ -813,7 +813,7 @@ function FeaturedClientsSection({ owner, content, data }: { owner?: RenderableSe
                   <Editable target={{ kind: "clients" }} label="Edit Logo" className="block h-full">
                     <div className="tile flex h-full flex-col justify-between gap-u2 p-u2 md:p-u3">
                       <div className="flex h-16 items-center">
-                        <Image src={c.logoUrl!} alt={c.altText || `${c.name} logo`} width={160} height={64} className="h-full w-auto max-w-full object-contain object-left" />
+                        <Image src={c.logoUrl!} alt={c.altText || `${c.name} logo`} width={160} height={64} quality={95} sizes="(min-width: 1024px) 200px, 160px" className="h-full w-auto max-w-full object-contain object-left" />
                       </div>
                       <p className="text-sm font-medium text-stbs-ink">{c.name}</p>
                     </div>

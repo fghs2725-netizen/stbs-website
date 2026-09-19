@@ -25,7 +25,7 @@ const PAGES: Record<string, { sections: DefaultSection[]; seed?: Parameters<type
       gallery: [
         { id: "g1", mediaUrl: "/site_pic.jpeg", altText: "Worker in a ringed concrete pit guiding a pipe above a gravel bed", caption: "Recharge pit, gravel bed", category: null, position: 0 },
         { id: "g2", mediaUrl: "/Site_pic_2.jpeg", altText: "Crew lowering precast concrete rings into a trench beside a drilling rig", caption: "", category: null, position: 1 },
-        { id: "g3", mediaUrl: "/stbs-drilling-rig-real.png", altText: "Drilling rig on an industrial site", caption: "Rig on site", category: null, position: 2 },
+        { id: "g3", mediaUrl: "/hero/stbs-drilling-rig-site.webp", altText: "Drilling rig on an industrial site", caption: "Rig on site", category: null, position: 2 },
       ],
     },
   },

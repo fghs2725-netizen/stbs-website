@@ -15,7 +15,7 @@ export const HOME_HERO = {
   // To add one later: upload public/docs/stbs-company-profile.pdf and set these two fields in Website -> Home -> Hero.
   secondaryCtaText: "",
   secondaryCtaUrl: "",
-  heroImage: "/stbs-drilling-rig-real.png",
+  heroImage: "/hero/stbs-drilling-rig-site.webp",
   heroImageAlt: "STBS borewell drilling rig on an industrial site, with two crew members in safety gear beside stacked casing pipes",
 } as const;
 
