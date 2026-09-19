@@ -28,6 +28,12 @@
  *               /projects reads the same rows. Position is provisional (101) until the ordering step.
  *   9. closing  home/cta content -> "Planning a project?" + supporting line + "Request a proposal"
  *               (drops the decorative "1992" watermark field).
+ *  10. order    FINAL ordering of the live home page (position/visible take effect immediately):
+ *               hero, stats, sectors, services, projects, CTA. Sections not in the brief's order
+ *               (why_choose, process, gallery) are HIDDEN, not deleted: their content stays in the
+ *               CMS. The testimonials section MOVES to the clients page (approval-gated: it shows
+ *               nothing until a testimonial is approved). The five-step process already lives on
+ *               the Borewell Drilling and Tubewell Construction pages.
  *   2. cta      "Request a quote" / "Request quote" / "Request A Quote" -> "Request a proposal"
  *               (whole-string matches only, inside section content/publishedContent).
  *
@@ -36,11 +42,16 @@
  * NOTE: .env may point at the PRODUCTION database — always read the dry run first.
  */
 import fs from "node:fs";
-import { prisma } from "../lib/prisma";
+import { Prisma, PrismaClient } from "@prisma/client";
+
+// Direct (unpooled) connection: an interactive transaction must hold one connection for its whole life.
+const prisma = new PrismaClient({ datasourceUrl: process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL });
 import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "../lib/website/home-defaults";
 import { HOME_PROJECTS, PROJECTS } from "../lib/website/projects-data";
 
-type Op = { label: string; before: unknown; run: () => Promise<unknown> };
+type Db = Prisma.TransactionClient;
+type Op = { label: string; before: unknown; run: (db: Db) => Promise<unknown> };
+class Rollback extends Error {}
 const ops: Op[] = [];
 const created: string[] = [];
 
@@ -65,14 +76,14 @@ async function planNav() {
       console.log(`  ~ nav "${n.label}" position ${existing.position} -> ${position}`);
       ops.push({
         label: `nav ${existing.id}`, before: existing,
-        run: () => prisma.websiteNavItem.update({ where: { id: existing.id }, data: { label: n.label, position, visible: true, status: "PUBLISHED", publishedAt: existing.publishedAt ?? new Date(), publishedData: snap(n.label, n.url, position, existing) } }),
+        run: (db) => db.websiteNavItem.update({ where: { id: existing.id }, data: { label: n.label, position, visible: true, status: "PUBLISHED", publishedAt: existing.publishedAt ?? new Date(), publishedData: snap(n.label, n.url, position, existing) } }),
       });
     } else {
       console.log(`  + nav "${n.label}" (${n.url}) at position ${position} [new row, published]`);
       ops.push({
         label: `nav create ${n.url}`, before: null,
-        run: async () => {
-          const row = await prisma.websiteNavItem.create({ data: { label: n.label, url: n.url, position, visible: true, status: "PUBLISHED", publishedAt: new Date(), publishedData: snap(n.label, n.url, position) } });
+        run: async (db) => {
+          const row = await db.websiteNavItem.create({ data: { label: n.label, url: n.url, position, visible: true, status: "PUBLISHED", publishedAt: new Date(), publishedData: snap(n.label, n.url, position) } });
           created.push(row.id);
         },
       });
@@ -80,7 +91,7 @@ async function planNav() {
   });
   for (const r of rows.filter((r) => !NAV.some((n) => n.url === r.url))) {
     console.log(`  - nav "${r.label}" (${r.url}) removed from navbar (soft-deleted; footer still links it)`);
-    ops.push({ label: `nav remove ${r.id}`, before: r, run: () => prisma.websiteNavItem.update({ where: { id: r.id }, data: { deletedAt: new Date() } }) });
+    ops.push({ label: `nav remove ${r.id}`, before: r, run: (db) => db.websiteNavItem.update({ where: { id: r.id }, data: { deletedAt: new Date() } }) });
   }
 }
 
@@ -104,7 +115,7 @@ async function planCta() {
       const fixed = fixCta(s[col]);
       if (changed(s[col], fixed)) { before[col] = s[col]; data[col] = fixed; console.log(`  ~ cta ${s.page.slug}/${s.type} ${col}`); }
     }
-    if (Object.keys(data).length) ops.push({ label: `section ${s.id}`, before, run: () => prisma.websiteSection.update({ where: { id: s.id }, data: data as never }) });
+    if (Object.keys(data).length) ops.push({ label: `section ${s.id}`, before, run: (db) => db.websiteSection.update({ where: { id: s.id }, data: data as never }) });
   }
 }
 
@@ -127,7 +138,7 @@ async function planHero() {
       for (const k of keys) console.log(`      ${k}: ${JSON.stringify(cur[k])?.slice(0, 70)}  ->  ${JSON.stringify(next[k]).slice(0, 70)}`);
     }
   }
-  if (Object.keys(data).length) ops.push({ label: `hero ${hero.id}`, before, run: () => prisma.websiteSection.update({ where: { id: hero.id }, data: data as never }) });
+  if (Object.keys(data).length) ops.push({ label: `hero ${hero.id}`, before, run: (db) => db.websiteSection.update({ where: { id: hero.id }, data: data as never }) });
 }
 
 // ── 4. stats ──────────────────────────────────────────────────────────────
@@ -147,7 +158,7 @@ async function planStats() {
       was: ${old}
       now: ${items.map((i) => `${i.value} ${i.label}`).join(" | ")}`);
   }
-  if (Object.keys(data).length) ops.push({ label: `stats ${sec.id}`, before, run: () => prisma.websiteSection.update({ where: { id: sec.id }, data: data as never }) });
+  if (Object.keys(data).length) ops.push({ label: `stats ${sec.id}`, before, run: (db) => db.websiteSection.update({ where: { id: sec.id }, data: data as never }) });
 }
 
 // ── 5. client logos ───────────────────────────────────────────────────────
@@ -172,7 +183,7 @@ async function planLogos() {
     console.log(`  ~ logo "${row.name}": ${row.logoUrl ?? "(none)"} -> ${l.logoUrl}`);
     ops.push({
       label: `client ${row.id}`, before: row,
-      run: () => prisma.websiteClient.update({ where: { id: row.id }, data: { logoUrl: l.logoUrl, altText: l.altText, ...(ps ? { publishedData: { ...ps, logoUrl: l.logoUrl, altText: l.altText } } : {}) } }),
+      run: (db) => db.websiteClient.update({ where: { id: row.id }, data: { logoUrl: l.logoUrl, altText: l.altText, ...(ps ? { publishedData: { ...ps, logoUrl: l.logoUrl, altText: l.altText } } : {}) } }),
     });
   }
   if (rows.some((r) => r.name === NEW_CLIENT.name)) return;
@@ -180,9 +191,9 @@ async function planLogos() {
   console.log(`  + client "${NEW_CLIENT.name}" (${NEW_CLIENT.sector}, featured, published) at position ${position}`);
   ops.push({
     label: `client create ${NEW_CLIENT.name}`, before: null,
-    run: async () => {
+    run: async (db) => {
       const snap = { name: NEW_CLIENT.name, logoUrl: NEW_CLIENT.logoUrl, websiteUrl: null, altText: NEW_CLIENT.altText, description: null, sector: NEW_CLIENT.sector, featured: true, position, visible: true };
-      const row = await prisma.websiteClient.create({ data: { ...snap, status: "PUBLISHED", publishedAt: new Date(), publishedData: snap } });
+      const row = await db.websiteClient.create({ data: { ...snap, status: "PUBLISHED", publishedAt: new Date(), publishedData: snap } });
       created.push(row.id);
     },
   });
@@ -198,8 +209,8 @@ async function planSectors() {
   console.log(`  + home/sectors "${HOME_SECTORS.heading}": ${HOME_SECTORS.sectors.map((s) => s.name).join(" | ")}  [published, position 100 = provisional]`);
   ops.push({
     label: "sectors create", before: null,
-    run: async () => {
-      const row = await prisma.websiteSection.create({ data: { pageId: home.id, type: "sectors", name: "Sectors served", content, publishedContent: content, publishedAt: new Date(), position: 100, visible: true } });
+    run: async (db) => {
+      const row = await db.websiteSection.create({ data: { pageId: home.id, type: "sectors", name: "Sectors served", content, publishedContent: content, publishedAt: new Date(), position: 100, visible: true } });
       created.push(row.id);
     },
   });
@@ -219,13 +230,13 @@ async function planServices() {
       before[col] = cur; data[col] = next;
       console.log(`  ~ services section ${col}: "${cur.eyebrow}" / "${cur.heading}${cur.headingHighlight ? " " + cur.headingHighlight : ""}"  ->  "${next.eyebrow}" / "${next.heading}"  (drops: ${Object.keys(cur).filter((k) => !(k in next)).join(", ")})`);
     }
-    if (Object.keys(data).length) ops.push({ label: `services section ${sec.id}`, before, run: () => prisma.websiteSection.update({ where: { id: sec.id }, data: data as never }) });
+    if (Object.keys(data).length) ops.push({ label: `services section ${sec.id}`, before, run: (db) => db.websiteSection.update({ where: { id: sec.id }, data: data as never }) });
   }
   const row = await prisma.websiteService.findFirst({ where: { slug: "borewell-material-supply", deletedAt: null } });
   if (row && row.title !== "Material Supply") {
     const ps = row.publishedData as Record<string, unknown> | null;
     console.log(`  ~ service "${row.title}" -> "Material Supply" (slug ${row.slug} unchanged)`);
-    ops.push({ label: `service ${row.id}`, before: row, run: () => prisma.websiteService.update({ where: { id: row.id }, data: { title: "Material Supply", ...(ps ? { publishedData: { ...ps, title: "Material Supply" } } : {}) } }) });
+    ops.push({ label: `service ${row.id}`, before: row, run: (db) => db.websiteService.update({ where: { id: row.id }, data: { title: "Material Supply", ...(ps ? { publishedData: { ...ps, title: "Material Supply" } } : {}) } }) });
   }
 }
 
@@ -240,8 +251,8 @@ async function planProjects() {
   for (const p of PROJECTS) console.log(`      - ${p.title}  |  ${p.location}  |  ${p.sector}  |  ${p.year}`);
   ops.push({
     label: "projects create", before: null,
-    run: async () => {
-      const row = await prisma.websiteSection.create({ data: { pageId: home.id, type: "case_studies", name: "Featured projects", content, publishedContent: content, publishedAt: new Date(), position: 101, visible: true } });
+    run: async (db) => {
+      const row = await db.websiteSection.create({ data: { pageId: home.id, type: "case_studies", name: "Featured projects", content, publishedContent: content, publishedAt: new Date(), position: 101, visible: true } });
       created.push(row.id);
     },
   });
@@ -260,11 +271,76 @@ async function planClosingCta() {
     before[col] = cur; data[col] = next;
     console.log(`  ~ home/cta ${col}: "${cur.heading}" / "${cur.ctaText}"  ->  "${next.heading}" / "${next.ctaText}"  (drops: ${Object.keys(cur).filter((k) => !(k in next)).join(", ") || "-"})`);
   }
-  if (Object.keys(data).length) ops.push({ label: `cta ${sec.id}`, before, run: () => prisma.websiteSection.update({ where: { id: sec.id }, data: data as never }) });
+  if (Object.keys(data).length) ops.push({ label: `cta ${sec.id}`, before, run: (db) => db.websiteSection.update({ where: { id: sec.id }, data: data as never }) });
+}
+
+// ── 10. final order + relocations ─────────────────────────────────────────
+const HOME_ORDER = ["hero", "stats", "sectors", "services", "case_studies", "cta"];
+const HOME_HIDE = ["why_choose", "process", "gallery"];
+
+async function planOrder() {
+  const home = await prisma.websitePage.findUnique({ where: { slug: "home" } });
+  const clients = await prisma.websitePage.findUnique({ where: { slug: "clients" } });
+  if (!home) { console.log("  (no home page found)"); return; }
+  // Sections this run will create are not in the DB yet during a dry run; note that honestly.
+  const willCreate = new Set<string>();
+  if (!(await prisma.websiteSection.findFirst({ where: { pageId: home.id, type: "sectors", deletedAt: null } }))) willCreate.add("sectors");
+  if (!(await prisma.websiteSection.findFirst({ where: { pageId: home.id, type: "case_studies", deletedAt: null } }))) willCreate.add("case_studies");
+
+  const rows = await prisma.websiteSection.findMany({ where: { pageId: home.id, deletedAt: null }, orderBy: { position: "asc" } });
+  const byType = (t: string) => rows.find((r) => r.type === t);
+  console.log("  current home order: " + rows.map((r) => `${r.position}:${r.type}${r.visible ? "" : "(hidden)"}`).join("  "));
+  console.log("  target  home order: " + HOME_ORDER.join(" > ") + `   |  hidden: ${HOME_HIDE.join(", ")}`);
+
+  // Positions/visibility must be applied AFTER the create steps (they run earlier in this script),
+  // so resolve rows at run time rather than from this snapshot.
+  ops.push({
+    label: "home order", before: rows.map((r) => ({ id: r.id, type: r.type, position: r.position, visible: r.visible })),
+    run: async (db) => {
+      const live = await db.websiteSection.findMany({ where: { pageId: home.id, deletedAt: null } });
+      let pos = 0;
+      for (const type of HOME_ORDER) {
+        const r = live.find((x) => x.type === type);
+        if (!r) { console.log(`    ! no "${type}" section to place`); continue; }
+        await db.websiteSection.update({ where: { id: r.id }, data: { position: pos++, visible: true } });
+      }
+      for (const type of HOME_HIDE) {
+        const r = live.find((x) => x.type === type);
+        if (r) await db.websiteSection.update({ where: { id: r.id }, data: { position: 100 + pos++, visible: false } });
+      }
+    },
+  });
+  for (const t of HOME_ORDER) if (!byType(t) && !willCreate.has(t)) console.log(`  ! home has no "${t}" section`);
+
+  // testimonials: move to the clients page
+  const testi = byType("testimonials");
+  if (testi && clients) {
+    const max = await prisma.websiteSection.aggregate({ where: { pageId: clients.id, deletedAt: null }, _max: { position: true } });
+    console.log(`  -> testimonials section moves home -> clients (position ${(max._max.position ?? -1) + 1}); renders only APPROVED testimonials (currently 0)`);
+    ops.push({ label: `testimonials move ${testi.id}`, before: { id: testi.id, pageId: testi.pageId, position: testi.position, visible: testi.visible },
+      run: (db) => db.websiteSection.update({ where: { id: testi.id }, data: { pageId: clients.id, position: (max._max.position ?? -1) + 1, visible: true } }) });
+  } else if (!testi) console.log("  = no testimonials section on home (nothing to move)");
+}
+
+/** Read back what the live site would look like, from INSIDE the transaction. */
+async function report(db: Db) {
+  const home = await db.websitePage.findUnique({ where: { slug: "home" } });
+  const clients = await db.websitePage.findUnique({ where: { slug: "clients" } });
+  const sec = async (pageId?: string) => (pageId ? db.websiteSection.findMany({ where: { pageId, deletedAt: null }, orderBy: { position: "asc" } }) : []);
+  const fmt = (rows: Array<{ position: number; type: string; visible: boolean }>) => rows.map((r) => `${r.position}:${r.type}${r.visible ? "" : "(hidden)"}`).join("  ");
+  console.log("\n  RESULT home    : " + fmt(await sec(home?.id)));
+  console.log("  RESULT clients : " + fmt(await sec(clients?.id)));
+  const nav = await db.websiteNavItem.findMany({ where: { deletedAt: null }, orderBy: { position: "asc" } });
+  console.log("  RESULT navbar  : " + nav.map((n) => `${n.label}(${n.url})`).join(" | "));
+  const logos = await db.websiteClient.findMany({ where: { deletedAt: null, logoUrl: { not: null } } });
+  console.log(`  RESULT clients with logos: ${logos.length}  |  total clients: ${await db.websiteClient.count({ where: { deletedAt: null } })}`);
+  const svc = await db.websiteService.findMany({ where: { deletedAt: null }, orderBy: { position: "asc" } });
+  console.log("  RESULT services: " + svc.map((x) => `${x.title}(${x.slug})`).join(" | "));
 }
 
 async function main() {
   const apply = process.argv.includes("--apply");
+  const rehearse = process.argv.includes("--rehearse");
   console.log("Step 1: navigation"); await planNav();
   console.log("Step 2: CTA label");  await planCta();
   console.log("Step 3: hero copy");  await planHero();
@@ -274,16 +350,29 @@ async function main() {
   console.log("Step 7: services cards"); await planServices();
   console.log("Step 8: featured projects"); await planProjects();
   console.log("Step 9: closing CTA"); await planClosingCta();
+  console.log("Step 10: final order + relocations"); await planOrder();   // must stay LAST
   console.log(`\n${ops.length} change(s) planned.`);
-  if (!apply) { console.log("DRY RUN — nothing written. Re-run with --apply to write."); await prisma.$disconnect(); return; }
+  if (!apply && !rehearse) { console.log("DRY RUN — nothing written. Re-run with --rehearse (rolled back) or --apply (writes)."); await prisma.$disconnect(); return; }
   if (!ops.length) { await prisma.$disconnect(); return; }
 
-  fs.mkdirSync("backups", { recursive: true });
-  const file = `backups/homepage-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
-  fs.writeFileSync(file, JSON.stringify({ ops: ops.map((o) => ({ label: o.label, before: o.before })) }, null, 2));
-  console.log("Backup written:", file);
-  for (const o of ops) { await o.run(); console.log("  done", o.label); }
-  fs.writeFileSync(file, JSON.stringify({ ops: ops.map((o) => ({ label: o.label, before: o.before })), createdIds: created }, null, 2));
-  await prisma.$disconnect();
+  if (apply) {
+    fs.mkdirSync("backups", { recursive: true });
+    const file = `backups/homepage-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+    fs.writeFileSync(file, JSON.stringify({ ops: ops.map((o) => ({ label: o.label, before: o.before })) }, null, 2));
+    console.log("Backup written:", file);
+  } else console.log("REHEARSAL: every step runs for real inside one transaction, then everything is rolled back.");
+
+  try {
+    // One transaction: either every step lands or none does (a failure leaves the live site untouched).
+    await prisma.$transaction(async (db) => {
+      for (const o of ops) { await o.run(db); console.log("  done", o.label); }
+      await report(db);
+      if (rehearse) throw new Rollback();
+    }, { timeout: 120_000, maxWait: 30_000 });
+    console.log("\nAPPLIED: all steps committed in a single transaction.");
+  } catch (e) {
+    if (e instanceof Rollback) console.log("\nREHEARSAL COMPLETE: rolled back, nothing was persisted.");
+    else { console.error("\nFAILED and rolled back automatically; the live site is unchanged.\n", e); process.exitCode = 1; }
+  } finally { await prisma.$disconnect(); }
 }
 main().catch((e) => { console.error(e); process.exit(1); });

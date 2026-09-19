@@ -25,13 +25,12 @@ import {
   company,
   services as staticServices,
   clients as staticClients,
-  whyChoose,
-  processSteps,
   founderBio,
   founderName,
   founderTitle,
 } from "../lib/company";
-import { HOME_HERO, HOME_STATS } from "../lib/website/home-defaults";
+import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "../lib/website/home-defaults";
+import { HOME_PROJECTS, PROJECTS } from "../lib/website/projects-data";
 
 const prisma = new PrismaClient();
 
@@ -54,91 +53,17 @@ async function seedPages() {
       seoTitle: "Saini Tubewell Boring Service | Since 1992",
       metaDescription:
         "Professional borewell drilling, rainwater harvesting, borewell material supply and tubewell construction services since 1992.",
+      // Final homepage composition (matches components/home-page.tsx and the brief):
+      // hero, stats, sectors, services, projects, closing CTA. The old why-choose, process and
+      // gallery blocks are not seeded here; the process lives on the service pages and the
+      // testimonials section lives on /clients.
       sections: [
-        {
-          type: "hero",
-          name: "Hero",
-          position: 0,
-          content: { ...HOME_HERO },
-        },
-        {
-          type: "why_choose",
-          name: "Why choose STBS",
-          position: 1,
-          content: {
-            heading: "Why choose STBS",
-            items: whyChoose.map((w) => ({ title: w.title, text: w.text })),
-          },
-        },
-        {
-          type: "stats",
-          name: "Statistics",
-          position: 2,
-          content: {
-            items: HOME_STATS.map((t) => ({ label: t.label, value: t.value })),
-          },
-        },
-        {
-          type: "process",
-          name: "Process",
-          position: 3,
-          content: {
-            eyebrow: "Our process",
-            heading: "Planned from",
-            headingLine2: "ground level",
-            description:
-              "Every project follows a clear sequence with attention to site realities and practical execution.",
-            steps: processSteps.map((p) => ({
-              step: p.step,
-              title: p.title,
-              text: p.text,
-            })),
-          },
-        },
-        {
-          type: "services",
-          name: "Services",
-          position: 4,
-          content: {
-            eyebrow: "What we do",
-            heading: "Complete water",
-            headingHighlight: "infrastructure",
-            description:
-              "From the first site assessment to final construction and supply, every service is delivered with field discipline and practical expertise.",
-          },
-        },
-        {
-          type: "testimonials",
-          name: "Testimonials",
-          position: 5,
-          content: {
-            eyebrow: "Client voices",
-            heading: "What they say",
-            description: "Project feedback gathered from work across Haryana and NCR.",
-          },
-        },
-        {
-          type: "gallery",
-          name: "Gallery preview",
-          position: 6,
-          content: {
-            eyebrow: "From the field",
-            heading: "Work in motion",
-            linkText: "View gallery",
-            maxItems: 6,
-          },
-        },
-        {
-          type: "cta",
-          name: "Call to action",
-          position: 7,
-          content: {
-            heading: "Let us get your project moving.",
-            ctaText: "Request a proposal",
-            ctaUrl: "/quote",
-            backgroundText: "1992",
-          },
-        },
+        { type: "hero", name: "Hero", position: 0, content: { ...HOME_HERO } },
+        { type: "stats", name: "Statistics", position: 1, content: { items: HOME_STATS.map((t) => ({ label: t.label, value: t.value })) } },
+        { type: "sectors", name: "Sectors served", position: 2, content: { eyebrow: HOME_SECTORS.eyebrow, heading: HOME_SECTORS.heading, sectors: HOME_SECTORS.sectors.map((x) => ({ name: x.name })) } },
+        { type: "services", name: "Services", position: 3, content: { eyebrow: HOME_SERVICES.eyebrow, heading: HOME_SERVICES.heading } },
+        { type: "case_studies", name: "Featured projects", position: 4, content: { ...HOME_PROJECTS, projects: PROJECTS.map((x) => ({ ...x })) } },
+        { type: "cta", name: "Call to action", position: 5, content: { ...HOME_CTA } },
       ],
     },
     {
@@ -336,6 +261,16 @@ async function seedPages() {
             heading: "Trusted on demanding sites.",
             description:
               "A selection of organisations supported by Saini Tubewell across institutional, industrial, food and technology environments.",
+          },
+        },
+        {
+          type: "testimonials",
+          name: "Testimonials",
+          position: 3,
+          content: {
+            eyebrow: "Client voices",
+            heading: "What they say",
+            description: "Project feedback gathered from work across Haryana and NCR.",
           },
         },
       ],
