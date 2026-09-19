@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Eye, Plus, Pencil, Copy, Trash2, EyeOff, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ImageUpload } from "./ImageUpload";
+import { ImageUpload, NO_ALT_STORAGE_NOTE } from "./ImageUpload";
+import { CharCount } from "./CharCount";
+import { VersionHistory } from "./VersionHistory";
+import { useDirtyTracker, useUnsavedGuard } from "./use-unsaved-guard";
+import { Toaster, useToasts } from "@/components/quotation/feedback";
 import { ConfirmButton } from "./ConfirmButton";
 import { SECTION_TYPES } from "@/lib/website/section-types";
 import type { WebsitePageWithSections } from "@/lib/website/action-types";
@@ -39,6 +43,10 @@ export function PageEditor({ page }: { page: PageModel }) {
   });
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const { toasts, push, dismiss } = useToasts();
+  const { dirty, markSaved } = useDirtyTracker(form);
+  useUnsavedGuard(dirty);
+  const fail = (e: unknown, fallback: string) => push("error", e instanceof Error && e.message ? e.message : fallback);
 
   const set = (key: keyof typeof form, value: string | boolean) => setForm((f) => ({ ...f, [key]: value }));
 
@@ -57,8 +65,11 @@ export function PageEditor({ page }: { page: PageModel }) {
         ogImage: form.ogImage || null,
         hideFromNav: form.hideFromNav,
       });
+      markSaved();
       setNotice("Draft saved.");
       router.refresh();
+    } catch (e) {
+      fail(e, "Could not save this page. Your changes are still here.");
     } finally {
       setBusy(null);
     }
@@ -70,6 +81,8 @@ export function PageEditor({ page }: { page: PageModel }) {
       await publishPage(page.id);
       setNotice("Page published. Live site updated.");
       router.refresh();
+    } catch (e) {
+      fail(e, "Could not publish this page. Nothing went live.");
     } finally {
       setBusy(null);
     }
@@ -81,6 +94,8 @@ export function PageEditor({ page }: { page: PageModel }) {
       await unpublishPage(page.id);
       setNotice("Page set to draft. Removed from live site.");
       router.refresh();
+    } catch (e) {
+      fail(e, "Could not unpublish this page.");
     } finally {
       setBusy(null);
     }
@@ -177,10 +192,12 @@ export function PageEditor({ page }: { page: PageModel }) {
             <div>
               <label className="admin-label">SEO title</label>
               <input className="admin-input" value={form.seoTitle} onChange={(e) => set("seoTitle", e.target.value)} />
+              <CharCount value={form.seoTitle} max={60} />
             </div>
             <div>
               <label className="admin-label">Meta description</label>
               <textarea className="admin-input min-h-24 resize-y" value={form.metaDescription} onChange={(e) => set("metaDescription", e.target.value)} />
+              <CharCount value={form.metaDescription} max={160} />
             </div>
             <div>
               <label className="admin-label">OG title</label>
@@ -190,7 +207,7 @@ export function PageEditor({ page }: { page: PageModel }) {
               <label className="admin-label">OG description</label>
               <textarea className="admin-input min-h-20 resize-y" value={form.ogDescription} onChange={(e) => set("ogDescription", e.target.value)} />
             </div>
-            <ImageUpload label="OG image" value={form.ogImage} onChange={(url) => set("ogImage", url ?? "")} />
+            <ImageUpload label="OG image" value={form.ogImage} onChange={(url) => set("ogImage", url ?? "")} altNote={NO_ALT_STORAGE_NOTE} />
             <label className="flex min-h-11 cursor-pointer items-center gap-3">
               <input type="checkbox" className="size-4 accent-[var(--admin-accent)]" checked={form.hideFromNav} onChange={(e) => set("hideFromNav", e.target.checked)} />
               <span className="text-sm text-zinc-300">Hide from navigation</span>
@@ -201,7 +218,9 @@ export function PageEditor({ page }: { page: PageModel }) {
               {busy === "save" ? <Loader2 size={16} className="animate-spin" /> : null}
               Save draft
             </Button>
+            {dirty && <span className="ml-3 text-xs font-medium text-amber-400">Unsaved changes</span>}
           </div>
+          <VersionHistory entityType="page" entityId={page.id} />
         </div>
 
         <div className="admin-card p-6">
@@ -253,6 +272,7 @@ export function PageEditor({ page }: { page: PageModel }) {
           </div>
         </div>
       </div>
+      <Toaster toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 }

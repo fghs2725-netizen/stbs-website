@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, CheckCircle2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ImageUpload } from "./ImageUpload";
+import { ImageUpload, NO_ALT_STORAGE_NOTE } from "./ImageUpload";
+import { CharCount } from "./CharCount";
+import { useDirtyTracker, useUnsavedGuard } from "./use-unsaved-guard";
 import type { SerializedWebsiteSettings } from "@/lib/website/action-types";
 import { updateWebsiteSettings, publishWebsiteSettings } from "@/lib/website/actions";
 
@@ -102,6 +104,8 @@ export function SettingsPage({ initial }: { initial: SerializedWebsiteSettings }
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { dirty, markSaved } = useDirtyTracker({ state, hoursRaw, logos });
+  useUnsavedGuard(dirty);
 
   const set = (key: keyof SettingsState, value: string) => setState((s) => ({ ...s, [key]: value }));
   const setLogo = (key: keyof typeof logos, value: string) => setLogos((l) => ({ ...l, [key]: value }));
@@ -131,6 +135,7 @@ export function SettingsPage({ initial }: { initial: SerializedWebsiteSettings }
         if (values[key] === undefined) values[key] = null;
       }
       await updateWebsiteSettings(values as never);
+      markSaved();
       setNotice("Draft saved.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
@@ -155,6 +160,7 @@ export function SettingsPage({ initial }: { initial: SerializedWebsiteSettings }
       }
       await updateWebsiteSettings(values as never);
       await publishWebsiteSettings();
+      markSaved();
       setNotice("Published. Live site now uses these global settings.");
       router.refresh();
     } catch (e) {
@@ -217,6 +223,7 @@ export function SettingsPage({ initial }: { initial: SerializedWebsiteSettings }
               ) : (
                 <input className="admin-input" value={state[f.key]} onChange={(e) => set(f.key, e.target.value)} />
               )}
+              {f.key === "shortDescription" && <CharCount value={state.shortDescription} max={160} />}
               {!state[f.key] && <span className="mt-1 inline-block text-[11px] text-amber-300/70">Not configured</span>}
             </div>
           ))}
@@ -239,13 +246,13 @@ export function SettingsPage({ initial }: { initial: SerializedWebsiteSettings }
           <p className="mt-0.5 text-sm text-zinc-500">Previews update live. Deleting the active logo requires confirmation.</p>
         </div>
         <div className="grid gap-x-8 gap-y-5 p-5 sm:grid-cols-2 xl:grid-cols-3">
-          <ImageUpload label="Primary logo" value={logos.primaryLogoUrl} onChange={(url) => setLogo("primaryLogoUrl", url ?? "")} hint="Default dark-background header logo." />
-          <ImageUpload label="Light logo" value={logos.lightLogoUrl} onChange={(url) => setLogo("lightLogoUrl", url ?? "")} />
-          <ImageUpload label="Dark logo" value={logos.darkLogoUrl} onChange={(url) => setLogo("darkLogoUrl", url ?? "")} />
-          <ImageUpload label="Mobile logo" value={logos.mobileLogoUrl} onChange={(url) => setLogo("mobileLogoUrl", url ?? "")} />
-          <ImageUpload label="Favicon" value={logos.faviconUrl} onChange={(url) => setLogo("faviconUrl", url ?? "")} hint="Small square icon (PNG/ICO/SVG)." />
-          <ImageUpload label="Default OG image" value={logos.defaultOgImage} onChange={(url) => setLogo("defaultOgImage", url ?? "")} />
-          <ImageUpload label="Founder photo" value={logos.founderPhoto} onChange={(url) => setLogo("founderPhoto", url ?? "")} />
+          <ImageUpload label="Primary logo" value={logos.primaryLogoUrl} onChange={(url) => setLogo("primaryLogoUrl", url ?? "")} hint="Default dark-background header logo." altNote={NO_ALT_STORAGE_NOTE} />
+          <ImageUpload label="Light logo" value={logos.lightLogoUrl} onChange={(url) => setLogo("lightLogoUrl", url ?? "")} altNote={NO_ALT_STORAGE_NOTE} />
+          <ImageUpload label="Dark logo" value={logos.darkLogoUrl} onChange={(url) => setLogo("darkLogoUrl", url ?? "")} altNote={NO_ALT_STORAGE_NOTE} />
+          <ImageUpload label="Mobile logo" value={logos.mobileLogoUrl} onChange={(url) => setLogo("mobileLogoUrl", url ?? "")} altNote={NO_ALT_STORAGE_NOTE} />
+          <ImageUpload label="Favicon" value={logos.faviconUrl} onChange={(url) => setLogo("faviconUrl", url ?? "")} hint="Small square PNG. ICO and SVG files can't be uploaded here." />
+          <ImageUpload label="Default OG image" value={logos.defaultOgImage} onChange={(url) => setLogo("defaultOgImage", url ?? "")} altNote={NO_ALT_STORAGE_NOTE} />
+          <ImageUpload label="Founder photo" value={logos.founderPhoto} onChange={(url) => setLogo("founderPhoto", url ?? "")} altNote={NO_ALT_STORAGE_NOTE} />
         </div>
       </div>
 
@@ -258,6 +265,7 @@ export function SettingsPage({ initial }: { initial: SerializedWebsiteSettings }
           {busy === "publish" ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
           Save & publish
         </Button>
+        {dirty && <span className="text-xs font-medium text-amber-400">Unsaved changes</span>}
         <span className="text-xs text-zinc-500">
           {initial.publishedAt ? `Last published ${new Date(initial.publishedAt).toLocaleString()}` : "Never published"}
         </span>

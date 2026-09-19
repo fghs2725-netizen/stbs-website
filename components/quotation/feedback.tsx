@@ -29,8 +29,8 @@ export function Toaster({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id
   );
 }
 
-export function ConfirmDialog({ title, body, confirmLabel, destructive, busy, onConfirm, onCancel }: {
-  title: string; body: string; confirmLabel: string; destructive?: boolean; busy?: boolean; onConfirm: () => void; onCancel: () => void;
+export function ConfirmDialog({ title, body, confirmLabel, destructive, busy, confirmDisabled, children, onConfirm, onCancel }: {
+  title: string; body: string; confirmLabel: string; destructive?: boolean; busy?: boolean; confirmDisabled?: boolean; children?: React.ReactNode; onConfirm: () => void; onCancel: () => void;
 }) {
   const cancelRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -45,9 +45,10 @@ export function ConfirmDialog({ title, body, confirmLabel, destructive, busy, on
       <div className="q-dialog" role="alertdialog" aria-modal="true" aria-labelledby="q-dialog-title" aria-describedby="q-dialog-body">
         <h3 id="q-dialog-title">{title}</h3>
         <p id="q-dialog-body">{body}</p>
+        {children}
         <div className="q-dialog-actions">
           <button type="button" ref={cancelRef} onClick={onCancel} disabled={busy}>Cancel</button>
-          <button type="button" className={destructive ? "danger" : "primary"} onClick={onConfirm} disabled={busy}>{busy ? "Working…" : confirmLabel}</button>
+          <button type="button" className={destructive ? "danger" : "primary"} onClick={onConfirm} disabled={busy || confirmDisabled}>{busy ? "Working…" : confirmLabel}</button>
         </div>
       </div>
     </div>

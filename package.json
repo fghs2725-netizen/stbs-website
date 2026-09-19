@@ -9,6 +9,8 @@
     "lint": "next lint",
     "test:quotation": "npx tsx scripts/test-quotation-validation.ts",
     "test:quotation-snapshot": "npx tsx scripts/test-quotation-snapshot.ts",
+    "test:website-validation": "npx tsx scripts/test-website-validation.ts",
+    "test:image-guard": "npx tsx scripts/test-image-guard.ts",
     "test:quotation-docx": "npx tsx scripts/test-quotation-docx.ts",
     "test:quotation-reference": "npx tsx scripts/test-quotation-reference.ts",
     "test:amount-in-words": "npx tsx scripts/test-amount-in-words.ts",

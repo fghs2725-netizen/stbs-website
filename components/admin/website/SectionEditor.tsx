@@ -6,10 +6,15 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, Plus, Trash2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "./ConfirmButton";
-import { FieldInput } from "./field-input";
+import { FieldInput, altKeyFor } from "./field-input";
+import { imageAltProblem } from "./ImageUpload";
+import { useDirtyTracker, useUnsavedGuard } from "./use-unsaved-guard";
+import { Toaster, useToasts } from "@/components/quotation/feedback";
 import { SectionTypeDef, SECTION_TYPES, SECTION_TYPE_DEFS, type SectionField } from "@/lib/website/section-types";
 import type { SerializedSection, SerializedPage } from "@/lib/website/action-types";
 import { updateSectionContent, updateSectionMeta, deleteSection, toggleSectionVisibility, duplicateSection } from "@/lib/website/actions";
+
+const str = (v: unknown) => (typeof v === "string" ? v : "");
 
 export function SectionEditor({ page, section }: { page: SerializedPage; section: SerializedSection }) {
   const router = useRouter();
@@ -21,6 +26,31 @@ export function SectionEditor({ page, section }: { page: SerializedPage; section
   const [description, setDescription] = useState(section.description ?? "");
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const { toasts, push, dismiss } = useToasts();
+  const { dirty, markSaved } = useDirtyTracker({ content, rawJson, name, description });
+  useUnsavedGuard(dirty);
+
+  // An image without alt text blocks saving. Alt text is stored beside the image (heroImage -> heroImageAlt).
+  const altProblems: string[] = [];
+  for (const f of def?.fields ?? []) {
+    if (f.type === "image") {
+      const p = imageAltProblem(str(content[f.key]), str(content[altKeyFor(f.key)]), f.label.toLowerCase());
+      if (p) altProblems.push(p);
+    }
+  }
+  for (const list of def?.lists ?? []) {
+    const rows = Array.isArray(content[list.key]) ? (content[list.key] as unknown[]) : [];
+    rows.forEach((row, i) => {
+      if (!row || typeof row !== "object") return;
+      const r = row as Record<string, unknown>;
+      for (const f of list.fields) {
+        if (f.type !== "image") continue;
+        const p = imageAltProblem(str(r[f.key]), str(r[altKeyFor(f.key)]), `${list.label.toLowerCase()} item ${i + 1} image`);
+        if (p) altProblems.push(p);
+      }
+    });
+  }
+  const pairedAltKeys = new Set((def?.fields ?? []).filter((f) => f.type === "image").map((f) => altKeyFor(f.key)));
 
   function setField(key: string, value: unknown) {
     setContent((c) => ({ ...c, [key]: value }));
@@ -61,6 +91,11 @@ export function SectionEditor({ page, section }: { page: SerializedPage; section
     setBusy(asPublish ? "publish" : "save");
     setNotice(null);
     try {
+      if (altProblems.length) {
+        push("error", altProblems[0]);
+        setBusy(null);
+        return;
+      }
       let payload = content;
       if (!isStructured) {
         try {
@@ -73,8 +108,12 @@ export function SectionEditor({ page, section }: { page: SerializedPage; section
       }
       await updateSectionContent(section.id, payload as object);
       await updateSectionMeta(section.id, { name, description: description || undefined });
+      markSaved();
       setNotice(asPublish ? "Saved. Publish the page to make this live." : "Draft saved.");
       router.refresh();
+    } catch (e) {
+      setNotice(null);
+      push("error", e instanceof Error && e.message ? e.message : "Could not save. Your changes are still here; try again.");
     } finally {
       setBusy(null);
     }
@@ -146,10 +185,15 @@ export function SectionEditor({ page, section }: { page: SerializedPage; section
 
           {def ? (
             <>
-              {(def.fields ?? []).map((field) => (
+              {(def.fields ?? []).filter((f) => !pairedAltKeys.has(f.key)).map((field) => (
                 <div key={field.key}>
                   <label className="admin-label">{field.label}</label>
-                  <FieldInput field={field} value={content[field.key]} onChange={(v) => setField(field.key, v)} />
+                  <FieldInput
+                    field={field}
+                    value={content[field.key]}
+                    onChange={(v) => setField(field.key, v)}
+                    {...(field.type === "image" ? { altText: str(content[altKeyFor(field.key)]), onAltChange: (v: string) => setField(altKeyFor(field.key), v) } : {})}
+                  />
                 </div>
               ))}
 
@@ -165,10 +209,15 @@ export function SectionEditor({ page, section }: { page: SerializedPage; section
                       {rows.map((_row, i) => (
                         <div key={i} className="rounded-lg border border-white/[.06] bg-black/20 p-3">
                           <div className={`grid gap-3 ${list.fields.length > 1 ? "lg:grid-cols-2" : ""}`}>
-                            {list.fields.map((field) => (
+                            {list.fields.filter((f) => !list.fields.some((g) => g.type === "image" && altKeyFor(g.key) === f.key)).map((field) => (
                               <div key={field.key}>
                                 {list.fields.length > 1 && <label className="admin-label">{field.label}</label>}
-                                <FieldInput field={field} value={rowValue(list.key, i, field)} onChange={(v) => setList(i, list.key, field.key, v)} />
+                                <FieldInput
+                                  field={field}
+                                  value={rowValue(list.key, i, field)}
+                                  onChange={(v) => setList(i, list.key, field.key, v)}
+                                  {...(field.type === "image" ? { altText: str(rowValue(list.key, i, { key: altKeyFor(field.key) } as SectionField)), onAltChange: (v: string) => setList(i, list.key, altKeyFor(field.key), v) } : {})}
+                                />
                               </div>
                             ))}
                           </div>
@@ -193,14 +242,16 @@ export function SectionEditor({ page, section }: { page: SerializedPage; section
             </div>
           )}
 
+          {altProblems.length > 0 && <p role="alert" className="rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-300">{altProblems[0]}{altProblems.length > 1 ? ` (${altProblems.length - 1} more)` : ""}</p>}
+          {dirty && !notice && <p className="text-xs text-amber-400">Unsaved changes</p>}
           {notice && <p className="rounded-lg bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">{notice}</p>}
 
           <div className="flex flex-wrap items-center gap-3 sticky bottom-0 -mx-5 -mb-5 rounded-b-xl border-t border-white/[.08] bg-[#141416] px-5 py-4">
-            <Button onClick={() => save(false)} disabled={busy === "save"}>
+            <Button onClick={() => save(false)} disabled={busy === "save" || altProblems.length > 0} title={altProblems[0]}>
               {busy === "save" ? <Loader2 size={16} className="animate-spin" /> : null}
               {busy === "save" ? "Saving…" : "Save draft"}
             </Button>
-            <Button variant="secondary" onClick={() => save(true)} disabled={busy === "publish"}>
+            <Button variant="secondary" onClick={() => save(true)} disabled={busy === "publish" || altProblems.length > 0} title={altProblems[0]}>
               {busy === "publish" ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
               Save, then Publish
             </Button>
@@ -246,6 +297,7 @@ export function SectionEditor({ page, section }: { page: SerializedPage; section
           </div>
         )}
       </div>
+      <Toaster toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 }

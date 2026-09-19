@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ImageUpload } from "./ImageUpload";
+import { ImageUpload, NO_ALT_STORAGE_NOTE } from "./ImageUpload";
+import { CharCount } from "./CharCount";
+import { VersionHistory } from "./VersionHistory";
+import { useDirtyTracker, useUnsavedGuard } from "./use-unsaved-guard";
 import { ConfirmButton } from "./ConfirmButton";
 import { FeaturesEditor, FaqsEditor } from "./ServiceFields";
 import type { SerializedService } from "@/lib/website/action-types";
@@ -36,6 +39,8 @@ export function ServiceForm({ initial }: { initial?: SerializedService }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { dirty, markSaved } = useDirtyTracker({ form, features, faqs });
+  useUnsavedGuard(dirty);
 
   const set = (key: keyof typeof form, value: string | boolean) => setForm((f) => ({ ...f, [key]: value }));
 
@@ -67,6 +72,7 @@ export function ServiceForm({ initial }: { initial?: SerializedService }) {
       } else {
         await updateService(initial.id, payload);
       }
+      markSaved();
       if (alsoPublish && id) {
         await publishService(id);
         setNotice("Service published.");
@@ -139,6 +145,7 @@ export function ServiceForm({ initial }: { initial?: SerializedService }) {
           <div>
             <label className="admin-label">Short description</label>
             <textarea className="admin-input min-h-20 resize-y" value={form.shortDescription} onChange={(e) => set("shortDescription", e.target.value)} />
+            <CharCount value={form.shortDescription} max={160} />
           </div>
           <div>
             <label className="admin-label">Full description</label>
@@ -163,16 +170,18 @@ export function ServiceForm({ initial }: { initial?: SerializedService }) {
             <input className="admin-input" value={form.ctaUrl} onChange={(e) => set("ctaUrl", e.target.value)} />
           </div>
 
-          <ImageUpload label="Service image" value={form.image} onChange={(url) => set("image", url ?? "")} hint="Optional — used as a featured image." />
+          <ImageUpload label="Service image" value={form.image} onChange={(url) => set("image", url ?? "")} hint="Optional — used as a featured image." altNote={NO_ALT_STORAGE_NOTE} />
 
           <div className="grid gap-4 lg:grid-cols-2">
             <div>
               <label className="admin-label">SEO title</label>
               <input className="admin-input" value={form.seoTitle} onChange={(e) => set("seoTitle", e.target.value)} />
+              <CharCount value={form.seoTitle} max={60} />
             </div>
             <div>
               <label className="admin-label">SEO description</label>
               <textarea className="admin-input min-h-20 resize-y" value={form.seoDescription} onChange={(e) => set("seoDescription", e.target.value)} />
+              <CharCount value={form.seoDescription} max={160} />
             </div>
           </div>
 
@@ -189,6 +198,7 @@ export function ServiceForm({ initial }: { initial?: SerializedService }) {
             <Button variant="secondary" onClick={() => save(true)} disabled={busy === "save"}>
               <CheckCircle2 size={16} /> Save & publish
             </Button>
+            {dirty && <span className="text-xs font-medium text-amber-400">Unsaved changes</span>}
           </div>
         </div>
       </div>
@@ -204,6 +214,7 @@ export function ServiceForm({ initial }: { initial?: SerializedService }) {
         <div className="mt-4 border-t border-white/[.06] pt-4">
           <p className="mb-2 text-xs text-zinc-500">Drag handle note: ordering is managed from the services list page.</p>
         </div>
+        {initial && <VersionHistory entityType="service" entityId={initial.id} />}
       </div>
     </div>
   );

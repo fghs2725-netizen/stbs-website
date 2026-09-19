@@ -16,8 +16,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "../ConfirmButton";
-import { FieldInput } from "../field-input";
-import { ImageUpload } from "../ImageUpload";
+import { FieldInput, altKeyFor } from "../field-input";
+import { ImageUpload, imageAltProblem, NO_ALT_STORAGE_NOTE } from "../ImageUpload";
+import { CharCount } from "../CharCount";
+import { anyDrawerDirty, confirmDiscard, useDirtyTracker, useDrawerGuard } from "../use-unsaved-guard";
 import { SECTION_TYPES, SECTION_TYPE_DEFS, type SectionField } from "@/lib/website/section-types";
 import { useWebsiteEditor, type EditorSignal } from "@/lib/website/editor-context";
 import type {
@@ -146,7 +148,7 @@ export function DrawerHeader({ title, subtitle, onClose }: { title: string; subt
         <h2 className="font-display text-base font-semibold text-white">{title}</h2>
         {subtitle && <p className="mt-0.5 text-xs text-zinc-500">{subtitle}</p>}
       </div>
-      <button type="button" onClick={onClose} className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg text-zinc-500 hover:bg-white/10 hover:text-white" aria-label="Close editor"><X size={18} /></button>
+      <button type="button" onClick={() => { if (confirmDiscard(anyDrawerDirty())) onClose(); }} className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg text-zinc-500 hover:bg-white/10 hover:text-white" aria-label="Close editor"><X size={18} /></button>
     </div>
   );
 }
@@ -160,6 +162,31 @@ export function SectionFieldsPanel({ section, onClose, mediaUrls = [] }: { secti
   const [name, setName] = useState(section.name);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const { dirty, markSaved } = useDirtyTracker({ content, name });
+  useDrawerGuard(dirty);
+  const asStr = (v: unknown) => (typeof v === "string" ? v : "");
+
+  // An image without alt text blocks saving. Alt text lives beside the image (heroImage -> heroImageAlt).
+  const altProblems: string[] = [];
+  for (const f of def?.fields ?? []) {
+    if (f.type === "image") {
+      const p = imageAltProblem(asStr(content[f.key]), asStr(content[altKeyFor(f.key)]), f.label.toLowerCase());
+      if (p) altProblems.push(p);
+    }
+  }
+  for (const list of def?.lists ?? []) {
+    const listRows = Array.isArray(content[list.key]) ? (content[list.key] as unknown[]) : [];
+    listRows.forEach((row, i) => {
+      if (!row || typeof row !== "object") return;
+      const r = row as Record<string, unknown>;
+      for (const f of list.fields) {
+        if (f.type !== "image") continue;
+        const p = imageAltProblem(asStr(r[f.key]), asStr(r[altKeyFor(f.key)]), `${list.label.toLowerCase()} item ${i + 1} image`);
+        if (p) altProblems.push(p);
+      }
+    });
+  }
+  const pairedAltKeys = new Set((def?.fields ?? []).filter((f) => f.type === "image").map((f) => altKeyFor(f.key)));
 
   const setField = (key: string, value: unknown) => setContent((c) => ({ ...c, [key]: value }));
 
@@ -194,11 +221,13 @@ export function SectionFieldsPanel({ section, onClose, mediaUrls = [] }: { secti
   };
 
   const save = async () => {
+    if (altProblems.length) { setNotice(`Could not save draft: ${altProblems[0]}`); return; }
     setBusy(true);
     setNotice(null);
     try {
       await updateSectionContent(section.id, content as object);
       await updateSectionMeta(section.id, { name });
+      markSaved();
       setNotice("Draft saved. Publish this page to make it live.");
       refresh();
     } catch (error) {
@@ -219,10 +248,16 @@ export function SectionFieldsPanel({ section, onClose, mediaUrls = [] }: { secti
 
         {def ? (
           <>
-            {(def.fields ?? []).map((field) => (
+            {(def.fields ?? []).filter((f) => !pairedAltKeys.has(f.key)).map((field) => (
               <div key={field.key}>
                 <label className="admin-label">{field.label}</label>
-                <FieldInput field={field} value={content[field.key]} onChange={(v) => setField(field.key, v)} mediaUrls={mediaUrls} />
+                <FieldInput
+                  field={field}
+                  value={content[field.key]}
+                  onChange={(v) => setField(field.key, v)}
+                  mediaUrls={mediaUrls}
+                  {...(field.type === "image" ? { altText: asStr(content[altKeyFor(field.key)]), onAltChange: (v: string) => setField(altKeyFor(field.key), v) } : {})}
+                />
               </div>
             ))}
             {def.lists?.map((list) => {
@@ -237,10 +272,16 @@ export function SectionFieldsPanel({ section, onClose, mediaUrls = [] }: { secti
                     {rows.map((_row, i) => (
                       <div key={i} className="rounded-lg border border-white/[.06] bg-black/20 p-2.5">
                         <div className={`grid gap-2.5 ${list.fields.length > 1 ? "lg:grid-cols-2" : ""}`}>
-                          {list.fields.map((field) => (
+                          {list.fields.filter((f) => !list.fields.some((g) => g.type === "image" && altKeyFor(g.key) === f.key)).map((field) => (
                             <div key={field.key}>
                               {list.fields.length > 1 && <label className="admin-label">{field.label}</label>}
-                              <FieldInput field={field} value={rowValue(list.key, i, field)} onChange={(v) => setList(i, list.key, field.key, v)} mediaUrls={mediaUrls} />
+                              <FieldInput
+                                field={field}
+                                value={rowValue(list.key, i, field)}
+                                onChange={(v) => setList(i, list.key, field.key, v)}
+                                mediaUrls={mediaUrls}
+                                {...(field.type === "image" ? { altText: asStr(rowValue(list.key, i, { key: altKeyFor(field.key) } as SectionField)), onAltChange: (v: string) => setList(i, list.key, altKeyFor(field.key), v) } : {})}
+                              />
                             </div>
                           ))}
                         </div>
@@ -269,10 +310,12 @@ export function SectionFieldsPanel({ section, onClose, mediaUrls = [] }: { secti
       </div>
       <div className="border-t border-white/[.08] bg-[#141416] px-5 py-4">
         <div className="flex flex-wrap items-center gap-3">
-          <Button onClick={save} disabled={busy}>
+          <Button onClick={save} disabled={busy || altProblems.length > 0} title={altProblems[0]}>
             {busy ? <Loader2 size={16} className="animate-spin" /> : null}
             {busy ? "Saving…" : "Save draft"}
           </Button>
+          {dirty && <span className="text-xs font-medium text-amber-400">Unsaved changes</span>}
+          {altProblems.length > 0 && <span role="alert" className="text-xs text-red-400">{altProblems[0]}</span>}
           <Button asChild size="sm" variant="ghost">
             <Link href={`/admin/website/pages/${section.pageId}`} target="_blank">Advanced page editor ↗</Link>
           </Button>
@@ -294,6 +337,8 @@ function DraftServiceForm({ existing, onDone, mediaUrls = [] }: { existing?: Ser
   const [visible, setVisible] = useState(existing?.visible ?? true);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const { dirty, markSaved } = useDirtyTracker({ title, slug, shortDescription, image, visible });
+  useDrawerGuard(dirty);
 
   const save = async () => {
     setBusy(true); setNotice(null);
@@ -304,6 +349,7 @@ function DraftServiceForm({ existing, onDone, mediaUrls = [] }: { existing?: Ser
         const created = (await createService({ title: title.trim(), slug: slug || title, shortDescription: shortDescription || undefined })) as unknown as SerializedService;
         if (image) await updateService(created.id, { image: image || undefined });
       }
+      markSaved();
       setNotice("Draft saved. Publish to update the live website."); onDone(); refresh();
     } catch (error) { setNotice(error instanceof Error ? `Could not save draft: ${error.message}` : "Could not save draft."); }
     finally { setBusy(false); }
@@ -314,9 +360,10 @@ function DraftServiceForm({ existing, onDone, mediaUrls = [] }: { existing?: Ser
       <input className="admin-input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Service title" />
       <input className="admin-input" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="Slug (optional url path)" />
       <textarea className="admin-input min-h-20 resize-y" value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} placeholder="Short description shown on cards" />
+      <CharCount value={shortDescription} max={160} />
       <div>
         <label className="admin-label">Card image</label>
-        <ImageUpload label="" value={image || null} onChange={(url) => setImage(url ?? "")} hint="Upload to Vercel Blob or choose a Website Photo." mediaUrls={mediaUrls} />
+        <ImageUpload label="" value={image || null} onChange={(url) => setImage(url ?? "")} hint="Upload to Vercel Blob or choose a Website Photo." mediaUrls={mediaUrls} altNote={NO_ALT_STORAGE_NOTE} />
       </div>
       <label className="flex min-h-11 items-center gap-2 text-sm text-zinc-300">
         <input type="checkbox" checked={visible} onChange={(e) => setVisible(e.target.checked)} className="size-4 accent-signal" />
@@ -383,9 +430,13 @@ function DraftGalleryForm({ existing, onDone, mediaUrls = [] }: { existing?: Ser
   const [visible, setVisible] = useState(existing?.visible ?? true);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const { dirty, markSaved } = useDirtyTracker({ mediaUrl, caption, altText, category, sourceType, visible });
+  useDrawerGuard(dirty);
+  const altBlocked = Boolean(mediaUrl.trim()) && !altText.trim();
 
   const save = async () => {
     if (!mediaUrl.trim()) return;
+    if (altBlocked) { setNotice("Could not save draft: describe the photo (alt text) first."); return; }
     setBusy(true); setNotice(null);
     try {
       if (existing) {
@@ -394,6 +445,7 @@ function DraftGalleryForm({ existing, onDone, mediaUrls = [] }: { existing?: Ser
         const created = (await createGalleryItem({ mediaUrl: mediaUrl.trim(), caption: caption || undefined, altText: altText || undefined, category: category || undefined, sourceType })) as unknown as SerializedGalleryItem;
         if (visible === false) await updateGalleryItem(created.id, { visible: false });
       }
+      markSaved();
       setNotice("Draft saved. Publish to update the live website."); onDone(); refresh();
     } catch (error) { setNotice(error instanceof Error ? `Could not save draft: ${error.message}` : "Could not save draft."); }
     finally { setBusy(false); }
@@ -403,11 +455,10 @@ function DraftGalleryForm({ existing, onDone, mediaUrls = [] }: { existing?: Ser
     <div className="space-y-2.5 rounded-lg border border-white/[.06] bg-black/20 p-3">
       <div>
         <label className="admin-label">Photo</label>
-        <ImageUpload label="" value={mediaUrl || null} onChange={(url) => setMediaUrl(url ?? "")} hint="Upload a new photo to Vercel Blob or choose a Website Photo." mediaUrls={mediaUrls} />
+        <ImageUpload label="" value={mediaUrl || null} onChange={(url) => setMediaUrl(url ?? "")} hint="Upload a new photo to Vercel Blob or choose a Website Photo." mediaUrls={mediaUrls} altText={altText} onAltChange={setAltText} />
         {mediaUrl && <img src={mediaUrl} alt="" className="mt-2 h-24 w-full rounded-md object-cover" />}
       </div>
       <input className="admin-input" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Caption (shown on the website)" />
-      <input className="admin-input" value={altText} onChange={(e) => setAltText(e.target.value)} placeholder="Alt text (accessibility)" />
       <div className="grid grid-cols-2 gap-2.5">
         <input className="admin-input" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Category (e.g. Industrial)" />
         <select className="admin-input" value={sourceType} onChange={(e) => setSourceType(e.target.value as SerializedGalleryItem["sourceType"])}>
@@ -422,7 +473,7 @@ function DraftGalleryForm({ existing, onDone, mediaUrls = [] }: { existing?: Ser
         Visible on the website
       </label>
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" onClick={save} disabled={busy || !mediaUrl.trim()}>
+        <Button size="sm" onClick={save} disabled={busy || !mediaUrl.trim() || altBlocked} title={altBlocked ? "Describe the photo (alt text) before saving" : undefined}>
           {busy ? <Loader2 size={14} className="animate-spin" /> : null}
           {existing ? "Save photo" : "Add photo"}
         </Button>
@@ -490,17 +541,23 @@ function DraftClientForm({ existing, onDone, mediaUrls = [] }: { existing?: Seri
   const [description, setDescription] = useState(existing?.description ?? "");
   const [featured, setFeatured] = useState(existing?.featured ?? false);
   const [visible, setVisible] = useState(existing?.visible ?? true);
+  const [altText, setAltText] = useState(existing?.altText ?? "");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const { dirty, markSaved } = useDirtyTracker({ name, logoUrl, sector, description, featured, visible, altText });
+  useDrawerGuard(dirty);
+  const altBlocked = Boolean(logoUrl) && !altText.trim();
 
   const save = async () => {
+    if (altBlocked) { setNotice("Could not save draft: describe the logo (alt text) first."); return; }
     setBusy(true); setNotice(null);
     try {
       if (existing) {
-        await updateWebsiteClient(existing.id, { name, logoUrl: logoUrl || undefined, sector: sector || undefined, description: description || undefined, featured, visible });
+        await updateWebsiteClient(existing.id, { name, altText: altText || undefined, logoUrl: logoUrl || undefined, sector: sector || undefined, description: description || undefined, featured, visible });
       } else if (name.trim()) {
-        await createWebsiteClient({ name: name.trim(), logoUrl: logoUrl || undefined, sector: sector || undefined, description: description || undefined, featured });
+        await createWebsiteClient({ name: name.trim(), altText: altText || undefined, logoUrl: logoUrl || undefined, sector: sector || undefined, description: description || undefined, featured });
       }
+      markSaved();
       setNotice("Draft saved. Publish to update the live website."); onDone(); refresh();
     } catch (error) { setNotice(error instanceof Error ? `Could not save draft: ${error.message}` : "Could not save draft."); }
     finally { setBusy(false); }
@@ -511,7 +568,7 @@ function DraftClientForm({ existing, onDone, mediaUrls = [] }: { existing?: Seri
       <input className="admin-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Client / organisation name" />
       <div>
         <label className="admin-label">Logo</label>
-        <ImageUpload label="" value={logoUrl || null} onChange={(url) => setLogoUrl(url ?? "")} hint="Upload to Vercel Blob or choose a Website Photo." mediaUrls={mediaUrls} />
+        <ImageUpload label="" value={logoUrl || null} onChange={(url) => setLogoUrl(url ?? "")} hint="Upload to Vercel Blob or choose a Website Photo." mediaUrls={mediaUrls} altText={altText} onAltChange={setAltText} altLabel="Logo alt text" />
       </div>
       <input className="admin-input" value={sector} onChange={(e) => setSector(e.target.value)} placeholder="Sector (e.g. Institutional)" />
       <textarea className="admin-input min-h-16 resize-y" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short description (optional)" />
@@ -526,7 +583,7 @@ function DraftClientForm({ existing, onDone, mediaUrls = [] }: { existing?: Seri
         </label>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" onClick={save} disabled={busy || !name.trim()}>
+        <Button size="sm" onClick={save} disabled={busy || !name.trim() || altBlocked} title={altBlocked ? "Describe the logo (alt text) before saving" : undefined}>
           {busy ? <Loader2 size={14} className="animate-spin" /> : null}
           {existing ? "Save client" : "Add client"}
         </Button>
@@ -588,17 +645,27 @@ function DraftTestimonialForm({ existing, onDone }: { existing?: SerializedTesti
   const [location, setLocation] = useState(existing?.location ?? "");
   const [rating, setRating] = useState(existing?.rating ?? 5);
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const { dirty, markSaved } = useDirtyTracker({ personName, quote, designation, company, location, rating });
+  useDrawerGuard(dirty);
 
   const save = async () => {
     setBusy(true);
-    if (existing) {
-      await updateTestimonial(existing.id, { personName, quote, designation: designation || undefined, company: company || undefined, location: location || undefined, rating });
-    } else if (personName.trim() && quote.trim()) {
-      await createTestimonial({ personName: personName.trim(), quote: quote.trim(), designation: designation || undefined, company: company || undefined, location: location || undefined, rating });
+    setNotice(null);
+    try {
+      if (existing) {
+        await updateTestimonial(existing.id, { personName, quote, designation: designation || undefined, company: company || undefined, location: location || undefined, rating });
+      } else if (personName.trim() && quote.trim()) {
+        await createTestimonial({ personName: personName.trim(), quote: quote.trim(), designation: designation || undefined, company: company || undefined, location: location || undefined, rating });
+      }
+      markSaved();
+      onDone();
+      refresh();
+    } catch (error) {
+      setNotice(error instanceof Error && error.message ? `Could not save testimonial: ${error.message}` : "Could not save testimonial. Please try again.");
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
-    onDone();
-    refresh();
   };
 
   return (
@@ -624,6 +691,7 @@ function DraftTestimonialForm({ existing, onDone }: { existing?: SerializedTesti
           {busy ? <Loader2 size={14} className="animate-spin" /> : null}
           {existing ? "Save testimonial" : "Add testimonial"}
         </Button>
+        {notice && <p role="alert" className="w-full text-xs text-red-400">{notice}</p>}
         {existing && existing.approval !== "APPROVED" && (
           <Button size="sm" variant="secondary" onClick={async () => { await updateTestimonialApproval(existing.id, "APPROVED"); refresh(); }}><CheckCircle2 size={14} /> Approve</Button>
         )}
@@ -670,15 +738,23 @@ export function NavPanel({ items, onClose }: { items: SerializedNavItem[]; onClo
   const [label, setLabel] = useState("");
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useDrawerGuard(Boolean(label.trim() || url.trim()));
 
   const add = async () => {
     if (!label.trim() || !url.trim()) return;
     setBusy(true);
-    await createNavItem({ label: label.trim(), url: url.trim() });
-    setLabel("");
-    setUrl("");
-    setBusy(false);
-    refresh();
+    setError(null);
+    try {
+      await createNavItem({ label: label.trim(), url: url.trim() });
+      setLabel("");
+      setUrl("");
+      refresh();
+    } catch (e) {
+      setError(e instanceof Error && e.message ? e.message : "Could not add that menu item.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -698,6 +774,7 @@ export function NavPanel({ items, onClose }: { items: SerializedNavItem[]; onClo
           <Button size="sm" onClick={add} disabled={busy || !label.trim() || !url.trim()}>
             {busy ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />} Add nav item
           </Button>
+          {error && <p role="alert" className="text-xs text-red-400">{error}</p>}
         </div>
         <div className="flex items-start gap-2">
           <ReorderButtons list={items} onApply={reorderNavItems} />
@@ -714,13 +791,23 @@ function NavItemEditor({ item, close }: { item: SerializedNavItem; close: () => 
   const [url, setUrl] = useState(item.url);
   const [visible, setVisible] = useState(item.visible);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { dirty, markSaved } = useDirtyTracker({ label, url, visible });
+  useDrawerGuard(dirty);
 
   const save = async () => {
     if (!label.trim() || !url.trim()) return;
     setBusy(true);
-    await updateNavItem(item.id, { label: label.trim(), url: url.trim(), visible });
-    setBusy(false);
-    refresh();
+    setError(null);
+    try {
+      await updateNavItem(item.id, { label: label.trim(), url: url.trim(), visible });
+      markSaved();
+      refresh();
+    } catch (e) {
+      setError(e instanceof Error && e.message ? e.message : "Could not save that menu item.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -741,6 +828,7 @@ function NavItemEditor({ item, close }: { item: SerializedNavItem; close: () => 
         <ConfirmButton label="Delete" variant="destructive" message={`Delete "${item.label}"?`} onConfirm={async () => { await deleteNavItem(item.id); close(); }} />
         <span className="ml-auto"><StatusChip published={Boolean(item.publishedAt)} /></span>
       </div>
+      {error && <p role="alert" className="text-xs text-red-400">{error}</p>}
     </div>
   );
 }
@@ -766,18 +854,32 @@ export function SettingsPanel({ settings, onClose, mediaUrls = [] }: { settings:
     primaryLogoUrl: settings?.primaryLogoUrl ?? "",
   });
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const { dirty, markSaved } = useDirtyTracker(form);
+  useDrawerGuard(dirty);
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const save = async () => {
     setBusy(true);
-    await updateWebsiteSettings({ ...form, phone: form.phone || undefined, phone2: form.phone2 || undefined, whatsapp: form.whatsapp || undefined });
-    setBusy(false);
-    refresh();
+    setNotice(null);
+    try {
+      await updateWebsiteSettings({ ...form, phone: form.phone || undefined, phone2: form.phone2 || undefined, whatsapp: form.whatsapp || undefined });
+      markSaved();
+      setNotice("Draft saved.");
+    } catch (e) {
+      setNotice(e instanceof Error && e.message ? `Could not save settings: ${e.message}` : "Could not save settings. Please try again.");
+    } finally {
+      setBusy(false);
+      refresh();
+    }
   };
 
   const publish = async () => {
     setBusy(true);
-    try { await publishWebsiteSettings(); } finally { setBusy(false); refresh(); }
+    setNotice(null);
+    try { await publishWebsiteSettings(); setNotice("Settings published."); }
+    catch (e) { setNotice(e instanceof Error && e.message ? `Could not publish settings: ${e.message}` : "Could not publish settings."); }
+    finally { setBusy(false); refresh(); }
   };
 
   return (
@@ -791,11 +893,12 @@ export function SettingsPanel({ settings, onClose, mediaUrls = [] }: { settings:
           </div>
           <div className="col-span-2">
             <label className="admin-label">Website logo</label>
-            <ImageUpload label="" value={form.primaryLogoUrl || null} onChange={(url) => setForm((f) => ({ ...f, primaryLogoUrl: url ?? "" }))} mediaUrls={mediaUrls} hint="This logo is rendered in the shared public header and footer. Save Draft, then Publish settings." />
+            <ImageUpload label="" value={form.primaryLogoUrl || null} onChange={(url) => setForm((f) => ({ ...f, primaryLogoUrl: url ?? "" }))} mediaUrls={mediaUrls} hint="This logo is rendered in the shared public header and footer. Save Draft, then Publish settings." altNote={NO_ALT_STORAGE_NOTE} />
           </div>
           <div className="col-span-2">
             <label className="admin-label">Short description (footer tagline)</label>
             <textarea className="admin-input min-h-16 resize-y" value={form.shortDescription} onChange={set("shortDescription")} />
+            <CharCount value={form.shortDescription} max={160} />
           </div>
           <div><label className="admin-label">Phone 1</label><input className="admin-input" value={form.phone} onChange={set("phone")} /></div>
           <div><label className="admin-label">Phone 2</label><input className="admin-input" value={form.phone2} onChange={set("phone2")} /></div>
@@ -819,6 +922,8 @@ export function SettingsPanel({ settings, onClose, mediaUrls = [] }: { settings:
           <Button variant="secondary" onClick={publish}><CheckCircle2 size={15} /> Publish settings</Button>
           <span className="ml-auto"><StatusChip published={Boolean(settings?.publishedAt)} /></span>
         </div>
+        {dirty && <p className="mt-2 text-xs font-medium text-amber-400">Unsaved changes</p>}
+        {notice && <p role="status" className={`mt-2 text-xs ${notice.startsWith("Could not") ? "text-red-400" : "text-emerald-400"}`}>{notice}</p>}
         <p className="mt-3 text-xs leading-5 text-zinc-500">Publishing settings updates the live header/footer contact details.</p>
       </div>
     </div>
@@ -835,32 +940,46 @@ export function SeoPanel({ seo, onClose }: { seo: SerializedWebsiteSeo | null; o
     defaultOgImage: seo?.defaultOgImage ?? "",
   });
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const { dirty, markSaved } = useDirtyTracker(form);
+  useDrawerGuard(dirty);
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const save = async () => {
     setBusy(true);
+    setNotice(null);
+    try {
     await updateWebsiteSeo({ globalTitle: form.globalTitle || undefined, globalDescription: form.globalDescription || undefined, canonicalUrl: form.canonicalUrl || undefined, robotsSettings: form.robotsSettings || undefined, defaultOgImage: form.defaultOgImage || undefined });
-    setBusy(false);
-    refresh();
+      markSaved();
+      setNotice("Draft saved.");
+    } catch (e) {
+      setNotice(e instanceof Error && e.message ? `Could not save SEO settings: ${e.message}` : "Could not save SEO settings. Please try again.");
+    } finally {
+      setBusy(false);
+      refresh();
+    }
   };
 
   const publish = async () => {
     setBusy(true);
-    try { await publishWebsiteSeo(); } finally { setBusy(false); refresh(); }
+    setNotice(null);
+    try { await publishWebsiteSeo(); setNotice("SEO settings published."); }
+    catch (e) { setNotice(e instanceof Error && e.message ? `Could not publish SEO settings: ${e.message}` : "Could not publish SEO settings."); }
+    finally { setBusy(false); refresh(); }
   };
 
   return (
     <div className="flex h-full flex-col">
       <DrawerHeader title="SEO settings" subtitle="Global search metadata · canonical https://www.stbs.in" onClose={onClose} />
       <div className="flex-1 space-y-3 overflow-y-auto p-5 pb-24">
-        <div><label className="admin-label">Global title</label><input className="admin-input" value={form.globalTitle} onChange={set("globalTitle")} /></div>
-        <div><label className="admin-label">Global description</label><textarea className="admin-input min-h-20 resize-y" value={form.globalDescription} onChange={set("globalDescription")} /></div>
+        <div><label className="admin-label">Global title</label><input className="admin-input" value={form.globalTitle} onChange={set("globalTitle")} /><CharCount value={form.globalTitle} max={60} /></div>
+        <div><label className="admin-label">Global description</label><textarea className="admin-input min-h-20 resize-y" value={form.globalDescription} onChange={set("globalDescription")} /><CharCount value={form.globalDescription} max={160} /></div>
         <div>
           <label className="admin-label">Canonical URL</label>
           <input className="admin-input" value={form.canonicalUrl} onChange={set("canonicalUrl")} placeholder="https://www.stbs.in" />
           <p className="mt-1 text-[11px] leading-4 text-zinc-600">Keep this as https://www.stbs.in — apex stbs.in redirects to www, so www is the canonical host.</p>
         </div>
-        <div><label className="admin-label">Default OG image</label><ImageUpload label="" value={form.defaultOgImage || null} onChange={(url) => setForm((f) => ({ ...f, defaultOgImage: url ?? "" }))} hint="Upload or paste a URL." /></div>
+        <div><label className="admin-label">Default OG image</label><ImageUpload label="" value={form.defaultOgImage || null} onChange={(url) => setForm((f) => ({ ...f, defaultOgImage: url ?? "" }))} hint="Upload or paste a URL." altNote={NO_ALT_STORAGE_NOTE} /></div>
         <div><label className="admin-label">Robots settings</label><textarea className="admin-input min-h-14 resize-y" value={form.robotsSettings} onChange={set("robotsSettings")} /></div>
       </div>
       <div className="border-t border-white/[.08] bg-[#141416] px-5 py-4">
@@ -869,6 +988,8 @@ export function SeoPanel({ seo, onClose }: { seo: SerializedWebsiteSeo | null; o
           <Button variant="secondary" onClick={publish}><CheckCircle2 size={15} /> Publish SEO</Button>
           <span className="ml-auto"><StatusChip published={Boolean(seo?.publishedAt)} /></span>
         </div>
+        {dirty && <p className="mt-2 text-xs font-medium text-amber-400">Unsaved changes</p>}
+        {notice && <p role="status" className={`mt-2 text-xs ${notice.startsWith("Could not") ? "text-red-400" : "text-emerald-400"}`}>{notice}</p>}
         <p className="mt-3 text-xs leading-5 text-zinc-500">Only published SEO metadata is served to search engines.</p>
       </div>
     </div>

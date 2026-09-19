@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ImageUpload } from "./ImageUpload";
+import { ImageUpload, NO_ALT_STORAGE_NOTE } from "./ImageUpload";
+import { CharCount } from "./CharCount";
+import { useDirtyTracker, useUnsavedGuard } from "./use-unsaved-guard";
 import type { SerializedWebsiteSeo } from "@/lib/website/action-types";
 import { updateWebsiteSeo, publishWebsiteSeo } from "@/lib/website/actions";
 
@@ -24,6 +26,8 @@ export function SeoPage({ initial }: { initial: SerializedWebsiteSeo }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { dirty, markSaved } = useDirtyTracker(form);
+  useUnsavedGuard(dirty);
 
   const set = (key: keyof typeof form, value: string) => setForm((f) => ({ ...f, [key]: value }));
 
@@ -49,6 +53,7 @@ export function SeoPage({ initial }: { initial: SerializedWebsiteSeo }) {
     setNotice(null);
     try {
       await updateWebsiteSeo(buildPayload());
+      markSaved();
       setNotice("Draft saved.");
       router.refresh();
     } catch (e) {
@@ -65,6 +70,7 @@ export function SeoPage({ initial }: { initial: SerializedWebsiteSeo }) {
     try {
       await updateWebsiteSeo(buildPayload());
       await publishWebsiteSeo();
+      markSaved();
       setNotice("Published. Public site now uses these SEO settings.");
       router.refresh();
     } catch (e) {
@@ -88,10 +94,12 @@ export function SeoPage({ initial }: { initial: SerializedWebsiteSeo }) {
           <div>
             <label className="admin-label">Global title</label>
             <input className="admin-input" value={form.globalTitle} onChange={(e) => set("globalTitle", e.target.value)} placeholder="Saini Tubewell Boring Service" />
+            <CharCount value={form.globalTitle} max={60} />
           </div>
           <div>
             <label className="admin-label">Global description</label>
             <textarea className="admin-input min-h-20 resize-y" value={form.globalDescription} onChange={(e) => set("globalDescription", e.target.value)} />
+            <CharCount value={form.globalDescription} max={160} />
           </div>
           <div>
             <label className="admin-label">Canonical URL</label>
@@ -101,7 +109,7 @@ export function SeoPage({ initial }: { initial: SerializedWebsiteSeo }) {
             <label className="admin-label">Robots settings</label>
             <input className="admin-input" placeholder="e.g. noimageindex, nofollow" value={form.robotsSettings} onChange={(e) => set("robotsSettings", e.target.value)} />
           </div>
-          <ImageUpload label="Default OG image" value={form.defaultOgImage} onChange={(url) => set("defaultOgImage", url ?? "")} />
+          <ImageUpload label="Default OG image" value={form.defaultOgImage} onChange={(url) => set("defaultOgImage", url ?? "")} altNote={NO_ALT_STORAGE_NOTE} />
           <div className="sm:col-span-2" />
           <div>
             <label className="admin-label">Twitter title</label>
@@ -111,7 +119,7 @@ export function SeoPage({ initial }: { initial: SerializedWebsiteSeo }) {
             <label className="admin-label">Twitter description</label>
             <textarea className="admin-input min-h-20 resize-y" value={form.twitterDescription} onChange={(e) => set("twitterDescription", e.target.value)} />
           </div>
-          <ImageUpload label="Twitter image" value={form.twitterImage} onChange={(url) => set("twitterImage", url ?? "")} />
+          <ImageUpload label="Twitter image" value={form.twitterImage} onChange={(url) => set("twitterImage", url ?? "")} altNote={NO_ALT_STORAGE_NOTE} />
           <div className="sm:col-span-2" />
           <div className="sm:col-span-2">
             <label className="admin-label">Structured data (LocalBusiness JSON-LD)</label>
@@ -130,6 +138,7 @@ export function SeoPage({ initial }: { initial: SerializedWebsiteSeo }) {
           {busy === "publish" ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
           Save & publish
         </Button>
+        {dirty && <span className="text-xs font-medium text-amber-400">Unsaved changes</span>}
         <span className="text-xs text-zinc-500">
           {initial.publishedAt ? `Last published ${new Date(initial.publishedAt).toLocaleString()}` : "Never published"}
         </span>

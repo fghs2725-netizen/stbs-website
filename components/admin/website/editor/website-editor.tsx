@@ -8,8 +8,11 @@ import { WebsiteFrame } from "@/components/website/website-frame";
 import { SectionRenderer, type RenderableSection, type SectionData } from "@/components/public/sections";
 import { WebsiteEditorProvider, useWebsiteEditor } from "@/lib/website/editor-context";
 import { DrawerContent } from "./panel";
+import { anyDrawerDirty, confirmDiscard } from "../use-unsaved-guard";
 import { resolveSettings, primaryPhone } from "@/lib/website/public-config";
 import { publishWebsiteNow, unpublishPage } from "@/lib/website/actions";
+import * as websiteActions from "@/lib/website/actions";
+import { ConfirmDialog, Toaster, useToasts } from "@/components/quotation/feedback";
 import type {
   SerializedClient,
   SerializedGalleryItem,
@@ -24,6 +27,19 @@ import type {
 import type { CmsClient, CmsGalleryItem, CmsService, CmsSettings, CmsTestimonial } from "@/components/public/sections";
 
 import { DEFAULT_NAV_LINKS } from "@/lib/website/nav-defaults";
+
+type PublishPreview = { items?: Array<{ kind: string; name: string; status: string; changed: boolean }>; counts?: Record<string, number>; problems?: string[] };
+type PublishResult = { revalidated?: string[]; problems?: string[] } | void;
+// previewPublish is added by the server side of this feature; a missing export must not break the editor.
+const previewPublish = (websiteActions as unknown as { previewPublish?: () => Promise<PublishPreview> }).previewPublish;
+
+const KIND_LABELS: Record<string, [string, string]> = {
+  page: ["page", "pages"], section: ["section", "sections"], service: ["service", "services"], gallery: ["gallery photo", "gallery photos"],
+  client: ["client", "clients"], nav: ["menu item", "menu items"], settings: ["settings update", "settings updates"], seo: ["SEO update", "SEO updates"],
+  testimonial: ["testimonial", "testimonials"],
+};
+export const describeCounts = (counts: Record<string, number>) =>
+  Object.entries(counts).filter(([, n]) => n > 0).map(([kind, n]) => { const [one, many] = KIND_LABELS[kind] ?? [kind, `${kind}s`]; return `${n} ${n === 1 ? one : many}`; });
 
 export interface WebsiteEditorData {
   pages: SerializedPage[];
@@ -85,15 +101,35 @@ function EditorToolbar({ data }: { data: WebsiteEditorData }) {
   const { page, pages } = data;
   const [publishState, setPublishState] = useState<string | null>(null);
   const busy = publishState === "Publishing…" || publishState === "Unpublishing…";
+  const { toasts, push, dismiss } = useToasts();
+  const [confirm, setConfirm] = useState<null | { loading: boolean; counts: string[]; problems: string[]; unavailable: boolean }>(null);
 
+  // Publishing is a two-step action: look at what will change first, then confirm.
   const handlePublish = async () => {
+    setConfirm({ loading: true, counts: [], problems: [], unavailable: false });
+    try {
+      if (!previewPublish) { setConfirm({ loading: false, counts: [], problems: [], unavailable: true }); return; }
+      const preview = await previewPublish();
+      setConfirm({ loading: false, counts: describeCounts(preview.counts ?? {}), problems: preview.problems ?? [], unavailable: false });
+    } catch (error) {
+      setConfirm(null);
+      push("error", error instanceof Error && error.message ? error.message : "Could not check what will be published. Nothing was published.");
+    }
+  };
+
+  const doPublish = async () => {
+    setConfirm(null);
     setPublishState("Publishing…");
     try {
-      await publishWebsiteNow(page.id);
+      const result = (await publishWebsiteNow(page.id)) as PublishResult;
+      const paths = result && result.revalidated?.length ? result.revalidated : null;
       setPublishState("Published. The live website now uses this draft.");
+      push("success", paths ? `Published. Live site refreshed: ${paths.join(", ")}` : "Published. The live website now uses this draft.");
       router.refresh();
     } catch (error) {
-      setPublishState(error instanceof Error ? error.message : "Publishing failed. Please try again.");
+      const message = error instanceof Error && error.message ? error.message : "Publishing failed. Please try again.";
+      setPublishState(message);
+      push("error", `Publishing failed: ${message} Nothing new went live.`);
     }
   };
 
@@ -299,6 +335,23 @@ function EditorToolbar({ data }: { data: WebsiteEditorData }) {
           {publishState}
         </p>
       )}
+      {confirm && (
+        <ConfirmDialog
+          title={confirm.problems.length ? "Fix these before publishing" : "Publish the website?"}
+          body={confirm.loading ? "Checking what will change…" : confirm.problems.length ? "These problems would break the live site, so publishing is blocked." : confirm.unavailable ? "This publishes the page's draft sections plus any draft navigation, settings, SEO, services, gallery photos and clients." : confirm.counts.length ? `This will make the live site use: ${confirm.counts.join(", ")}.` : "Nothing has changed since the last publish. Publishing again refreshes the live site."}
+          confirmLabel="Publish"
+          confirmDisabled={confirm.loading || confirm.problems.length > 0}
+          onConfirm={() => void doPublish()}
+          onCancel={() => setConfirm(null)}
+        >
+          {confirm.problems.length > 0 && (
+            <ul role="alert" style={{ margin: "0 0 14px", paddingLeft: 18, color: "#e06060", fontSize: 12, lineHeight: 1.5 }}>
+              {confirm.problems.map((p) => <li key={p}>{p}</li>)}
+            </ul>
+          )}
+        </ConfirmDialog>
+      )}
+      <Toaster toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 }
@@ -337,7 +390,7 @@ function EditorCanvas({ data }: { data: WebsiteEditorData }) {
 
       {editor.signal && (
         <div className="fixed inset-0 z-[120]">
-          <div className="absolute inset-0 bg-black/60" onClick={editor.closeEditor} />
+          <div className="absolute inset-0 bg-black/60" onClick={() => { if (confirmDiscard(anyDrawerDirty())) editor.closeEditor(); }} />
           <div
             data-editor-safe
             className="absolute inset-x-0 bottom-0 h-[88dvh] max-h-[88dvh] overflow-hidden rounded-t-2xl border-t border-white/10 bg-[#101012] shadow-2xl flex flex-col pb-[env(safe-area-inset-bottom)] lg:inset-x-auto lg:right-0 lg:top-0 lg:h-full lg:max-h-full lg:w-[440px] lg:rounded-none lg:border-l lg:border-t-0"

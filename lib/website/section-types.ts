@@ -8,6 +8,10 @@ export interface SectionField {
   type: "text" | "textarea" | "image" | "select" | "url" | "number";
   options?: Array<{ value: string; label: string }>;
   placeholder?: string;
+  /** Recommended maximum characters for the layout. The editor shows a counter; the server rejects only above 1.5x this. */
+  max?: number;
+  /** When set, a present-but-blank value is rejected (a missing key falls back to the built-in default). */
+  required?: boolean;
 }
 
 export interface ListField {
@@ -292,4 +296,59 @@ export const SECTION_TYPE_DEFS: Record<string, SectionTypeDef> = {
     label: "Quote Form",
     description: "Embedded quote request form. Place it after the introduction.",
   },
+};
+// ─── Layout limits ───────────────────────────────────────────────────────────
+// Recommended maximum characters per field, keyed by section type then field key
+// (list rows use "<listKey>.<fieldKey>"). Applied to SECTION_TYPE_DEFS below so
+// the editor (counters) and the server (validation) read one source of truth.
+const LIMITS: Record<string, Record<string, number>> = {
+  hero: { eyebrow: 40, heading: 80, headingLine2: 80, supportingText: 120, primaryCtaText: 30, secondaryCtaText: 30, heroImageAlt: 150 },
+  page_hero: { eyebrow: 40, heading: 80, text: 300 },
+  stats: { "items.label": 50, "items.value": 20 },
+  why_choose: { heading: 80, "items.title": 60, "items.text": 220 },
+  process: { eyebrow: 40, heading: 80, headingLine2: 80, description: 300, "steps.step": 4, "steps.title": 60, "steps.text": 220 },
+  services: { eyebrow: 40, heading: 80 },
+  testimonials: { eyebrow: 40, heading: 80, description: 300 },
+  gallery: { eyebrow: 40, heading: 80, linkText: 30 },
+  cta: { heading: 80, text: 140, ctaText: 30 },
+  text_image: { eyebrow: 40, heading: 80, headingLine2: 80, body: 800, body2: 800, imageAlt: 150, badgeText: 30, badgeSubtext: 50 },
+  mission_vision: { missionEyebrow: 40, missionHeading: 80, missionText: 600, visionEyebrow: 40, visionHeading: 80, visionText: 600 },
+  founder: { eyebrow: 40, heading: 80, headingLine2: 80, name: 60, title: 60, bio: 1200, additionalText: 800 },
+  why_stbs: { eyebrow: 40, heading: 80, "items.title": 60, "items.subtitle": 60, "items.description": 220 },
+  experience_culture: { heading: 80, headingLine2: 80, imageAlt: 150, badgeText: 30, badgeSubtext: 50, "sections.title": 60, "sections.body": 800, "values.value": 80 },
+  case_studies: { eyebrow: 40, heading: 80, ctaText: 30, "projects.title": 100, "projects.location": 60, "projects.sector": 30, "projects.summary": 200, "projects.scope": 600, "projects.depth": 40, "projects.output": 80, "projects.year": 10 },
+  sectors: { eyebrow: 40, heading: 80, description: 300, "sectors.name": 40, "sectors.description": 120 },
+  featured_clients: { eyebrow: 40, heading: 80, description: 300 },
+  contact_info: { heading: 80, description: 300, ctaText: 30 },
+  map: { eyebrow: 40 },
+  quote_intro: { eyebrow: 40, heading: 80, "steps.step": 100 },
+};
+
+// Fields that must not be saved blank. Only the few whose absence would leave a broken button or heading.
+const REQUIRED: Record<string, string[]> = {
+  hero: ["heading"],
+  page_hero: ["heading"],
+  cta: ["heading", "ctaText", "ctaUrl"],
+};
+
+for (const [type, def] of Object.entries(SECTION_TYPE_DEFS)) {
+  const limits = LIMITS[type] ?? {};
+  const required = REQUIRED[type] ?? [];
+  for (const f of def.fields ?? []) {
+    if (limits[f.key] !== undefined) f.max = limits[f.key];
+    if (required.includes(f.key)) f.required = true;
+  }
+  for (const list of def.lists ?? []) {
+    for (const f of list.fields) {
+      const m = limits[`${list.key}.${f.key}`];
+      if (m !== undefined) f.max = m;
+    }
+  }
+}
+
+/** Alt-text field that must be filled whenever the image field is set. Founder photo has no alt field in the section. */
+export const IMAGE_ALT_FIELDS: Record<string, Record<string, string>> = {
+  hero: { heroImage: "heroImageAlt", mobileImage: "heroImageAlt" },
+  text_image: { image: "imageAlt" },
+  experience_culture: { image: "imageAlt" },
 };

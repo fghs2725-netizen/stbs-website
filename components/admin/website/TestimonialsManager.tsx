@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Loader2, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "./ConfirmButton";
-import { ImageUpload } from "./ImageUpload";
+import { ImageUpload, NO_ALT_STORAGE_NOTE } from "./ImageUpload";
+import { Toaster, useToasts } from "@/components/quotation/feedback";
 import type { SerializedTestimonial } from "@/lib/website/action-types";
 import { createTestimonial, updateTestimonial, updateTestimonialApproval, deleteTestimonial, reorderTestimonials } from "@/lib/website/actions";
 
@@ -17,6 +18,7 @@ export function TestimonialsManager({ testimonials }: { testimonials: Serialized
   const [open, setOpen] = useState(false);
   const [busyRow, setBusyRow] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const { toasts, push, dismiss } = useToasts();
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
@@ -27,6 +29,8 @@ export function TestimonialsManager({ testimonials }: { testimonials: Serialized
       setForm({ personName: "", designation: "", company: "", location: "", project: "", quote: "", rating: 5 });
       setOpen(false);
       router.refresh();
+    } catch (e) {
+      push("error", e instanceof Error && e.message ? e.message : "Could not add that testimonial.");
     } finally {
       setBusy(false);
     }
@@ -37,22 +41,25 @@ export function TestimonialsManager({ testimonials }: { testimonials: Serialized
     try {
       await fn();
       router.refresh();
+    } catch (e) {
+      push("error", e instanceof Error && e.message ? e.message : "Could not save that change.");
     } finally {
       setBusyRow(null);
     }
   }
+
+  const update = (id: string, data: Parameters<typeof updateTestimonial>[1]) => run(id, async () => { await updateTestimonial(id, data); });
 
   async function move(index: number, dir: -1 | 1) {
     const other = testimonials[index + dir];
     if (!other) return;
     const ids = testimonials.map((t) => t.id);
     [ids[index], ids[index + dir]] = [ids[index + dir], ids[index]];
-    await reorderTestimonials(ids);
-    router.refresh();
+    await run(testimonials[index].id, async () => { await reorderTestimonials(ids); });
   }
 
   function Field({ t, field, label, textarea }: { t: SerializedTestimonial; field: keyof Omit<SerializedTestimonial, "id" | "createdAt" | "updatedAt" | "deletedAt" | "position" | "approval" | "approvalNote" | "visible" | "publishedAt" | "rating" | "photo" | "sourceNote">; label: string; textarea?: boolean }) {
-    const commit = (v: string) => updateTestimonial(t.id, { [field]: v || undefined });
+    const commit = (v: string) => update(t.id, { [field]: v || undefined });
     return (
       <div>
         <label className="admin-label">{label}</label>
@@ -118,15 +125,15 @@ export function TestimonialsManager({ testimonials }: { testimonials: Serialized
                 <td className="px-5 py-3">
                   <div className="min-w-[360px]">
                     <div className="flex items-center gap-3">
-                      <input className="admin-input min-h-10 !py-1 font-semibold text-white" defaultValue={t.personName} onBlur={(e) => { if (e.target.value !== t.personName) void updateTestimonial(t.id, { personName: e.target.value }); }} />
+                      <input className="admin-input min-h-10 !py-1 font-semibold text-white" defaultValue={t.personName} onBlur={(e) => { if (e.target.value !== t.personName) void update(t.id, { personName: e.target.value }); }} />
                       <span className="shrink-0 text-sm text-zinc-400">★ {t.rating ?? "–"}</span>
                     </div>
-                    <textarea className="admin-input mt-2 min-h-14 resize-y text-sm" defaultValue={t.quote} onBlur={(e) => { if (e.target.value !== t.quote) void updateTestimonial(t.id, { quote: e.target.value }); }} />
+                    <textarea className="admin-input mt-2 min-h-14 resize-y text-sm" defaultValue={t.quote} onBlur={(e) => { if (e.target.value !== t.quote) void update(t.id, { quote: e.target.value }); }} />
                     <div className="mt-2 grid grid-cols-2 gap-2">
-                      <input className="admin-input min-h-10 !py-1 text-sm" placeholder="Designation" defaultValue={t.designation ?? ""} onBlur={(e) => { if (e.target.value !== t.designation) void updateTestimonial(t.id, { designation: e.target.value || undefined }); }} />
-                      <input className="admin-input min-h-10 !py-1 text-sm" placeholder="Company" defaultValue={t.company ?? ""} onBlur={(e) => { if (e.target.value !== t.company) void updateTestimonial(t.id, { company: e.target.value || undefined }); }} />
-                      <input className="admin-input min-h-10 !py-1 text-sm" placeholder="Location" defaultValue={t.location ?? ""} onBlur={(e) => { if (e.target.value !== t.location) void updateTestimonial(t.id, { location: e.target.value || undefined }); }} />
-                      <input className="admin-input min-h-10 !py-1 text-sm" placeholder="Project" defaultValue={t.project ?? ""} onBlur={(e) => { if (e.target.value !== t.project) void updateTestimonial(t.id, { project: e.target.value || undefined }); }} />
+                      <input className="admin-input min-h-10 !py-1 text-sm" placeholder="Designation" defaultValue={t.designation ?? ""} onBlur={(e) => { if (e.target.value !== t.designation) void update(t.id, { designation: e.target.value || undefined }); }} />
+                      <input className="admin-input min-h-10 !py-1 text-sm" placeholder="Company" defaultValue={t.company ?? ""} onBlur={(e) => { if (e.target.value !== t.company) void update(t.id, { company: e.target.value || undefined }); }} />
+                      <input className="admin-input min-h-10 !py-1 text-sm" placeholder="Location" defaultValue={t.location ?? ""} onBlur={(e) => { if (e.target.value !== t.location) void update(t.id, { location: e.target.value || undefined }); }} />
+                      <input className="admin-input min-h-10 !py-1 text-sm" placeholder="Project" defaultValue={t.project ?? ""} onBlur={(e) => { if (e.target.value !== t.project) void update(t.id, { project: e.target.value || undefined }); }} />
                     </div>
                   </div>
                 </td>
@@ -143,18 +150,19 @@ export function TestimonialsManager({ testimonials }: { testimonials: Serialized
                 </td>
                 <td className="px-5 py-3">
                   <div className="w-56 space-y-2">
-                    <input className="admin-input min-h-10 !py-1 text-sm" placeholder="Source / internal note" defaultValue={t.sourceNote ?? ""} onBlur={(e) => { if (e.target.value !== t.sourceNote) void updateTestimonial(t.id, { sourceNote: e.target.value || undefined }); }} />
-                    <ImageUpload label="Photo" value={t.photo} onChange={(url) => updateTestimonial(t.id, { photo: url })} />
+                    <input className="admin-input min-h-10 !py-1 text-sm" placeholder="Source / internal note" defaultValue={t.sourceNote ?? ""} onBlur={(e) => { if (e.target.value !== t.sourceNote) void update(t.id, { sourceNote: e.target.value || undefined }); }} />
+                    <ImageUpload label="Photo" value={t.photo} onChange={(url) => void update(t.id, { photo: url })} altNote={NO_ALT_STORAGE_NOTE} />
                   </div>
                 </td>
                 <td className="px-5 py-3 text-right">
-                  <ConfirmButton label="Delete" variant="destructive" message={`Delete testimonial from "${t.personName}"?`} onConfirm={async () => { await deleteTestimonial(t.id); router.refresh(); }} />
+                  <ConfirmButton label="Delete" variant="destructive" message={`Delete testimonial from "${t.personName}"?`} onConfirm={async () => { await run(t.id, async () => { await deleteTestimonial(t.id); }); }} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <Toaster toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 }

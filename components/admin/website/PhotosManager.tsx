@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Upload, Search, Star, Trash2, Images as ImagesIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ImageUpload } from "./ImageUpload";
+import { compressImage } from "./ImageUpload";
+import { Toaster, useToasts } from "@/components/quotation/feedback";
+import { ALLOWED_IMAGE_TYPES, altLooksLikeFilename, validateImageFile } from "@/lib/website/image-guard";
 import { ConfirmButton } from "./ConfirmButton";
 import type { SerializedGalleryItem } from "@/lib/website/action-types";
 import { createGalleryItem, updateGalleryItem, deleteGalleryItem, reorderGalleryItems, publishGalleryItem, unpublishGalleryItem } from "@/lib/website/actions";
@@ -19,6 +21,13 @@ export function PhotosManager({ items, categories, usage }: { items: SerializedG
   const [category, setCategory] = useState<string>("All");
   const [uploading, setUploading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const { toasts, push, dismiss } = useToasts();
+
+  const altIssue = (item: SerializedGalleryItem) => {
+    const alt = (item.altText ?? "").trim();
+    if (!alt) return "Alt text is required.";
+    return altLooksLikeFilename(alt) ? "This looks like a file name. Describe what is visible in the photo." : null;
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -32,27 +41,33 @@ export function PhotosManager({ items, categories, usage }: { items: SerializedG
   async function handleFiles(files: File[] | undefined) {
     if (!files?.length) return;
     setUploading(true);
+    let added = 0;
+    const notes: string[] = [];
     try {
       for (const file of files) {
-        const dims = await readDimensions(file);
-        const form = new FormData();
-        form.append("file", file);
-        const res = await fetch("/api/website/upload", { method: "POST", body: form });
-        const data = await res.json();
-        if (!res.ok || !data.url) throw new Error(data.error || "Upload failed");
-        await createGalleryItem({
-          mediaUrl: data.url,
-          caption: file.name.replace(/\.[^.]+$/, ""),
-          altText: file.name.replace(/\.[^.]+$/, ""),
-          sourceType: "REAL_PROJECT",
-          width: dims?.width,
-          height: dims?.height,
-          fileSize: file.size,
-        });
+        const check = validateImageFile(file);
+        if (!check.ok) { push("error", `${file.name}: ${check.message}`); continue; }
+        try {
+          const { file: toSend, note } = await compressImage(file);
+          const dims = await readDimensions(toSend);
+          const form = new FormData();
+          form.append("file", toSend);
+          const res = await fetch("/api/website/upload", { method: "POST", body: form });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.url) throw new Error(data.error || "Upload failed");
+          // The file name is only a stand-in so the record is valid; it is flagged until someone describes the photo.
+          const base = file.name.replace(/\.[^.]+$/, "");
+          await createGalleryItem({ mediaUrl: data.url, caption: base, altText: base, sourceType: "REAL_PROJECT", width: dims?.width, height: dims?.height, fileSize: toSend.size });
+          added++;
+          if (note) notes.push(`${file.name}: ${note}`);
+        } catch (e) {
+          push("error", `${file.name}: ${e instanceof Error && e.message ? e.message : "Upload failed"}`);
+        }
       }
-      router.refresh();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : "Upload failed");
+      if (added) {
+        push("success", `${added} photo${added === 1 ? "" : "s"} uploaded as drafts. Describe each photo (alt text) before publishing.${notes.length ? " " + notes.join(" ") : ""}`);
+        router.refresh();
+      }
     } finally {
       setUploading(false);
     }
@@ -63,6 +78,22 @@ export function PhotosManager({ items, categories, usage }: { items: SerializedG
     try {
       await updateGalleryItem(id, data);
       router.refresh();
+    } catch (e) {
+      push("error", e instanceof Error && e.message ? e.message : "Could not save that change.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function togglePublish(item: SerializedGalleryItem) {
+    setBusyId(item.id);
+    try {
+      if (item.status === "PUBLISHED") await unpublishGalleryItem(item.id);
+      else await publishGalleryItem(item.id);
+      push("success", item.status === "PUBLISHED" ? "Photo taken off the live site." : "Photo published.");
+      router.refresh();
+    } catch (e) {
+      push("error", e instanceof Error && e.message ? e.message : "Could not change that photo's status.");
     } finally {
       setBusyId(null);
     }
@@ -94,8 +125,8 @@ export function PhotosManager({ items, categories, usage }: { items: SerializedG
         </div>
         <label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg bg-signal px-4 text-sm font-semibold text-black transition-colors hover:bg-[#ffd429] disabled:opacity-50">
           {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-          {uploading ? "Uploading…" : "Upload photos"}
-          <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="hidden" onChange={(e) => handleFiles(Array.from(e.target.files ?? []))} />
+          {uploading ? "Compressing and uploading…" : "Upload photos"}
+          <input type="file" multiple accept={ALLOWED_IMAGE_TYPES.join(",")} className="hidden" onChange={(e) => handleFiles(Array.from(e.target.files ?? []))} />
         </label>
       </div>
 
@@ -133,7 +164,21 @@ export function PhotosManager({ items, categories, usage }: { items: SerializedG
 
                   <div className="space-y-2">
                     <input className="admin-input min-h-10 !py-1.5 text-sm" placeholder="Caption" defaultValue={item.caption ?? ""} onBlur={(e) => e.target.value !== item.caption && update(item.id, { caption: e.target.value || undefined })} />
-                    <input className="admin-input min-h-10 !py-1.5 text-sm" placeholder="Alt text" defaultValue={item.altText ?? ""} onBlur={(e) => e.target.value !== item.altText && update(item.id, { altText: e.target.value || undefined })} />
+                    <div>
+                      <input
+                        className={`admin-input min-h-10 !py-1.5 text-sm ${altIssue(item) ? "border-red-400/60" : ""}`}
+                        placeholder="Alt text (required): describe what is visible"
+                        aria-label="Alt text (required)"
+                        aria-invalid={altIssue(item) ? true : undefined}
+                        defaultValue={item.altText ?? ""}
+                        onBlur={(e) => {
+                          const value = e.target.value.trim();
+                          if (!value) { push("error", "Alt text can't be empty. Describe the photo."); e.target.value = item.altText ?? ""; return; }
+                          if (value !== item.altText) void update(item.id, { altText: value });
+                        }}
+                      />
+                      {altIssue(item) && <p role="alert" className="mt-1 text-xs text-red-400">{altIssue(item)}</p>}
+                    </div>
                     <input className="admin-input min-h-10 !py-1.5 text-sm" placeholder="Category" defaultValue={item.category ?? ""} onBlur={(e) => e.target.value !== item.category && update(item.id, { category: e.target.value || undefined })} />
                     <p className="rounded-md bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">Gallery policy: real project photos only. Stock, generated and illustration assets are not accepted.</p>
                   </div>
@@ -157,7 +202,9 @@ export function PhotosManager({ items, categories, usage }: { items: SerializedG
                     <button
                       type="button"
                       className={`ml-auto grid h-9 place-items-center rounded-md px-3 text-[11px] font-bold uppercase tracking-wider ${item.status === "PUBLISHED" ? "border border-emerald-500/40 text-emerald-400 hover:text-emerald-300" : "bg-signal text-black hover:bg-[#ffd429]"}`}
-                      onClick={() => item.status === "PUBLISHED" ? unpublishGalleryItem(item.id) : publishGalleryItem(item.id)}
+                      onClick={() => void togglePublish(item)}
+                      disabled={busyId === item.id || (item.status !== "PUBLISHED" && Boolean(altIssue(item)))}
+                      title={item.status !== "PUBLISHED" && altIssue(item) ? "Describe the photo (alt text) before publishing" : undefined}
                     >
                       {item.status === "PUBLISHED" ? "Live" : "Publish"}
                     </button>
@@ -174,6 +221,7 @@ export function PhotosManager({ items, categories, usage }: { items: SerializedG
           })}
         </div>
       )}
+      <Toaster toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 }

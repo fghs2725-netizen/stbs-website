@@ -6,6 +6,7 @@ import { Loader2, Plus, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "./ConfirmButton";
 import { ImageUpload } from "./ImageUpload";
+import { Toaster, useToasts } from "@/components/quotation/feedback";
 import type { SerializedClient } from "@/lib/website/action-types";
 import { createWebsiteClient, updateWebsiteClient, deleteWebsiteClient, reorderWebsiteClients, publishWebsiteClient, unpublishWebsiteClient } from "@/lib/website/actions";
 
@@ -24,8 +25,22 @@ export function ClientsManager({ clients }: { clients: SerializedClient[] }) {
       setName("");
       setOpen(false);
       router.refresh();
+    } catch (e) {
+      push("error", e instanceof Error && e.message ? e.message : "Could not add that client.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  const { toasts, push, dismiss } = useToasts();
+  const altMissing = (c: { logoUrl?: string | null; altText?: string | null }) => Boolean(c.logoUrl) && !(c.altText ?? "").trim();
+
+  async function run(fn: () => Promise<unknown>, fallback: string) {
+    try {
+      await fn();
+      router.refresh();
+    } catch (e) {
+      push("error", e instanceof Error && e.message ? e.message : fallback);
     }
   }
 
@@ -34,8 +49,7 @@ export function ClientsManager({ clients }: { clients: SerializedClient[] }) {
     if (!other) return;
     const ids = clients.map((c) => c.id);
     [ids[index], ids[index + dir]] = [ids[index + dir], ids[index]];
-    await reorderWebsiteClients(ids);
-    router.refresh();
+    await run(() => reorderWebsiteClients(ids), "Could not reorder clients.");
   }
 
   return (
@@ -66,39 +80,50 @@ export function ClientsManager({ clients }: { clients: SerializedClient[] }) {
                 <span className={`inline-flex rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${client.status === "PUBLISHED" ? "bg-emerald-500/15 text-emerald-400" : "bg-zinc-500/15 text-zinc-400"}`}>
                   {client.status === "PUBLISHED" ? "Live" : "Draft"}
                 </span>
-                <button type="button" className={`grid size-9 place-items-center rounded-md border ${client.featured ? "border-signal/60 text-signal" : "border-white/[.08] text-zinc-400 hover:border-signal/40 hover:text-white"}`} onClick={async () => { await updateWebsiteClient(client.id, { featured: !client.featured }); router.refresh(); }} aria-label="Toggle featured" title="Featured"><Star size={14} fill={client.featured ? "currentColor" : "none"} /></button>
-                <button type="button" className={`rounded-md px-2.5 py-2 text-[11px] font-bold uppercase tracking-wider ${client.status === "PUBLISHED" ? "border border-emerald-500/40 text-emerald-400 hover:text-emerald-300" : "bg-signal text-black hover:bg-[#ffd429]"}`} onClick={async () => { await (client.status === "PUBLISHED" ? unpublishWebsiteClient(client.id) : publishWebsiteClient(client.id)); router.refresh(); }}>
+                <button type="button" className={`grid size-9 place-items-center rounded-md border ${client.featured ? "border-signal/60 text-signal" : "border-white/[.08] text-zinc-400 hover:border-signal/40 hover:text-white"}`} onClick={() => void run(() => updateWebsiteClient(client.id, { featured: !client.featured }), "Could not update that client.")} aria-label="Toggle featured" title="Featured"><Star size={14} fill={client.featured ? "currentColor" : "none"} /></button>
+                <button type="button" className={`rounded-md px-2.5 py-2 text-[11px] font-bold uppercase tracking-wider ${client.status === "PUBLISHED" ? "border border-emerald-500/40 text-emerald-400 hover:text-emerald-300" : "bg-signal text-black hover:bg-[#ffd429]"}`} disabled={client.status !== "PUBLISHED" && altMissing(client)} title={client.status !== "PUBLISHED" && altMissing(client) ? "Add alt text for the logo before publishing" : undefined} onClick={() => void run(() => (client.status === "PUBLISHED" ? unpublishWebsiteClient(client.id) : publishWebsiteClient(client.id)), "Could not change that client's status.")}>
                   {client.status === "PUBLISHED" ? "Live" : "Publish"}
                 </button>
-                <ConfirmButton label="Delete" variant="destructive" message={`Delete client "${client.name}"?`} onConfirm={async () => { await deleteWebsiteClient(client.id); router.refresh(); }} />
+                <ConfirmButton label="Delete" variant="destructive" message={`Delete client "${client.name}"?`} onConfirm={async () => { await run(() => deleteWebsiteClient(client.id), "Could not delete that client."); }} />
               </div>
             </div>
             <div className="space-y-3 p-4">
-                    <ImageUpload label="Logo" value={client.logoUrl} onChange={async (url) => { await updateWebsiteClient(client.id, { logoUrl: url }); router.refresh(); }} hint="Self-hosted logo. Avoid third-party logo APIs." />
+                    <ImageUpload label="Logo" value={client.logoUrl} onChange={(url) => void run(() => updateWebsiteClient(client.id, { logoUrl: url }), "Could not save the logo.")} hint="Self-hosted logo. Avoid third-party logo APIs." />
               <div>
                 <label className="admin-label">Client name</label>
-                <input className="admin-input" defaultValue={client.name} onBlur={(e) => e.target.value !== client.name && updateWebsiteClient(client.id, { name: e.target.value })} />
+                <input className="admin-input" defaultValue={client.name} onBlur={(e) => { if (e.target.value !== client.name) void run(() => updateWebsiteClient(client.id, { name: e.target.value }), "Could not save the name."); }} />
               </div>
               <div>
                 <label className="admin-label">Website URL</label>
-                <input className="admin-input" placeholder="https://…" defaultValue={client.websiteUrl ?? ""} onBlur={(e) => e.target.value !== client.websiteUrl && updateWebsiteClient(client.id, { websiteUrl: e.target.value || undefined })} />
+                <input className="admin-input" placeholder="https://…" defaultValue={client.websiteUrl ?? ""} onBlur={(e) => { if (e.target.value !== (client.websiteUrl ?? "")) void run(() => updateWebsiteClient(client.id, { websiteUrl: e.target.value || undefined }), "Could not save the website URL."); }} />
               </div>
               <div>
-                <label className="admin-label">Alt text</label>
-                <input className="admin-input" defaultValue={client.altText ?? ""} onBlur={(e) => e.target.value !== client.altText && updateWebsiteClient(client.id, { altText: e.target.value || undefined })} />
+                <label className="admin-label">Alt text{client.logoUrl ? " (required for the logo)" : ""}</label>
+                <input
+                  className={`admin-input ${altMissing(client) ? "border-red-400/60" : ""}`}
+                  aria-invalid={altMissing(client) || undefined}
+                  defaultValue={client.altText ?? ""}
+                  onBlur={(e) => {
+                    const value = e.target.value.trim();
+                    if (client.logoUrl && !value) { push("error", "Alt text can't be empty while the client has a logo."); e.target.value = client.altText ?? ""; return; }
+                    if (value !== (client.altText ?? "")) void run(() => updateWebsiteClient(client.id, { altText: value || undefined }), "Could not save the alt text.");
+                  }}
+                />
+                {altMissing(client) && <p role="alert" className="mt-1 text-xs text-red-400">Describe the logo (for example &ldquo;Ashoka University logo&rdquo;). This client can&apos;t be published until you do.</p>}
               </div>
               <div>
                 <label className="admin-label">Sector</label>
-                <input className="admin-input" defaultValue={client.sector ?? ""} onBlur={(e) => e.target.value !== client.sector && updateWebsiteClient(client.id, { sector: e.target.value || undefined })} />
+                <input className="admin-input" defaultValue={client.sector ?? ""} onBlur={(e) => { if (e.target.value !== (client.sector ?? "")) void run(() => updateWebsiteClient(client.id, { sector: e.target.value || undefined }), "Could not save the sector."); }} />
               </div>
               <div>
                 <label className="admin-label">Description</label>
-                <textarea className="admin-input min-h-16 resize-y" defaultValue={client.description ?? ""} onBlur={(e) => e.target.value !== client.description && updateWebsiteClient(client.id, { description: e.target.value || undefined })} />
+                <textarea className="admin-input min-h-16 resize-y" defaultValue={client.description ?? ""} onBlur={(e) => { if (e.target.value !== (client.description ?? "")) void run(() => updateWebsiteClient(client.id, { description: e.target.value || undefined }), "Could not save the description."); }} />
               </div>
             </div>
           </div>
         ))}
       </div>
+      <Toaster toasts={toasts} onDismiss={dismiss} />
     </div>
   );
 }

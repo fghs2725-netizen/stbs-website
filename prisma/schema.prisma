@@ -968,3 +968,16 @@ model WebsiteSeo {
   updatedAt          DateTime  @updatedAt
 }
 
+// Last published versions of website items, so an overwrite or unpublish can be undone (kept: newest 10 per item).
+model WebsiteRevision {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  label      String
+  snapshot   Json
+  createdAt  DateTime @default(now())
+  createdBy  String?
+
+  @@index([entityType, entityId, createdAt])
+}
+
