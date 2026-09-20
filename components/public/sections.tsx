@@ -187,7 +187,7 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
     <section className="band-deep relative flex min-h-[calc(100svh-68px)] overflow-hidden">
       <Editable target={{ kind: "section-field", section: target, fieldKey: "heroImage" }} label="Edit Image" className="absolute inset-0">
         <div className="absolute inset-0">
-          <Image src={heroImage} alt={heroImageAlt} fill priority className={`object-cover object-[70%_center] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
+          <Image src={heroImage} alt={heroImageAlt} fill priority className={`object-cover object-[46%_center] sm:object-[70%_center] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
           {mobileImage && <Image src={mobileImage} alt={heroImageAlt} fill priority className="object-cover object-center sm:hidden" sizes="100vw" />}
         </div>
       </Editable>
