@@ -5,18 +5,20 @@ import { ProcessStory } from "@/components/public/process-story";
 
 export function Faq({ items }: { items: Array<[string, string]> }) {
   return (
-    <section className="theme-public section-y">
+    <section className="theme-public band-alt section-y">
       <div className="container-x">
         <p className="t-eyebrow">Questions, clearly answered</p>
         <h2 className="t-h2 mt-u2 text-block">Frequently asked questions</h2>
-        <div className="mt-u5 max-w-[880px] border-b border-stbs-hairline">
+        <div className="mt-u6 max-w-[900px]">
           {items.map(([q, a]) => (
-            <details key={q} className="group rule">
-              <summary className="flex min-h-[56px] cursor-pointer list-none items-center justify-between gap-u2 py-u2 text-lg font-medium text-stbs-ink [&::-webkit-details-marker]:hidden">
+            <details key={q} className="group border-b border-stbs-hairline">
+              <summary className="flex min-h-[72px] cursor-pointer list-none items-center justify-between gap-u3 py-u3 text-[1.25rem] font-medium leading-snug tracking-[-0.015em] text-stbs-ink transition-colors duration-300 hover:text-stbs-brand-mid [&::-webkit-details-marker]:hidden">
                 {q}
-                <Plus size={20} strokeWidth={1.75} className="shrink-0 text-stbs-brand-mid transition-transform duration-[250ms] group-open:rotate-45" aria-hidden />
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-stbs-brand-mid/10 text-stbs-brand-mid transition-transform duration-300 ease-[cubic-bezier(0.28,0.11,0.32,1)] group-open:rotate-45">
+                  <Plus size={18} strokeWidth={2} aria-hidden />
+                </span>
               </summary>
-              <p className="t-body measure pb-u3">{a}</p>
+              <p className="t-body measure pb-u4 text-stbs-muted">{a}</p>
             </details>
           ))}
         </div>

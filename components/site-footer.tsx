@@ -33,7 +33,7 @@ export function SiteFooter({ settings, navLinks }: { settings?: FooterSettings |
 
   return (
     <footer className="band-deep rule-on-dark">
-      <div className="container-x grid gap-u6 py-u8 md:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-u6">
+      <div className="container-x grid gap-u7 py-u10 md:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-u6">
         <div>
           <div className="flex flex-wrap items-center gap-u1">
             <Link href="/" data-editor-safe className="inline-block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stbs-ink-on-dark" aria-label={name ? `${name} home` : "Home"}>
@@ -73,7 +73,7 @@ export function SiteFooter({ settings, navLinks }: { settings?: FooterSettings |
         </div>
 
         <nav aria-label="Footer navigation">
-          <h2 className="t-eyebrow">Navigate</h2>
+          <h2 className="text-[0.9375rem] font-semibold text-white">Navigate</h2>
           <ul className="mt-u2">
             {links.map((x) => (
               <li key={x.href}><Link className={LINK} href={x.href}>{x.label}</Link></li>
@@ -82,7 +82,7 @@ export function SiteFooter({ settings, navLinks }: { settings?: FooterSettings |
         </nav>
 
         <nav aria-label="Services">
-          <h2 className="t-eyebrow">Services</h2>
+          <h2 className="text-[0.9375rem] font-semibold text-white">Services</h2>
           <ul className="mt-u2">
             {SERVICE_PAGES.map((s) => (
               <li key={s.slug}><Link className={LINK} href={s.href}>{s.fullTitle}</Link></li>
@@ -91,7 +91,7 @@ export function SiteFooter({ settings, navLinks }: { settings?: FooterSettings |
         </nav>
 
         <div>
-          <h2 className="t-eyebrow">Company</h2>
+          <h2 className="text-[0.9375rem] font-semibold text-white">Company</h2>
           <dl className="mt-u2 space-y-u2 text-stbs-muted-on-dark">
             {address && (
               <div><dt className="text-sm text-stbs-ink-on-dark">Registered office</dt><dd className="m-0 mt-[2px]">{address}</dd></div>

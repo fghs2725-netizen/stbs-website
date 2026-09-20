@@ -147,8 +147,8 @@
   .rule-on-dark { border-top: 1px solid var(--hairline-on-dark); }
   .hero-scrim { background: #000; opacity: .45; }  /* flat neutral overlay for text contrast (no colour cast), never a gradient */
   .band-alt { background: var(--surface-alt); }
-  .page-head { padding-block: var(--s7) var(--s6); border-bottom: 1px solid var(--hairline); }
-  @media (min-width: 1024px) { .page-head { padding-block: var(--s10) var(--s8); } }
+  .page-head { padding-block: var(--s8) var(--s7); }
+  @media (min-width: 1024px) { .page-head { padding-block: var(--s13) var(--s10); } }
   .band-deep { background: var(--brand-deep); background-image: radial-gradient(90% 55% at 78% -8%, rgba(41,151,255,.11), transparent 62%); color: var(--ink-on-dark); }
   .band-deep .t-h1, .band-deep .t-h2, .band-deep .t-h3 { color: var(--ink-on-dark); }
   .band-deep .t-eyebrow { color: var(--muted-on-dark); }

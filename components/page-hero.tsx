@@ -9,8 +9,8 @@ export function PageHero({ eyebrow, title, text }: { eyebrow: string; title: str
     <section className="theme-public band-alt page-head">
       <div className="container-x">
         {eyebrow && <p className="t-eyebrow">{eyebrow}</p>}
-        <h1 className="t-h2 mt-u2 text-block">{title}</h1>
-        {text && <p className="t-body measure mt-u3">{text}</p>}
+        <h1 className="t-h2 mt-u3 text-block">{title}</h1>
+        {text && <p className="t-body measure mt-u4 text-stbs-muted">{text}</p>}
       </div>
     </section>
   );

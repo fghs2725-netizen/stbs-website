@@ -244,11 +244,11 @@ function PageHeroSection({ owner, content }: { owner?: RenderableSection; conten
           </Editable>
         )}
         <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-          <h1 className="t-h2 mt-u2 text-block">{str(content, "heading")}</h1>
+          <h1 className="t-h2 mt-u3 text-block">{str(content, "heading")}</h1>
         </Editable>
         {text && (
           <Editable target={{ kind: "section", section: target }} label="Intro text" className="max-w-fit">
-            <p className="t-body measure mt-u3">{text}</p>
+            <p className="t-body measure mt-u4 text-stbs-muted">{text}</p>
           </Editable>
         )}
       </div>
