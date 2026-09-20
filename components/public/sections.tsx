@@ -267,19 +267,23 @@ function WhyChooseSection({ owner, content }: { owner?: RenderableSection; conte
   const display = items.length > 0 ? items : whyChoose.map(w => ({ title: w.title, text: w.text }));
   const target = asSection(owner);
   return (
-    <section className="water-surface-dark px-4 py-12 sm:px-5 sm:py-16 lg:px-8 lg:py-20">
-      <div className="mx-auto max-w-7xl">
-        <Editable target={{ kind: "section", section: target }} label="Heading" className="mx-auto w-fit">
-          <h2 className="text-center font-display text-3xl font-semibold tracking-[.08em] text-white/70 sm:text-4xl lg:text-7xl">{heading}</h2>
+    <section className="theme-public band-alt section-y">
+      <div className="container-x">
+        <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
+          <h2 className="t-h2 text-block">{heading}</h2>
         </Editable>
-        <div className="mt-8 sm:mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-5 lg:mt-16">
+        <ul className="mt-u6 grid auto-rows-fr gap-u2 md:grid-cols-2 lg:grid-cols-3 lg:gap-u3">
           {display.map((item, i) => (
-            <div key={i} className="water-card h-full p-5 sm:p-8 transition-all hover:-translate-y-1 hover:border-signal/60">
-              <p className="font-display text-xl sm:text-2xl font-bold uppercase leading-tight text-signal">{str(item, "title")}</p>
-              <p className="mt-2.5 sm:mt-3 text-sm leading-relaxed sm:leading-7 text-white/65">{str(item, "text")}</p>
-            </div>
+            <li key={i}>
+              <Reveal delay={i * 0.06} className="h-full">
+                <div className="hairline-card flex h-full flex-col p-u4">
+                  <h3 className="text-[1.375rem] font-semibold leading-tight tracking-[-0.025em] text-stbs-ink">{str(item, "title")}</h3>
+                  <p className="mt-u2 text-[1.0625rem] leading-[1.5] text-stbs-muted">{str(item, "text")}</p>
+                </div>
+              </Reveal>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );
@@ -294,33 +298,32 @@ function ProcessSection({ owner, content }: { owner?: RenderableSection; content
   const display = steps.length > 0 ? steps : processSteps.map(p => ({ step: p.step, title: p.title, text: p.text }));
   const target = asSection(owner);
   return (
-    <section className="water-surface-dark px-4 py-12 sm:px-5 sm:py-24 lg:px-8 lg:py-32">
-      <div className="mx-auto w-full max-w-[88rem]">
-        <Reveal>
-          <div className="mb-10 sm:mb-16 flex flex-col gap-4 sm:gap-6 md:flex-row md:items-end">
-            <div>
-              <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-                <p className="mb-3 sm:mb-4 text-xs font-bold uppercase tracking-[.24em] text-signal">{eyebrow}</p>
-              </Editable>
-              <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-                <h2 className="font-display text-3xl sm:text-5xl lg:text-7xl font-bold uppercase leading-none">{heading}<br />{headingLine2}</h2>
-              </Editable>
-            </div>
-            {description && <p className="max-w-md text-sm leading-relaxed sm:leading-7 text-white/50">{description}</p>}
+    <section className="band-deep section-y">
+      <div className="container-x">
+        <Reveal className="flex flex-col gap-u4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
+              <p className="t-eyebrow">{eyebrow}</p>
+            </Editable>
+            <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
+              <h2 className="t-h2 mt-u2">{heading}{headingLine2 && <><br />{headingLine2}</>}</h2>
+            </Editable>
           </div>
+          {description && <p className="max-w-[26rem] text-[1.0625rem] leading-[1.5] text-white/60">{description}</p>}
         </Reveal>
-        <div className="relative mt-8 sm:mt-16 grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-5">
+        <ol className="mt-u7 grid gap-u2 sm:grid-cols-2 lg:grid-cols-5 lg:gap-u3">
           {display.map((step, i) => (
-            <div key={i} className="water-card group relative flex flex-col p-5 sm:p-6">
-              <div className="font-display text-4xl sm:text-5xl font-bold leading-none select-none text-water-accent/45 transition-all duration-300 group-hover:text-water-accent group-hover:-translate-y-1">
-                {str(step, "step")}
-              </div>
-              <div className="mt-4 sm:mt-5 mb-3 sm:mb-4 h-px w-8 sm:w-10 bg-signal transition-all duration-300 group-hover:w-16" />
-              <h3 className="font-display text-lg sm:text-xl font-bold tracking-wide text-white">{str(step, "title")}</h3>
-              <p className="mt-2.5 sm:mt-3 text-sm leading-relaxed sm:leading-[1.7] text-white/55">{str(step, "text")}</p>
-            </div>
+            <li key={i}>
+              <Reveal delay={i * 0.06} className="h-full">
+                <div className="flex h-full flex-col rounded-[22px] bg-white/[.06] p-u3 transition-[background-color,transform] duration-500 ease-[cubic-bezier(0.28,0.11,0.32,1)] hover:-translate-y-1 hover:bg-white/[.1] motion-reduce:transform-none">
+                  <span className="font-semibold tabular-nums text-[2.5rem] leading-none tracking-[-0.04em] text-white/30">{str(step, "step")}</span>
+                  <h3 className="mt-u3 text-[1.25rem] font-semibold leading-tight tracking-[-0.02em] text-white">{str(step, "title")}</h3>
+                  <p className="mt-u2 text-[0.9375rem] leading-[1.5] text-white/60">{str(step, "text")}</p>
+                </div>
+              </Reveal>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
     </section>
   );

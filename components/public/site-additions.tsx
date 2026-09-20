@@ -32,9 +32,4 @@ export function ProcessSteps() {
   return <ProcessStory eyebrow="Our process" heading="From surface conditions to working water infrastructure" steps={processSteps} />;
 }
 
-/* Testimonial quotes below are placeholder stand-ins.  Replace each entry
-   with a genuine client testimonial once collected.  Do NOT add ratings,
-   logos, or fabricated details. */
-export function Testimonials() { const quotes: Array<{ text: string; name: string; org: string }> = [{ text: "Professional team, clear coordination from the first site visit through to handover.", name: "Client testimonial", org: "Coming soon" }, { text: "They understood our site requirements and worked around our operational schedule.", name: "Client testimonial", org: "Coming soon" }, { text: "Reliable work, practical advice, and consistent follow-through on every commitment.", name: "Client testimonial", org: "Coming soon" }]; return <section className="bg-[#f0fdfa] px-5 py-20 text-ink lg:px-8"><div className="mx-auto max-w-7xl"><p className="text-xs font-bold uppercase tracking-[.24em] text-water-dark">Testimonials</p><h2 className="mt-4 font-display text-4xl font-bold uppercase sm:text-5xl">What our clients say</h2><div className="mt-10 grid gap-5 md:grid-cols-3">{quotes.map((q, i) => <article key={i} className="rounded-2xl border border-cyan-900/15 bg-white p-7 shadow-sm"><p className="leading-7 text-slate-700">&ldquo;{q.text}&rdquo;</p><p className="mt-6 text-sm font-bold text-water-dark">{q.name}</p><p className="text-xs text-slate-500">{q.org}</p></article>)}</div></div></section>; }
-
 export function TrustMark() { return <ShieldCheck className="text-signal" aria-hidden="true" />; }
