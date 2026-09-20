@@ -1,6 +1,9 @@
 import type { Config } from "tailwindcss";
 
 export default {
+  // Touch devices fire :hover on tap and leave it stuck until you tap elsewhere.
+  // This compiles every hover: variant behind @media (hover: hover) instead.
+  future: { hoverOnlyWhenSupported: true },
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
     extend: {

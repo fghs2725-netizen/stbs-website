@@ -222,7 +222,7 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
               <CtaLink href={secondaryCtaUrl} className="btn btn-secondary-dark"><Download size={18} strokeWidth={1.75} aria-hidden />{secondaryCtaText}</CtaLink>
             </Editable>
           ) : (
-            <CtaLink href="/services" className="link-arrow !text-[#2997ff]">Explore our services</CtaLink>
+            <CtaLink href="/services" className="link-arrow inline-flex min-h-[44px] items-center !text-[#2997ff]">Explore our services</CtaLink>
           )}
         </div>
       </div>

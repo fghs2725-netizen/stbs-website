@@ -155,42 +155,55 @@
 
   /* ---- surfaces: soft filled cards, no hard borders, slow eased hover lift ---- */
   .hairline-card { background: var(--surface-alt); border-radius: var(--radius); transition: transform 500ms var(--ease-apple), box-shadow 500ms var(--ease-apple), background-color 500ms var(--ease-apple); }
-  .hairline-card:hover, .hairline-card:focus-within { transform: translateY(-4px); box-shadow: 0 24px 48px -16px rgba(0,0,0,.18); }
+  .hairline-card:focus-within { transform: translateY(-4px); box-shadow: 0 24px 48px -16px rgba(0,0,0,.18); }
   .tile { background: var(--surface-alt); border-radius: var(--radius); }
   .band-alt .hairline-card, .band-alt .tile { background: var(--surface); }
   .img-zoom { overflow: hidden; border-radius: var(--radius); }
   .img-zoom img { transition: transform 900ms var(--ease-apple); }
-  .img-zoom:hover img, .hairline-card:hover .img-zoom img { transform: scale(1.05); }
 
   /* ---- forms ---- */
   .label-public { display: block; font-size: .9375rem; font-weight: 500; line-height: 1.3; color: var(--ink); }
   .field-public { display: block; width: 100%; min-height: 52px; margin-top: var(--s1); padding: 0 var(--s2); background: var(--surface); color: var(--ink); border: 1px solid var(--hairline-strong); border-radius: 14px; font: inherit; font-size: 1rem; line-height: 1.5; transition: border-color var(--t-fast) var(--ease-out); }
   textarea.field-public { padding-block: var(--s1); resize: vertical; }
   .field-public::placeholder { color: var(--muted); }
-  .field-public:hover { border-color: var(--muted); }
+
   .field-public[aria-invalid="true"] { border-color: var(--danger); }
   .error-text { margin-top: var(--s1); font-size: .875rem; line-height: 1.4; color: var(--danger); }
 
   /* ---- buttons: pill shape; amber is reserved for the primary CTA ---- */
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--s1); min-height: 48px; padding: 0 28px; border-radius: 980px; font-family: var(--font-geist-sans), var(--font-body), system-ui, sans-serif; font-weight: 500; font-size: 1.0625rem; line-height: 1.2; letter-spacing: -.011em; text-decoration: none; border: 1px solid transparent; transition: background-color var(--t-fast) var(--ease-apple), border-color var(--t-fast) var(--ease-apple), transform var(--t-fast) var(--ease-apple), box-shadow var(--t-fast) var(--ease-apple); }
-  .btn:hover { transform: scale(1.03); }
   .btn:active { transform: scale(.97); }
   .btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
   .btn-sm { min-height: 34px; padding: 0 16px; font-size: .875rem; }
   .btn-primary { background: var(--accent); color: #1a1206; }
-  .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 10px 28px -8px rgba(209,139,53,.6); }
   .btn-secondary { background: transparent; color: var(--ink); border-color: var(--hairline-strong); }
-  .btn-secondary:hover { background: rgba(0,0,0,.04); border-color: var(--muted); }
   .btn-secondary-dark { background: transparent; color: var(--ink-on-dark); border-color: rgba(255,255,255,.35); }
-  .btn-secondary-dark:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.7); }
   .link { color: var(--brand-mid); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
-  .link:hover { color: #004a99; }
+
   /* Apple-style quiet text link with a chevron that nudges forward on hover. */
   .link-arrow { display: inline-flex; align-items: center; gap: 4px; color: var(--brand-mid); font-weight: 500; font-size: 1.0625rem; letter-spacing: -.011em; text-decoration: none; }
   .link-arrow::after { content: "\203A"; font-size: 1.35em; line-height: 1; transition: transform var(--t-fast) var(--ease-apple); }
-  .link-arrow:hover { text-decoration: underline; text-underline-offset: 4px; }
-  .link-arrow:hover::after { transform: translateX(4px); }
+
   .band-deep .link-arrow { color: #2997ff; }
+  /* Pointer-only polish. Touch devices fire :hover on tap and keep it until the next tap,
+     so every decorative hover lives behind this guard (Apple does the same). */
+  @media (hover: hover) and (pointer: fine) {
+    .hairline-card:hover { transform: translateY(-4px); box-shadow: 0 24px 48px -16px rgba(0,0,0,.18); }
+    .img-zoom:hover img, .hairline-card:hover .img-zoom img { transform: scale(1.05); }
+    .field-public:hover { border-color: var(--muted); }
+    .btn:hover { transform: scale(1.03); }
+    .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 10px 28px -8px rgba(209,139,53,.6); }
+    .btn-secondary:hover { background: rgba(0,0,0,.04); border-color: var(--muted); }
+    .btn-secondary-dark:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.7); }
+    .link:hover { color: #004a99; }
+    .link-arrow:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .link-arrow:hover::after { transform: translateX(4px); }
+  }
+  /* Touch gets a press state instead, so taps still feel answered. */
+  @media (hover: none) {
+    .hairline-card:active { transform: scale(.985); }
+    .link-arrow:active, .link:active { opacity: .6; }
+  }
   .theme-public :focus-visible { outline: 2px solid var(--brand-mid); outline-offset: 3px; }
   .band-deep :focus-visible { outline-color: var(--ink-on-dark); }
 }
@@ -204,7 +217,7 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-stopped { overflow: clip; }
 .marquee { display: flex; width: max-content; gap: 16px; animation: marquee 48s linear infinite; }
-.marquee:hover { animation-play-state: paused; }
+@media (hover: hover) { .marquee:hover { animation-play-state: paused; } }
 .marquee-run { display: flex; gap: 16px; margin: 0; padding: 0; list-style: none; }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(calc(-50% - 8px)); } }
 @media (prefers-reduced-motion: reduce) { .marquee { animation: none; } }
