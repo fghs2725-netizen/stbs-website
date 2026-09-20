@@ -1,5 +1,7 @@
+import Image from "next/image";
 import { BadgeCheck, Drill, MapPinned, Plus, ScanSearch, Settings2, ShieldCheck } from "lucide-react";
 import { processSteps } from "@/lib/company";
+import { ProcessStory } from "@/components/public/process-story";
 
 export function Faq({ items }: { items: Array<[string, string]> }) {
   return (
@@ -25,30 +27,7 @@ export function Faq({ items }: { items: Array<[string, string]> }) {
 
 /** Five-step process, as a spec-sheet list (number | step | what happens). */
 export function ProcessSteps() {
-  const icons = [MapPinned, ScanSearch, Drill, Settings2, BadgeCheck];
-  return (
-    <section className="theme-public band-alt section-y">
-      <div className="container-x">
-        <p className="t-eyebrow">Our process</p>
-        <h2 className="t-h2 mt-u2 text-block">From surface conditions to working water infrastructure</h2>
-        <ol className="mt-u5 border-b border-stbs-hairline">
-          {processSteps.map((step, index) => {
-            const Icon = icons[index];
-            return (
-              <li key={step.step} className="rule grid gap-u1 py-u3 lg:grid-cols-[6rem_14rem_minmax(0,1fr)] lg:items-baseline lg:gap-u3">
-                <span className="flex items-center gap-u1 font-heading text-lg font-bold tabular-nums text-stbs-brand-mid">
-                  <Icon size={20} strokeWidth={1.75} aria-hidden />
-                  {step.step}
-                </span>
-                <h3 className="t-h3">{step.title}</h3>
-                <p className="t-body measure">{step.text}</p>
-              </li>
-            );
-          })}
-        </ol>
-      </div>
-    </section>
-  );
+  return <ProcessStory eyebrow="Our process" heading="From surface conditions to working water infrastructure" steps={processSteps} />;
 }
 
 /* Testimonial quotes below are placeholder stand-ins.  Replace each entry

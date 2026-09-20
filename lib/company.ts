@@ -52,12 +52,16 @@ export const whyChoose = [
   { title: "Quality Materials", text: "Durable pipes, casing and components selected for long-term performance." },
 ];
 
+/**
+ * `image` is illustrative site photography showing the kind of work each step involves.
+ * It is not a record of a particular job, so `imageAlt` describes only what is visible.
+ */
 export const processSteps = [
-  { step: "01", title: "Site Visit", text: "We assess access, ground conditions, water requirements and usage patterns to plan the optimal solution." },
-  { step: "02", title: "Survey", text: "Geological survey and water table analysis to determine drilling depth and casing specifications." },
-  { step: "03", title: "Drilling", text: "Precision drilling executed with proper casing installation and aquifer isolation for water quality." },
-  { step: "04", title: "Installation", text: "Installation of pump, piping and electrical components with pressure testing and flow rate verification." },
-  { step: "05", title: "Completion", text: "Site cleanup, client walkthrough, maintenance training and documentation handover for long-term operation." },
+  { step: "01", title: "Site Visit", text: "We assess access, ground conditions, water requirements and usage patterns to plan the optimal solution.", image: "/process/process-01-site-visit.webp", imageAlt: "Two people in hard hats and hi-vis vests walking a cleared industrial plot, one carrying rolled site drawings, a marker peg in the foreground" },
+  { step: "02", title: "Survey", text: "Geological survey and water table analysis to determine drilling depth and casing specifications.", image: "/process/process-02-survey.webp", imageAlt: "A surveyor crouched over a resistivity meter on a cleared plot, with electrode stakes in a line and cable spools beside him" },
+  { step: "03", title: "Drilling", text: "Precision drilling executed with proper casing installation and aquifer isolation for water quality.", image: "/process/process-03-drilling.webp", imageAlt: "Close view of a tricone drill bit entering muddy ground at a rig, a worker's gloved hand steadying the drill string" },
+  { step: "04", title: "Installation", text: "Installation of pump, piping and electrical components with pressure testing and flow rate verification.", image: "/process/process-04-installation.webp", imageAlt: "Two workers lowering a submersible pump into a borewell on a tripod, with an electrical panel and coiled cable beside them" },
+  { step: "05", title: "Completion", text: "Site cleanup, client walkthrough, maintenance training and documentation handover for long-term operation.", image: "/process/process-05-completion.webp", imageAlt: "A site engineer shaking hands with a crew member beside a finished, capped borewell and its pump housing" },
 ];
 
 export const keywords = [

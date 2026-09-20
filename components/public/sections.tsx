@@ -184,43 +184,45 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
   const target = asSection(owner);
 
   return (
-    <section className="band-deep relative flex min-h-[calc(100svh-68px)] overflow-hidden">
+    <section className="band-deep relative flex min-h-[calc(100svh-56px)] overflow-hidden">
       <Editable target={{ kind: "section-field", section: target, fieldKey: "heroImage" }} label="Edit Image" className="absolute inset-0">
-        <div className="absolute inset-0">
-          <Image src={heroImage} alt={heroImageAlt} fill priority className={`object-cover object-[46%_center] sm:object-[70%_center] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
-          {mobileImage && <Image src={mobileImage} alt={heroImageAlt} fill priority className="object-cover object-center sm:hidden" sizes="100vw" />}
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Slow settle from a slight zoom, like a product reveal. Reduced-motion users get the still image. */}
+          <div className="absolute inset-0 motion-safe:animate-[heroZoom_2.6s_cubic-bezier(0.28,0.11,0.32,1)_both]">
+            <Image src={heroImage} alt={heroImageAlt} fill priority className={`object-cover object-[46%_center] sm:object-[70%_center] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
+            {mobileImage && <Image src={mobileImage} alt={heroImageAlt} fill priority className="object-cover object-center sm:hidden" sizes="100vw" />}
+          </div>
         </div>
       </Editable>
-      {/* Flat neutral scrim (no gradient, no colour cast) keeps text contrast independent of the photo. */}
+      {/* Flat neutral scrim keeps text contrast independent of the photo; the fade into the next band is a soft bottom edge. */}
       <div className="hero-scrim pointer-events-none absolute inset-0" />
-      <div className="container-x relative z-10 flex w-full flex-1 flex-col justify-between pb-10 pt-12 sm:pb-12 sm:pt-16 md:pb-16 md:pt-20">
-        <div className="max-w-3xl">
-          <Editable target={{ kind: "section", section: target }} label="Badge" className="max-w-fit">
-            <p className={`t-eyebrow inline-flex items-center gap-u1 rounded-[4px] border border-stbs-hairline-on-dark bg-stbs-brand-deep px-u2 py-u1 animate-[fadeSlideUp_0.8s_ease_0.2s_both]`}>
-              <BadgeCheck size={16} strokeWidth={1.75} className="text-stbs-verified" aria-hidden />{eyebrow}
-            </p>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/50 to-transparent" />
+      <div className="container-x relative z-10 flex w-full flex-1 flex-col items-center justify-center py-u10 text-center">
+        <Editable target={{ kind: "section", section: target }} label="Badge" className="max-w-fit">
+          <p className="inline-flex items-center gap-u1 rounded-full border border-white/20 bg-white/10 px-u2 py-[7px] text-[0.9375rem] font-medium text-white backdrop-blur-md animate-[fadeSlideUp_0.9s_cubic-bezier(0.28,0.11,0.32,1)_0.15s_both]">
+            <BadgeCheck size={16} strokeWidth={1.75} className="text-[#5bd18a]" aria-hidden />{eyebrow}
+          </p>
+        </Editable>
+        <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
+          <h1 className="t-h1 mt-u3 max-w-[1080px] animate-[fadeSlideUp_1s_cubic-bezier(0.28,0.11,0.32,1)_0.3s_both]">
+            {heading}
+            {headingLine2 && <>{" "}<span className="block">{headingLine2}</span></>}
+          </h1>
+        </Editable>
+        <Editable target={{ kind: "section", section: target }} label="Subheadline" className="max-w-fit">
+          <p className="t-body mx-auto mt-u3 max-w-[40rem] text-white/80 animate-[fadeSlideUp_1s_cubic-bezier(0.28,0.11,0.32,1)_0.5s_both]">{supportingText}</p>
+        </Editable>
+        <div className="mt-u5 flex flex-col items-center gap-u2 sm:flex-row sm:gap-u4 animate-[fadeSlideUp_1s_cubic-bezier(0.28,0.11,0.32,1)_0.7s_both]">
+          <Editable target={{ kind: "section", section: target }} label="Primary CTA">
+            <CtaLink href={primaryCtaUrl} className="btn btn-primary">{primaryCtaText}</CtaLink>
           </Editable>
-          <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-            <h1 className={`t-h1 mt-u3 max-w-[880px] animate-[fadeSlideUp_0.8s_ease_0.4s_both]`}>
-              {heading}
-              {headingLine2 && <>{" "}<span className="block">{headingLine2}</span></>}
-            </h1>
-          </Editable>
-        </div>
-        <div className="mt-u5">
-          <Editable target={{ kind: "section", section: target }} label="Subheadline" className="max-w-fit">
-            <p className={`t-body max-w-[48rem] text-stbs-ink-on-dark animate-[fadeSlideUp_0.8s_ease_0.7s_both]`}>{supportingText}</p>
-          </Editable>
-          <div className={`mt-u3 flex flex-col gap-u2 sm:flex-row sm:items-center animate-[fadeSlideUp_0.8s_ease_0.9s_both]`}>
-            <Editable target={{ kind: "section", section: target }} label="Primary CTA">
-              <CtaLink href={primaryCtaUrl} className="btn btn-primary w-full sm:w-auto">{primaryCtaText}<ArrowRight size={16} strokeWidth={1.75} aria-hidden /></CtaLink>
+          {secondaryCtaText && secondaryCtaUrl ? (
+            <Editable target={{ kind: "section", section: target }} label="Secondary CTA">
+              <CtaLink href={secondaryCtaUrl} className="btn btn-secondary-dark"><Download size={18} strokeWidth={1.75} aria-hidden />{secondaryCtaText}</CtaLink>
             </Editable>
-            {secondaryCtaText && secondaryCtaUrl && (
-              <Editable target={{ kind: "section", section: target }} label="Secondary CTA">
-                <CtaLink href={secondaryCtaUrl} className="btn btn-secondary-dark w-full sm:w-auto"><Download size={18} strokeWidth={1.75} aria-hidden />{secondaryCtaText}</CtaLink>
-              </Editable>
-            )}
-          </div>
+          ) : (
+            <CtaLink href="/services" className="link-arrow !text-[#2997ff]">Explore our services</CtaLink>
+          )}
         </div>
       </div>
     </section>
