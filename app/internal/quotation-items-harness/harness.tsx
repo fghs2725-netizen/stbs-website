@@ -1,10 +1,10 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ItemsTable } from "@/components/quotation/items-table";
+import { LineItems } from "@/components/quotation/studio/line-items";
 import { ConfirmDialog } from "@/components/quotation/feedback";
 import { createHistory, duplicateItem, isPopulatedItem, moveItem, pushHistory, redoHistory, undoHistory, type History } from "@/components/quotation/editor-logic";
-import { validateItem, type QuotationItem } from "@/components/quotation/quotation-model";
-import "@/components/quotation/editor.css";
+import { type QuotationItem } from "@/components/quotation/quotation-model";
+import "@/components/quotation/studio/studio.css";
 
 // Test-only harness: the same row operations the editor performs, without any server action.
 export function Harness() {
@@ -26,21 +26,18 @@ export function Harness() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const errors = new Map(items.map((i) => [i.id, validateItem(i)] as const).filter(([, e]) => Object.keys(e).length));
   const remove = (id: string) => set((x) => x.filter((i) => i.id !== id));
   return (
-    <div className="quotation-editor" style={{ display: "block", height: "auto", padding: 16 }}>
-    <div className="editor-panel" style={{ height: "auto", padding: 16 }}>
-      <ItemsTable
+    <div className="qs" style={{ margin: 0, padding: 16 }}>
+    <div className="qs-paper" style={{ padding: 16 }}>
+      <LineItems
         items={items}
-        errors={errors}
         focusId={focusId}
         onEdit={(id, patch, key) => set((x) => x.map((i) => (i.id === id ? { ...i, ...patch } : i)), key)}
-        onAdd={() => { const id = crypto.randomUUID(); set((x) => [...x, { id, description: "", unit: "", quantity: 1, rate: 0 }]); setFocusId(id); }}
+        onAdd={(preset) => { const id = crypto.randomUUID(); set((x) => [...x, { id, description: preset?.description ?? "", unit: preset?.unit ?? "", quantity: 1, rate: 0 }]); setFocusId(id); }}
         onRemove={(id) => { const it = items.find((i) => i.id === id); if (it && isPopulatedItem(it)) setConfirm(id); else remove(id); }}
         onDuplicate={(id) => set((x) => duplicateItem(x, id, crypto.randomUUID()))}
         onMove={(f, t) => set((x) => moveItem(x, f, t))}
-        onReorder={(f, t) => set((x) => moveItem(x, f, t))}
       />
       <output data-testid="count">{items.length}</output>
       {confirm && <ConfirmDialog title="Delete this item?" body="This row has content." confirmLabel="Delete item" destructive onConfirm={() => { remove(confirm); setConfirm(null); }} onCancel={() => setConfirm(null)} />}
