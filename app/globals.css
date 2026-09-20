@@ -134,7 +134,7 @@
   .t-h3 { font-family: var(--font-geist-sans), var(--font-heading), system-ui, sans-serif; font-weight: 600; font-size: clamp(1.25rem, calc(1rem + .9vw), 1.75rem); line-height: 1.2; letter-spacing: -.02em; color: var(--ink); }
   .t-body { font-size: clamp(1.0625rem, calc(1rem + .3vw), 1.3125rem); line-height: 1.5; letter-spacing: -.011em; }
   .t-eyebrow { font-family: var(--font-geist-sans), var(--font-body), system-ui, sans-serif; font-weight: 600; font-size: clamp(.9375rem, calc(.88rem + .25vw), 1.0625rem); line-height: 1.2; letter-spacing: -.01em; color: var(--muted); }
-  .t-stat { font-family: var(--font-geist-sans), var(--font-heading), system-ui, sans-serif; font-weight: 600; font-size: clamp(3rem, calc(1.5rem + 6vw), 7rem); line-height: 1; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
+  .t-stat { font-family: var(--font-geist-sans), var(--font-heading), system-ui, sans-serif; font-weight: 600; font-size: clamp(2.5rem, calc(1.4rem + 3.4vw), 4.5rem); line-height: 1; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
   .tabular { font-variant-numeric: tabular-nums; }
 
   /* ---- layout ---- */

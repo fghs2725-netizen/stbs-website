@@ -76,10 +76,10 @@ export function StatsStrip({ items }: { items: ReadonlyArray<StatItem> }) {
           {items.map((s, i) => {
             const numeric = parseNumeric(s.value);
             return (
-              <div key={`${s.label}-${i}`} className="flex flex-col-reverse justify-end gap-u2 lg:border-l lg:border-white/10 lg:pl-u4 lg:first:border-l-0 lg:first:pl-0">
+              <div key={`${s.label}-${i}`} className="flex min-w-0 flex-col-reverse justify-end gap-u2 lg:border-l lg:border-white/10 lg:pl-u4 lg:first:border-l-0 lg:first:pl-0">
                 <dt className="text-[0.9375rem] leading-[1.35] text-white/55">{s.label}</dt>
                 <dd className="m-0">
-                  {numeric ? <CountUp {...numeric} className="t-stat block" /> : <span className="t-h2 block">{s.value}</span>}
+                  {numeric ? <CountUp {...numeric} className="t-stat block" /> : <span className="block font-semibold leading-[1.05] tracking-[-0.03em] text-[clamp(1.75rem,2.2vw,2.75rem)]">{s.value}</span>}
                 </dd>
               </div>
             );

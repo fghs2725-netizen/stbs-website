@@ -96,7 +96,7 @@ export function SiteHeader({ navLinks, businessName, logoUrl, mobileLogoUrl, pho
       </div>
 
       {open && (
-        <nav id="mobile-nav" aria-label="Mobile navigation" className="glass fixed inset-x-0 bottom-0 top-[56px] overflow-y-auto animate-[fadeSlideUp_0.35s_cubic-bezier(0.28,0.11,0.32,1)_both]">
+        <nav id="mobile-nav" aria-label="Mobile navigation" className="absolute inset-x-0 top-full h-[calc(100dvh-56px)] overflow-y-auto overscroll-contain bg-stbs-brand-deep">
           <div className="container-x pb-u6 pt-u3">
             <ul>
               {links.map((l, i) => {
