@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { LucideIcon } from "lucide-react";
 import { Check } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
@@ -24,7 +25,11 @@ function faqJsonLd(items: Array<[string, string]>) {
   };
 }
 
-export function ServiceDetailPage({ eyebrow, title, intro, icon: Icon, bullets, specs, process, segments }: { eyebrow: string; title: string; intro: string; icon: LucideIcon; bullets: string[]; specs?: string[]; process?: boolean; segments?: string[] }) {
+/**
+ * `image` is illustrative site photography, not a record of a specific job, so it carries no
+ * caption tying it to a client or project. Pass `imageAlt` describing only what is visible.
+ */
+export function ServiceDetailPage({ eyebrow, title, intro, icon: Icon, bullets, specs, process, segments, image, imageAlt }: { eyebrow: string; title: string; intro: string; icon: LucideIcon; bullets: string[]; specs?: string[]; process?: boolean; segments?: string[]; image?: string; imageAlt?: string }) {
   const hasAside = Boolean(specs?.length || segments?.length);
   return (
     <>
@@ -71,6 +76,16 @@ export function ServiceDetailPage({ eyebrow, title, intro, icon: Icon, bullets, 
           )}
         </div>
       </section>
+
+      {image && imageAlt && (
+        <section className="theme-public pb-u7">
+          <div className="container-x">
+            <div className="relative aspect-[16/9] w-full overflow-hidden border border-stbs-hairline sm:aspect-[21/9]">
+              <Image src={image} alt={imageAlt} fill className="object-cover" sizes="(max-width:1280px) 100vw, 1280px" />
+            </div>
+          </div>
+        </section>
+      )}
 
       {process && <ProcessSteps />}
       <Faq items={sharedFaq} />
