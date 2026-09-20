@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { WhatsAppFloat } from "@/components/whatsapp-float";
-import { DuotoneDefs } from "@/components/public/photo";
 import type { CmsSettings } from "@/components/public/sections";
 
 /**
@@ -24,7 +23,6 @@ export function WebsiteFrame({
 }) {
   return (
     <div className="relative min-w-0 w-full overflow-x-clip">
-      <DuotoneDefs />
       <SiteHeader
         navLinks={navLinks}
         businessName={settings?.businessName ?? undefined}

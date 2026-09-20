@@ -182,15 +182,13 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
   const mobileImage = str(content, "mobileImage");
   const heroImageAlt = str(content, "heroImageAlt", HOME_HERO.heroImageAlt);
   const target = asSection(owner);
-  // Duotone: luminance mapped from --brand-deep (shadows) to a cool light steel (highlights).
-  const duotone = { filter: "url(#stbs-duotone)" } as const;
 
   return (
     <section className="band-deep relative flex min-h-[560px] items-center overflow-hidden lg:min-h-[640px]">
       <Editable target={{ kind: "section-field", section: target, fieldKey: "heroImage" }} label="Edit Image" className="absolute inset-0">
         <div className="absolute inset-0">
-          <Image src={heroImage} alt={heroImageAlt} fill priority data-keep-filter="" style={duotone} className={`object-cover object-[70%_center] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
-          {mobileImage && <Image src={mobileImage} alt={heroImageAlt} fill priority data-keep-filter="" style={duotone} className="object-cover object-center sm:hidden" sizes="100vw" />}
+          <Image src={heroImage} alt={heroImageAlt} fill priority className={`object-cover object-[70%_center] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
+          {mobileImage && <Image src={mobileImage} alt={heroImageAlt} fill priority className="object-cover object-center sm:hidden" sizes="100vw" />}
         </div>
       </Editable>
       {/* Flat brand-deep scrim (no gradient) keeps text contrast independent of the photo. */}

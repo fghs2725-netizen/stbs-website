@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageRenderer } from "@/components/public/page-renderer";
-import { DuotoneDefs } from "@/components/public/photo";
 import { SiteHeader } from "@/components/site-header";
 import { ABOUT_SECTIONS, CLIENTS_SECTIONS, CONTACT_SECTIONS, QUOTE_SECTIONS, fallbackClientRows, type DefaultSection } from "@/lib/website/page-defaults";
 
@@ -38,7 +37,6 @@ export default async function PagePreview({ params }: { params: Promise<{ slug: 
   if (!page) notFound();
   return (
     <div className="relative min-w-0 w-full overflow-x-clip">
-      <DuotoneDefs />
       <SiteHeader phone="9812003001" businessName="Saini Tubewell Boring Service" />
       <main>
         <PageRenderer sections={page.sections} seed={page.seed} />

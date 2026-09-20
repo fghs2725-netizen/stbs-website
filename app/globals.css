@@ -58,9 +58,8 @@
 @media (max-width: 768px) {
   .water-card { transition: none; }
   .water-card:hover { transform: none; border-color: rgba(86,197,213,.2); }
-  /* Old hover-to-colour grayscale images have no hover on touch, so un-gray them; images that
-     carry a deliberate filter (hero duotone) opt out with data-keep-filter. */
-  img:not([data-keep-filter]) { filter: none !important; }
+  /* Old hover-to-colour grayscale images have no hover on touch, so un-gray them. */
+  img { filter: none !important; }
 }
 
 /* Desktop only: preserve hover effects */
@@ -141,7 +140,7 @@
   .text-block { max-width: 680px; }    /* headline + intro blocks */
   .rule { border-top: 1px solid var(--hairline); }          /* thin rule between major sections */
   .rule-on-dark { border-top: 1px solid var(--hairline-on-dark); }
-  .hero-scrim { background: var(--brand-deep); opacity: .5; }  /* flat overlay, never a gradient */
+  .hero-scrim { background: #000; opacity: .45; }  /* flat neutral overlay for text contrast (no colour cast), never a gradient */
   .band-alt { background: var(--surface-alt); }
   .page-head { padding-block: var(--s7) var(--s6); border-bottom: 1px solid var(--hairline); }
   @media (min-width: 1024px) { .page-head { padding-block: var(--s10) var(--s8); } }

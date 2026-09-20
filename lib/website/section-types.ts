@@ -58,7 +58,7 @@ export const SECTION_TYPES: Record<string, string> = {
 export const SECTION_TYPE_DEFS: Record<string, SectionTypeDef> = {
   hero: {
     label: "Hero",
-    description: "Homepage hero: badge, headline, one-line subheadline, two CTAs, duotoned photo background.",
+    description: "Homepage hero: badge, headline, one-line subheadline, two CTAs, photo background.",
     fields: [
       { key: "eyebrow", label: "Badge", type: "text", placeholder: "Trusted since 1992" },
       { key: "heading", label: "Headline", type: "text", placeholder: "Water infrastructure for industrial & commercial sites" },
