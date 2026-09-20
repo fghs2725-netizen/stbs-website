@@ -17,6 +17,8 @@ export const HOME_HERO = {
   secondaryCtaUrl: "",
   heroImage: "/hero/stbs-drilling-rig-site.webp",
   heroImageAlt: "STBS borewell drilling rig on an industrial site, with two crew members in safety gear beside stacked casing pipes",
+  machineImage: "/hero/stbs-rig-cutout.webp",
+  machineImageAlt: "STBS borewell drilling rig with stacked casing pipes and sandbags",
 } as const;
 
 /**

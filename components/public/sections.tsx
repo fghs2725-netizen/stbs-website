@@ -181,42 +181,58 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
   const heroImage = str(content, "heroImage", HOME_HERO.heroImage);
   const mobileImage = str(content, "mobileImage");
   const heroImageAlt = str(content, "heroImageAlt", HOME_HERO.heroImageAlt);
+  const videoUrl = str(content, "heroVideoUrl");
+  const machineImage = str(content, "machineImage", HOME_HERO.machineImage);
+  const machineImageAlt = str(content, "machineImageAlt", HOME_HERO.machineImageAlt);
   const target = asSection(owner);
 
   return (
-    <section className="band-deep relative flex min-h-[560px] items-center overflow-hidden lg:min-h-[640px]">
-      <Editable target={{ kind: "section-field", section: target, fieldKey: "heroImage" }} label="Edit Image" className="absolute inset-0">
-        <div className="absolute inset-0">
-          <Image src={heroImage} alt={heroImageAlt} fill priority className={`object-cover object-[70%_center] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
-          {mobileImage && <Image src={mobileImage} alt={heroImageAlt} fill priority className="object-cover object-center sm:hidden" sizes="100vw" />}
+    <section className="band-deep relative flex min-h-[calc(100svh-68px)] overflow-hidden">
+      {/* With a rig cut-out the hero background stays flat brand-deep so the rig is the only visual; the photo shows only when there is no cut-out. */}
+      {!machineImage && (
+        <Editable target={{ kind: "section-field", section: target, fieldKey: "heroImage" }} label="Edit Image" className="absolute inset-0">
+          <div className="absolute inset-0">
+            <Image src={heroImage} alt={heroImageAlt} fill priority className={`object-cover object-[70%_center] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
+            {mobileImage && <Image src={mobileImage} alt={heroImageAlt} fill priority className="object-cover object-center sm:hidden" sizes="100vw" />}
+          </div>
+        </Editable>
+      )}
+      {videoUrl && <video src={videoUrl} poster={machineImage ? undefined : heroImage} autoPlay muted loop playsInline aria-hidden className="absolute inset-0 h-full w-full object-cover object-[70%_center]" />}
+      {/* Flat neutral scrim (no gradient, no colour cast) keeps text contrast independent of the photo. */}
+      {(!machineImage || videoUrl) && <div className="hero-scrim pointer-events-none absolute inset-0" />}
+      {machineImage && (
+        <div className="pointer-events-none absolute bottom-0 right-0 z-[5] hidden h-[78%] w-[52%] md:block lg:w-[46%]">
+          <Image src={machineImage} alt={machineImageAlt} fill priority className="object-contain object-right-bottom" sizes="(max-width:1024px) 52vw, 46vw" />
         </div>
-      </Editable>
-      {/* Flat brand-deep scrim (no gradient) keeps text contrast independent of the photo. */}
-      <div className="hero-scrim pointer-events-none absolute inset-0" />
-      <div className="container-x relative z-10 section-y w-full">
-        <Editable target={{ kind: "section", section: target }} label="Badge" className="max-w-fit">
-          <p className="t-eyebrow inline-flex items-center gap-u1 rounded-[4px] border border-stbs-hairline-on-dark bg-stbs-brand-deep px-u2 py-u1">
-            <BadgeCheck size={16} strokeWidth={1.75} className="text-stbs-verified" aria-hidden />{eyebrow}
-          </p>
-        </Editable>
-        <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-          <h1 className="t-h1 mt-u3 max-w-[880px]">
-            {heading}
-            {headingLine2 && <>{" "}<span className="block">{headingLine2}</span></>}
-          </h1>
-        </Editable>
-        <Editable target={{ kind: "section", section: target }} label="Subheadline" className="max-w-fit">
-          <p className="t-body mt-u3 max-w-[48rem] text-stbs-ink-on-dark">{supportingText}</p>
-        </Editable>
-        <div className="mt-u5 flex flex-col gap-u2 sm:flex-row sm:items-center">
-          <Editable target={{ kind: "section", section: target }} label="Primary CTA">
-            <CtaLink href={primaryCtaUrl} className="btn btn-primary w-full sm:w-auto">{primaryCtaText}</CtaLink>
+      )}
+      <div className="container-x relative z-10 flex w-full flex-1 flex-col justify-between pb-10 pt-12 sm:pb-12 sm:pt-16 md:pb-16 md:pt-20">
+        <div className="max-w-3xl">
+          <Editable target={{ kind: "section", section: target }} label="Badge" className="max-w-fit">
+            <p className={`t-eyebrow inline-flex items-center gap-u1 rounded-[4px] border border-stbs-hairline-on-dark bg-stbs-brand-deep px-u2 py-u1 animate-[fadeSlideUp_0.8s_ease_0.2s_both]`}>
+              <BadgeCheck size={16} strokeWidth={1.75} className="text-stbs-verified" aria-hidden />{eyebrow}
+            </p>
           </Editable>
-          {secondaryCtaText && secondaryCtaUrl && (
-            <Editable target={{ kind: "section", section: target }} label="Secondary CTA">
-              <CtaLink href={secondaryCtaUrl} className="btn btn-secondary-dark w-full sm:w-auto"><Download size={18} strokeWidth={1.75} aria-hidden />{secondaryCtaText}</CtaLink>
+          <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
+            <h1 className={`t-h1 mt-u3 max-w-[880px] animate-[fadeSlideUp_0.8s_ease_0.4s_both]`}>
+              {heading}
+              {headingLine2 && <>{" "}<span className="block">{headingLine2}</span></>}
+            </h1>
+          </Editable>
+        </div>
+        <div className="mt-u5">
+          <Editable target={{ kind: "section", section: target }} label="Subheadline" className="max-w-fit">
+            <p className={`t-body max-w-[48rem] text-stbs-ink-on-dark animate-[fadeSlideUp_0.8s_ease_0.7s_both]`}>{supportingText}</p>
+          </Editable>
+          <div className={`mt-u3 flex flex-col gap-u2 sm:flex-row sm:items-center animate-[fadeSlideUp_0.8s_ease_0.9s_both]`}>
+            <Editable target={{ kind: "section", section: target }} label="Primary CTA">
+              <CtaLink href={primaryCtaUrl} className="btn btn-primary w-full sm:w-auto">{primaryCtaText}<ArrowRight size={16} strokeWidth={1.75} aria-hidden /></CtaLink>
             </Editable>
-          )}
+            {secondaryCtaText && secondaryCtaUrl && (
+              <Editable target={{ kind: "section", section: target }} label="Secondary CTA">
+                <CtaLink href={secondaryCtaUrl} className="btn btn-secondary-dark w-full sm:w-auto"><Download size={18} strokeWidth={1.75} aria-hidden />{secondaryCtaText}</CtaLink>
+              </Editable>
+            )}
+          </div>
         </div>
       </div>
     </section>

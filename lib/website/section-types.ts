@@ -68,9 +68,12 @@ export const SECTION_TYPE_DEFS: Record<string, SectionTypeDef> = {
       { key: "primaryCtaUrl", label: "Primary CTA URL", type: "url", placeholder: "/quote" },
       { key: "secondaryCtaText", label: "Secondary CTA text", type: "text", placeholder: "Download company profile" },
       { key: "secondaryCtaUrl", label: "Secondary CTA URL (PDF, page or tel:)", type: "url", placeholder: "/company-profile" },
-      { key: "heroImage", label: "Hero photo (use a real, owned site photo of a rig)", type: "image" },
+      { key: "heroImage", label: "Hero photo (use a real, owned site photo of a rig; hidden while a rig cut-out is set)", type: "image" },
       { key: "heroImageAlt", label: "Hero photo alt text (describe what is actually visible)", type: "text" },
       { key: "mobileImage", label: "Optional mobile image", type: "image" },
+      { key: "machineImage", label: "Rig cut-out (transparent PNG, bottom-right on tablet and desktop; while set, the hero background is flat navy instead of the photo)", type: "image" },
+      { key: "machineImageAlt", label: "Rig cut-out alt text", type: "text" },
+      { key: "heroVideoUrl", label: "Optional looping background video URL (MP4, muted, plays over the hero photo)", type: "url" },
     ],
   },
   page_hero: {

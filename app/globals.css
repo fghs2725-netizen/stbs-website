@@ -32,6 +32,7 @@
 .field:focus { border-color: var(--color-accent); }
 .field:focus-visible, a:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
 .wave-divider { height: 26px; margin-top: -1px; background-color: var(--color-neutral-light); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1440 28' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10c180 16 300 16 480 0s300-16 480 0 300 16 480 0v18H0Z' fill='%231677a8' fill-opacity='.12'/%3E%3C/svg%3E"); background-size:100% 100%; }
+@keyframes fadeSlideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
 @layer components {
   .water-hero { background-color:var(--color-groundwater-950); background-image:linear-gradient(112deg,rgba(7,19,31,.97) 0%,rgba(11,31,51,.88) 46%,rgba(13,83,122,.58) 100%),radial-gradient(ellipse at 85% 15%,rgba(86,197,213,.22),transparent 48%); }
