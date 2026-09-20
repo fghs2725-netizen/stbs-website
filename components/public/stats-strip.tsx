@@ -70,14 +70,14 @@ export function StatsStrip({ items }: { items: ReadonlyArray<StatItem> }) {
     <section className="band-deep rule-on-dark" aria-label="STBS at a glance">
       <div className="container-x section-y">
         <dl
-          className="grid grid-cols-2 gap-x-u3 gap-y-u5 lg:[grid-template-columns:repeat(var(--cols),minmax(0,1fr))]"
+          className="grid grid-cols-2 gap-x-u4 gap-y-u6 lg:[grid-template-columns:repeat(var(--cols),minmax(0,1fr))]"
           style={{ "--cols": Math.min(items.length, 4) } as CSSProperties}
         >
           {items.map((s, i) => {
             const numeric = parseNumeric(s.value);
             return (
-              <div key={`${s.label}-${i}`} className="flex flex-col-reverse justify-end gap-u1 lg:border-l lg:border-stbs-hairline-on-dark lg:pl-u3 lg:first:border-l-0 lg:first:pl-0">
-                <dt className="t-eyebrow">{s.label}</dt>
+              <div key={`${s.label}-${i}`} className="flex flex-col-reverse justify-end gap-u2 lg:border-l lg:border-white/10 lg:pl-u4 lg:first:border-l-0 lg:first:pl-0">
+                <dt className="text-[0.9375rem] leading-[1.35] text-white/55">{s.label}</dt>
                 <dd className="m-0">
                   {numeric ? <CountUp {...numeric} className="t-stat block" /> : <span className="t-h2 block">{s.value}</span>}
                 </dd>
