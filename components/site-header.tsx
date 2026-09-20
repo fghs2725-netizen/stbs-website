@@ -30,7 +30,13 @@ export function SiteHeader({ navLinks, businessName, logoUrl, mobileLogoUrl, pho
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // Hold the page still behind the open sheet, so a scroll gesture moves the menu, not the page.
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previous;
+    };
   }, [open]);
 
   const focus = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stbs-ink-on-dark";
@@ -90,33 +96,52 @@ export function SiteHeader({ navLinks, businessName, logoUrl, mobileLogoUrl, pho
             aria-controls="mobile-nav"
             aria-label={open ? "Close menu" : "Open menu"}
           >
-            {open ? <X size={24} strokeWidth={1.75} aria-hidden /> : <Menu size={24} strokeWidth={1.75} aria-hidden />}
+            {/* Both icons stay mounted and cross-rotate, so the toggle glides rather than snapping. */}
+            <span className="relative block h-6 w-6">
+              <Menu size={24} strokeWidth={1.75} aria-hidden className={`absolute inset-0 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${open ? "rotate-90 opacity-0" : "rotate-0 opacity-100"}`} />
+              <X size={24} strokeWidth={1.75} aria-hidden className={`absolute inset-0 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${open ? "rotate-0 opacity-100" : "-rotate-90 opacity-0"}`} />
+            </span>
           </button>
         </div>
       </div>
 
-      {open && (
-        <nav id="mobile-nav" aria-label="Mobile navigation" className="absolute inset-x-0 top-full h-[calc(100dvh-56px)] overflow-y-auto overscroll-contain bg-stbs-brand-deep">
-          <div className="container-x pb-u6 pt-u3">
-            <ul>
-              {links.map((l, i) => {
-                const active = isActiveNavLink(l.href, pathname);
-                return (
-                  <li key={l.href} className="animate-[fadeSlideUp_0.5s_cubic-bezier(0.28,0.11,0.32,1)_both]" style={{ animationDelay: `${80 + i * 55}ms` }}>
-                    <Link href={l.href} aria-current={active ? "page" : undefined} className={`flex min-h-[64px] items-center border-b border-white/10 font-body text-[1.75rem] font-semibold tracking-[-0.03em] ${active ? "text-white" : "text-white/70"} ${focus}`}>{l.label}</Link>
-                  </li>
-                );
-              })}
-            </ul>
+      {/* Kept mounted so it eases both open and shut; `invisible` takes it out of the tab order
+          when closed, and transitioning visibility holds it until the fade finishes. */}
+      <nav
+        id="mobile-nav"
+        aria-label="Mobile navigation"
+        aria-hidden={!open}
+        className={`absolute inset-x-0 top-full h-[calc(100dvh-56px)] overflow-y-auto overscroll-contain bg-stbs-brand-deep transition-[opacity,transform,visibility] duration-[450ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none lg:hidden ${open ? "visible translate-y-0 opacity-100" : "invisible -translate-y-3 opacity-0"}`}
+      >
+        <div className="container-x pb-u6 pt-u3">
+          <ul>
+            {links.map((l, i) => {
+              const active = isActiveNavLink(l.href, pathname);
+              return (
+                <li
+                  key={l.href}
+                  // Opening staggers the links in; closing takes them out together, which reads faster.
+                  style={{ transitionDelay: open ? `${90 + i * 55}ms` : "0ms" }}
+                  className={`transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${open ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+                >
+                  <Link href={l.href} tabIndex={open ? undefined : -1} aria-current={active ? "page" : undefined} className={`flex min-h-[64px] items-center border-b border-white/10 font-body text-[1.75rem] font-semibold tracking-[-0.03em] ${active ? "text-white" : "text-white/70"} ${focus}`}>{l.label}</Link>
+                </li>
+              );
+            })}
+          </ul>
+          <div
+            style={{ transitionDelay: open ? `${90 + links.length * 55}ms` : "0ms" }}
+            className={`transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${open ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+          >
             {phoneText && (
-              <a href={telHref(phone!)} className={`mt-u4 flex min-h-[48px] items-center gap-u1 text-lg text-white/85 ${focus}`}>
+              <a href={telHref(phone!)} tabIndex={open ? undefined : -1} className={`mt-u4 flex min-h-[48px] items-center gap-u1 text-lg text-white/85 ${focus}`}>
                 <Phone size={20} strokeWidth={1.75} aria-hidden /> <span className="tabular-nums">{phoneText}</span>
               </a>
             )}
-            <Link href={CTA_HREF} className={`btn btn-primary mt-u3 w-full ${focus}`}>{CTA_LABEL}</Link>
+            <Link href={CTA_HREF} tabIndex={open ? undefined : -1} className={`btn btn-primary mt-u3 w-full ${focus}`}>{CTA_LABEL}</Link>
           </div>
-        </nav>
-      )}
+        </div>
+      </nav>
     </header>
   );
 }
