@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 export function AdminLoginForm() {
   const searchParams = useSearchParams();
@@ -34,7 +35,10 @@ export function AdminLoginForm() {
         <input id="admin-email" name="email" type="text" autoComplete="username" required className="a-input" />
       </div>
       <div>
-        <label htmlFor="admin-password" className="a-label mb-1">Password</label>
+        <div className="mb-1 flex items-baseline justify-between gap-3">
+          <label htmlFor="admin-password" className="a-label">Password</label>
+          <Link href="/admin/forgot-password" className="a-link text-[0.8125rem]">Forgot password?</Link>
+        </div>
         <input id="admin-password" name="password" type="password" autoComplete="current-password" required className="a-input" />
       </div>
       {error && (

@@ -14,10 +14,11 @@ export default async function middleware(request: NextRequest) {
 
   // ── Admin routes ──
   if (pathname.startsWith("/admin")) {
-    const isLogin = pathname === "/admin/login";
+    // The sign-in page and the two password-recovery pages are the only admin routes open without a session.
+    const isLogin = pathname === "/admin/login" || pathname === "/admin/forgot-password" || pathname === "/admin/reset-password";
     const session = await getSession(request.headers.get("cookie"), secret);
 
-    // Not redirecting a "signed-in" visitor away from the login page here: the cookie can be validly signed yet
+    // Not redirecting a "signed-in" visitor away from these pages here: the cookie can be validly signed yet
     // revoked (password changed on another device). Only the login page itself can tell, via auth(), so it
     // does the redirect. Doing it here would loop: /admin -> /admin/login -> /admin ...
     if (!isLogin && !session?.user) {

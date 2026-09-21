@@ -16,17 +16,25 @@ export const isKnownDefaultPassword = (password: string) =>
 
 export type PasswordInput = { current: string; next: string; confirm: string; email?: string | null };
 
-/** Returns what is wrong with the request, in words a person can act on, or null when it is fine. */
-export function passwordProblem({ current, next, confirm, email }: PasswordInput): string | null {
-  if (!current) return "Enter your current password.";
+/**
+ * What is wrong with a *new* password, or null when it is fine. Used on its own when there is no current
+ * password to compare against (resetting from an emailed link) and by `passwordProblem` when there is.
+ */
+export function newPasswordProblem({ next, confirm, email, current }: { next: string; confirm: string; email?: string | null; current?: string }): string | null {
   if (!next) return "Enter a new password.";
   if (next !== confirm) return "The two new passwords do not match.";
   if (next.length < MIN_PASSWORD_LENGTH) return `Use at least ${MIN_PASSWORD_LENGTH} characters.`;
   if (new TextEncoder().encode(next).length > MAX_PASSWORD_BYTES) return `That is too long. Use at most ${MAX_PASSWORD_BYTES} bytes (about ${MAX_PASSWORD_BYTES} plain characters).`;
-  if (next === current) return "The new password must be different from the current one.";
+  if (current !== undefined && next === current) return "The new password must be different from the current one.";
   if (isKnownDefaultPassword(next)) return "That is the default password that ships with this site. Choose your own.";
   if (new Set(next).size < 5) return "That is too repetitive. Mix in more different characters.";
   const local = (email ?? "").split("@")[0].toLowerCase();
   if (local.length >= 4 && next.toLowerCase().includes(local)) return "Do not use your email or username inside the password.";
   return null;
+}
+
+/** Returns what is wrong with a change-password request, in words a person can act on, or null when it is fine. */
+export function passwordProblem({ current, next, confirm, email }: PasswordInput): string | null {
+  if (!current) return "Enter your current password.";
+  return newPasswordProblem({ next, confirm, email, current });
 }

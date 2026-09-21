@@ -40,6 +40,8 @@ export async function changePasswordAction(input: { current: string; next: strin
 
   const hash = await bcrypt.hash(input.next, BCRYPT_COST);
   await prisma.user.update({ where: { id: user.id }, data: { password: hash } });
+  // A reset link issued before this must not work afterwards.
+  await prisma.verificationToken.deleteMany({ where: { identifier: `pwreset:${user.id}` } });
   console.warn(`[Auth] Password changed for user ${user.id}; existing sessions are now invalid`);
   return { ok: true };
 }
