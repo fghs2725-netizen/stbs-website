@@ -173,7 +173,8 @@
 .qs-items-head span:nth-child(n+4) { text-align: right; }
 .qs-row { padding: 5px 0; border-bottom: 1px solid var(--rule); }
 .qs-row[data-incomplete] { background: rgba(209, 139, 53, .045); }
-.qs-sr { padding: 6px 0 0 4px; color: var(--ink-faint); font-size: 12px; font-variant-numeric: tabular-nums; }
+/* Not `.qs-sr`: that name is the screen-reader-only helper (1px, clipped) defined above, and sharing it removed the row number from the grid and shifted every cell one column left. */
+.qs-rownum { padding: 6px 0 0 4px; color: var(--ink-faint); font-size: 12px; font-variant-numeric: tabular-nums; }
 .qs-cell { resize: none; overflow: hidden; font-size: 13px; }
 .qs-num { text-align: right; font-variant-numeric: tabular-nums; }
 .qs-row .it-amount { padding: 6px 7px 0 0; text-align: right; font: 600 13px var(--font-inter), sans-serif; font-variant-numeric: tabular-nums; }
@@ -243,7 +244,7 @@
     grid-template-areas: "sr desc desc desc" ". unit qty rate" ". amount amount actions";
     row-gap: 4px; padding: 9px 0;
   }
-  .qs-sr { grid-area: sr; }
+  .qs-rownum { grid-area: sr; }
   .qs-row .it-desc { grid-area: desc; }
   .qs-row .it-unit { grid-area: unit; }
   .qs-row .it-qty { grid-area: qty; }

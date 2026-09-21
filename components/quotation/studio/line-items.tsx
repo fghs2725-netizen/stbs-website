@@ -131,7 +131,7 @@ export function LineItems({ items, focusId, onEdit, onAdd, onRemove, onDuplicate
           const n = row + 1;
           return (
             <div key={item.id} role="row" className="it-row qs-row" data-incomplete={complete ? undefined : "true"}>
-              <span role="cell" className="qs-sr">{String(n).padStart(2, "0")}</span>
+              <span role="cell" className="qs-rownum">{String(n).padStart(2, "0")}</span>
               <span role="cell" className="it-desc">
                 <GrowingText
                   data-cell={`${item.id}:description`}
