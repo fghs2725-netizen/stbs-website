@@ -1,7 +1,7 @@
 # FINAL REPORT — STBS Visual Editor + Gallery Bug Fix
 
 Delivered in **C:\Users\HP\my-website** (Next 15.5.20, Prisma 6.19.3, Neon Postgres,
-Vercel Blob). Local dev :3010, seeded admin `admin@stbs.com` / `STBS@admin123`.
+Vercel Blob). Local dev :3010, seeded admin `admin@stbs.com` (password: see Admin > Account & password).
 
 ## Status: DONE (verified). Push NOT executed — awaiting your authorization.
 

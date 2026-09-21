@@ -62,14 +62,15 @@ export function AdminTopBar({ businessName, userName }: { businessName: string; 
       >
         <Settings size={20} strokeWidth={1.75} aria-hidden />
       </Link>
-      <span
-        aria-hidden
-        title={userName ?? undefined}
+      <Link
+        href="/admin/account"
+        aria-label={`Account${userName ? `: ${userName}` : ''}`}
+        title="Account & password"
         className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-[0.8125rem] font-semibold"
         style={{ background: 'var(--a-brand)', color: '#fff' }}
       >
         {initial || 'A'}
-      </span>
+      </Link>
     </header>
   );
 }

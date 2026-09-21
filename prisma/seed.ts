@@ -1,10 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { randomBytes } from "node:crypto";
 
 const prisma = new PrismaClient();
 
 const ADMIN_EMAIL = process.env.ADMIN_SEED_EMAIL || "admin@stbs.com";
-const ADMIN_PASSWORD = process.env.ADMIN_SEED_PASSWORD || "STBS@admin123";
+// No built-in password: a default that is written in the repo is a password everyone knows. If none is
+// supplied, a random one is generated and shown once below.
+const GENERATED = !process.env.ADMIN_SEED_PASSWORD;
+const ADMIN_PASSWORD = process.env.ADMIN_SEED_PASSWORD || randomBytes(12).toString("base64url");
 const ADMIN_NAME = process.env.ADMIN_SEED_NAME || "STBS Administrator";
 
 async function main() {
@@ -44,7 +48,8 @@ async function main() {
   console.log(`  email:    ${admin.email}`);
   console.log(`  id:       ${admin.id}`);
   console.log(`  role:     SUPER_ADMIN`);
-  console.log(`  password: ${ADMIN_PASSWORD} (change on first login)`);
+  console.log(`  password: ${ADMIN_PASSWORD}${GENERATED ? " (generated: shown only now, so save it)" : ""}`);
+  console.log("  Change it any time from Admin > Account & password.");
 }
 
 main()

@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import authConfig from "@/auth.config";
+import { passwordFingerprint } from "@/lib/password-fingerprint";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -87,6 +88,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           email: user.email,
           role: roleName,
+          // Stamped into the session so a later password change can end it.
+          pwf: passwordFingerprint(user.password),
         };
       },
     }),
@@ -95,8 +98,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.role = (user as { role?: string }).role || "NONE"; // fail closed: never default to a privileged role
+        token.pwf = (user as { pwf?: string }).pwf;
+        return token;
       }
-      return token;
+
+      // Every later read: a session is only good while the account still exists and still has the password it
+      // was issued under. Returning null ends it. (Tokens are stateless, so this is the only place that can.)
+      if (!token.sub) return null;
+      try {
+        const row = await prisma.user.findUnique({ where: { id: token.sub }, select: { password: true, deletedAt: true } });
+        if (!row || row.deletedAt || !row.password) return null;
+        const current = passwordFingerprint(row.password);
+        // A session issued before this check existed has no stamp yet: adopt the current one rather than
+        // signing everyone out at deploy time. Any password change after that ends it as normal.
+        if (!token.pwf) { token.pwf = current; return token; }
+        return token.pwf === current ? token : null;
+      } catch (e) {
+        // Fail closed. The admin needs the database for everything anyway, so this only signs out during an outage.
+        console.error("[Auth] Could not verify the session against the account:", e);
+        return null;
+      }
     },
     async session({ session, token }) {
       if (session.user) {

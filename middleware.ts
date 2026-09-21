@@ -17,9 +17,9 @@ export default async function middleware(request: NextRequest) {
     const isLogin = pathname === "/admin/login";
     const session = await getSession(request.headers.get("cookie"), secret);
 
-    if (isLogin && session?.user) {
-      return NextResponse.redirect(new URL("/admin", request.url));
-    }
+    // Not redirecting a "signed-in" visitor away from the login page here: the cookie can be validly signed yet
+    // revoked (password changed on another device). Only the login page itself can tell, via auth(), so it
+    // does the redirect. Doing it here would loop: /admin -> /admin/login -> /admin ...
     if (!isLogin && !session?.user) {
       const login = new URL("/admin/login", request.url);
       login.searchParams.set("callbackUrl", `${pathname}${request.nextUrl.search}`);

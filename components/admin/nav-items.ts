@@ -4,6 +4,7 @@ import {
   FileText,
   Home,
   Images,
+  KeyRound,
   LayoutTemplate,
   ReceiptText,
   RotateCcw,
@@ -40,6 +41,7 @@ export const ADMIN_SETUP_NAV: NavItemDef[] = [
   { name: 'Quotation templates', href: '/admin/templates', icon: LayoutTemplate },
   { name: 'Website photos', href: '/admin/photos', icon: Images },
   { name: 'Data & files', href: '/admin/storage', icon: Database },
+  { name: 'Account & password', href: '/admin/account', icon: KeyRound },
 ];
 
 /** Four tabs plus More. Anything not here is one tap away inside the More sheet. */

@@ -26,6 +26,9 @@ export function AdminLoginForm() {
 
   return (
     <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
+      {searchParams.get("changed") === "1" && (
+        <p role="status" className="rounded-[10px] p-3 text-sm" style={{ background: "var(--a-positive-soft)", color: "var(--a-positive)" }}>Password changed. Sign in with the new one.</p>
+      )}
       <div>
         <label htmlFor="admin-email" className="a-label mb-1">Email or username</label>
         <input id="admin-email" name="email" type="text" autoComplete="username" required className="a-input" />

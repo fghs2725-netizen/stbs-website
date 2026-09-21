@@ -15,6 +15,7 @@
     "test:amount-in-words": "npx tsx scripts/test-amount-in-words.ts",
     "test:quotation-totals": "npx tsx scripts/test-quotation-totals.ts",
     "test:quotation-pagination": "npx tsx scripts/test-quotation-pagination.ts",
+    "test:password-policy": "npx tsx scripts/test-password-policy.ts",
     "test:quotation-templates": "npx tsx scripts/test-quotation-templates.ts",
     "test:quotation-editor": "npx tsx scripts/test-quotation-editor-logic.ts",
     "test:quotation-studio": "npx tsx scripts/test-quotation-studio-logic.ts",

@@ -210,7 +210,7 @@ async function main() {
     await page.goto(`${BASE}/admin/login`, { waitUntil: "networkidle2" });
     await page.waitForSelector("#admin-email", { timeout: 20000 });
     await typeInto(page, "#admin-email", "admin@stbs.com");
-    await typeInto(page, "#admin-password", "STBS@admin123");
+    await typeInto(page, "#admin-password", process.env.ADMIN_QA_PASSWORD ?? (() => { throw new Error("Set ADMIN_QA_PASSWORD to the admin password before running this script."); })());
     await page.click("button[type='submit']");
     await waitFor(page, () => !new URL(page.url()).pathname.startsWith("/admin/login"), 20000, "post-login redirect");
     check("login succeeds", new URL(page.url()).pathname.startsWith("/admin"), page.url());
