@@ -68,8 +68,10 @@ is `docs/invoice-design-v1.html`; the SQL that was applied is `docs/invoice-migr
       executed: they need a login and a database write, and `.env` points at production, where issuing
       would consume number 765 for good. Test on a Neon branch before raising a real invoice.
 - [ ] Owner still to supply, all uploads in Settings: bank details, signature and stamp images, UPI QR image.
-- [ ] Not built (optional, agreed): invoice template editor UI (the wording model exists and invoices use
-      the built-in text), the proforma variant, and a credit-note screen (the data layer has one).
+- [x] Invoice template editor and the proforma variant. Wording is frozen onto an invoice when it is
+      issued, so editing a template never rewrites one a client already holds.
+- [x] Credit notes: their own consecutive numbered series, raised from an issued invoice. They reduce
+      what is owed without altering the invoice as printed.
 
 ### Migration (`scripts/migrate-homepage.ts`, 12 steps, 38 changes, dry run only)
 - [ ] Decide: run `--rehearse` against production (executes writes inside a transaction, then rolls back), then `--apply`

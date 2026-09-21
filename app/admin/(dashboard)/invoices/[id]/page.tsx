@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { getInvoice, getInvoiceConfig, invoiceEditLog } from "@/lib/invoice-management";
+import { creditNotesFor, getInvoice, getInvoiceConfig, invoiceEditLog } from "@/lib/invoice-management";
 import { calcInvoiceTotals, formatINR, overdueBy, whatIsMissing, type InvoiceStatus } from "@/components/invoice/invoice-model";
 import { formatInvoiceNumber } from "@/lib/invoice-numbering";
 import { InvoiceDocument } from "@/components/invoice/InvoiceDocument";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { InvoicePdfActions } from "@/components/invoice/share/InvoicePdfActions";
 import { shareSubjectFromInvoice } from "@/components/invoice/share/invoice-share";
 import {
-  cancelInvoiceAction, deletePaymentAction, duplicateInvoiceAction, issueInvoiceAction, recordPaymentAction,
+  cancelInvoiceAction, createCreditNoteAction, deletePaymentAction, duplicateInvoiceAction, issueInvoiceAction, recordPaymentAction,
 } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -24,11 +24,17 @@ const TONE: Record<InvoiceStatus, "neutral" | "positive" | "warn" | "brand"> = {
 };
 const day = (v: string) => (v ? new Date(v).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—");
 
-export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function InvoiceDetailPage({
+  params, searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ creditError?: string }>;
+}) {
   const session = await auth();
   if (!session?.user) redirect("/admin/login");
 
   const { id } = await params;
+  const { creditError } = await searchParams;
   const invoice = await getInvoice(id);
   if (!invoice) notFound();
 
@@ -38,6 +44,10 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   const late = overdueBy(invoice);
   const edits = invoice.status === "DRAFT" ? [] : await invoiceEditLog(id);
   const canTakePayment = invoice.status !== "DRAFT" && invoice.status !== "CANCELLED" && totals.balance > 0;
+  // Credit notes reduce what is owed, but never the invoice as printed: that document has gone out.
+  const credits = invoice.status === "DRAFT" ? { list: [], total: 0 } : await creditNotesFor(id);
+  const uncredited = Math.max(0, Math.round((totals.grandTotal - credits.total) * 100) / 100);
+  const owedAfterCredits = Math.max(0, Math.round((totals.balance - credits.total) * 100) / 100);
 
   return (
     <div className="a-page">
@@ -144,6 +154,57 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               </label>
               <Button type="submit" size="sm">Record</Button>
             </form>
+          )}
+
+          {invoice.status !== "DRAFT" && (
+            <div className="a-card p-4">
+              <h2 className="text-[0.9375rem] font-semibold" style={{ color: "var(--a-ink)" }}>Credit notes</h2>
+              <p className="text-[0.8125rem]" style={{ color: "var(--a-faint)" }}>
+                The proper way to reduce what is owed after an invoice has gone out, instead of changing
+                the invoice itself. Each one takes a number from its own series.
+              </p>
+
+              {creditError && (
+                <p role="alert" className="mt-2 text-[0.875rem]" style={{ color: "var(--a-danger)" }}>{creditError}</p>
+              )}
+
+              {credits.list.length > 0 && (
+                <ul className="a-divide mt-2">
+                  {credits.list.map((c) => (
+                    <li key={c.id} className="py-2 text-[0.875rem]">
+                      <div className="flex items-center justify-between gap-3">
+                        <span style={{ color: "var(--a-body)" }}>
+                          {c.number ? `Credit note ${c.number}` : "Credit note"} · {day(c.date)}
+                        </span>
+                        <span className="a-num" style={{ color: "var(--a-ink)" }}>−{formatINR(c.amount)}</span>
+                      </div>
+                      <p className="text-[0.8125rem]" style={{ color: "var(--a-faint)" }}>{c.reason}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {credits.total > 0 && (
+                <p className="a-num mt-2 text-[0.875rem]" style={{ color: "var(--a-ink)" }}>
+                  Credited {formatINR(credits.total)} · owed after credit notes {formatINR(owedAfterCredits)}
+                </p>
+              )}
+
+              {invoice.status !== "CANCELLED" && uncredited > 0 && (
+                <form action={createCreditNoteAction.bind(null, id)} className="mt-3 flex flex-col gap-2">
+                  <label className="a-label">Date
+                    <input type="date" name="date" defaultValue={new Date().toISOString().slice(0, 10)} className="a-input mt-1" required />
+                  </label>
+                  <label className="a-label">Amount (at most {formatINR(uncredited)})
+                    <input type="number" name="amount" step="0.01" min="0.01" max={uncredited} className="a-input mt-1" required />
+                  </label>
+                  <label className="a-label">Reason
+                    <input type="text" name="reason" placeholder="Return, rate correction, discount agreed later" className="a-input mt-1" required />
+                  </label>
+                  <Button type="submit" size="sm" variant="secondary">Raise credit note</Button>
+                </form>
+              )}
+            </div>
           )}
 
           {invoice.status !== "DRAFT" && invoice.status !== "CANCELLED" && (

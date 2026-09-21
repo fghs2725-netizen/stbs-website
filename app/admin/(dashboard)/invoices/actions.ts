@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
-  cancelInvoice, convertQuotationToInvoice, deleteInvoice, deletePayment,
+  cancelInvoice, convertQuotationToInvoice, createCreditNote, deleteInvoice, deletePayment,
   duplicateInvoice, issueInvoice, recordPayment, saveInvoice, saveInvoiceConfig,
   type InvoiceConfig,
 } from "@/lib/invoice-management";
@@ -56,6 +56,27 @@ export async function recordPaymentAction(id: string, formData: FormData) {
 export async function deletePaymentAction(paymentId: string, invoiceId: string) {
   await deletePayment(paymentId);
   refresh(invoiceId);
+}
+
+/**
+ * Raises a credit note. A refusal is shown on the invoice rather than thrown away, because the
+ * reasons it can refuse — no reason given, or crediting more than the invoice was worth — are
+ * things the owner needs to see and correct.
+ */
+export async function createCreditNoteAction(id: string, formData: FormData) {
+  const messages: Record<string, string> = {
+    AMOUNT_MUST_BE_POSITIVE: "Give an amount above zero.",
+    REASON_REQUIRED: "Give a reason for the credit note.",
+    EXCEEDS_UNCREDITED_AMOUNT: "That is more than is left to credit on this invoice.",
+    NOT_ISSUED: "Issue the invoice before crediting it.",
+  };
+  try {
+    await createCreditNote(id, Number(formData.get("amount")), String(formData.get("reason") ?? ""), String(formData.get("date") || "") || undefined);
+  } catch (e) {
+    const code = e instanceof Error ? e.message : "UNKNOWN";
+    redirect(`/admin/invoices/${id}?creditError=${encodeURIComponent(messages[code] ?? "That credit note could not be raised.")}`);
+  }
+  refresh(id);
 }
 
 export async function duplicateInvoiceAction(id: string) {

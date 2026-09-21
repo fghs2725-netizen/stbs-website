@@ -35,6 +35,10 @@ const TX = { timeout: 25000, maxWait: 10000 } as const;
 const SELLER_STATE = "Haryana";
 const SETTINGS_ID = "singleton";
 const COUNTER_ID = "invoice";
+// A credit note carries its own consecutive series, separate from the invoice one.
+const CREDIT_COUNTER_ID = "creditnote";
+
+const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
 
 /* ────────────────────────── settings ────────────────────────── */
 
@@ -568,18 +572,53 @@ export async function deleteItemCode(id: string) {
 
 /* ────────────────────────── credit notes and the edit log ────────────────────────── */
 
+/** Credit notes already raised against an invoice, and what they come to. */
+export async function creditNotesFor(invoiceId: string) {
+  await requireAdmin();
+  const rows = await prisma.creditNote.findMany({ where: { invoiceId }, orderBy: { createdAt: "asc" } });
+  const list = rows.map((r) => ({
+    id: r.id, number: r.number ?? undefined, date: r.date,
+    amount: Number(r.amount), reason: r.reason, issuedAt: r.issuedAt?.toISOString(),
+  }));
+  return { list, total: Math.round(list.reduce((s, c) => s + c.amount, 0) * 100) / 100 };
+}
+
+/**
+ * Raises a credit note against an issued invoice — the correct way to reduce what is owed after the
+ * fact, rather than editing a document the client already holds.
+ *
+ * It takes a number from its own series, as a credit note must: the invoice series and the credit
+ * note series are separate and each has to run unbroken. The amount cannot take the total credited
+ * past the invoice, so an invoice can never be credited for more than it was ever worth.
+ */
 export async function createCreditNote(invoiceId: string, amount: number, reason: string, date?: string) {
   await requireAdmin();
   const { settings } = await getInvoiceConfig();
+  if (!(amount > 0)) throw new Error("AMOUNT_MUST_BE_POSITIVE");
+  if (!reason.trim()) throw new Error("REASON_REQUIRED");
+
   const row = await prisma.invoice.findUnique({ where: { id: invoiceId }, include: withItems });
   if (!row) throw new Error("NOT_FOUND");
   if (row.status === "DRAFT") throw new Error("NOT_ISSUED");
   const totals = calcInvoiceTotals(toState(row as never), settings);
-  if (!(amount > 0)) throw new Error("AMOUNT_MUST_BE_POSITIVE");
-  if (amount > totals.grandTotal) throw new Error("EXCEEDS_INVOICE_TOTAL");
-  return prisma.creditNote.create({
-    data: { invoiceId, amount, reason: reason.trim(), date: date ?? new Date().toISOString().slice(0, 10) },
-  });
+  const already = (await creditNotesFor(invoiceId)).total;
+  if (amount > round2(totals.grandTotal - already)) throw new Error("EXCEEDS_UNCREDITED_AMOUNT");
+
+  return prisma.$transaction(async (tx) => {
+    const counter = await tx.invoiceNumberCounter.upsert({
+      where: { id: CREDIT_COUNTER_ID },
+      create: { id: CREDIT_COUNTER_ID, lastNumber: 1 },
+      update: { lastNumber: { increment: 1 } },
+    });
+    return tx.creditNote.create({
+      data: {
+        invoiceId, amount, reason: reason.trim(),
+        date: date ?? new Date().toISOString().slice(0, 10),
+        number: counter.lastNumber,
+        issuedAt: new Date(),
+      },
+    });
+  }, TX);
 }
 
 export async function invoiceEditLog(invoiceId: string) {
