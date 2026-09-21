@@ -23,6 +23,7 @@ import {
 } from "@/components/invoice/invoice-model";
 import { DEFAULT_INVOICE_SETTINGS, resolveSettings, type InvoiceSettings } from "@/components/invoice/invoice-settings";
 import type { InvoiceBusiness } from "@/components/invoice/InvoiceDocument";
+import { resolveInvoiceTemplate, storableTemplateId } from "@/lib/invoice-templates";
 
 /**
  * Each round trip to the hosted database takes about a second, and these transactions make several,
@@ -181,7 +182,7 @@ function toInput(inv: InvoiceState) {
     gstRate: inv.gstRate ?? 18,
     quotationId: inv.quotationId || null,
     quotationReference: inv.quotationReference || null,
-    templateId: inv.templateId || null,
+    templateId: storableTemplateId(inv.templateId),
   };
 }
 
@@ -344,6 +345,9 @@ export async function saveInvoice(inv: InvoiceState, editedBy?: string): Promise
 export async function issueInvoice(id: string): Promise<InvoiceState> {
   await requireAdmin();
   const { settings } = await getInvoiceConfig();
+  const head = await prisma.invoice.findUnique({ where: { id }, select: { status: true, templateId: true, templateSnapshot: true } });
+  if (!head) throw new Error("NOT_FOUND");
+  const wording = await resolveInvoiceTemplate(head);
   return prisma.$transaction(async (tx) => {
     const row = await tx.invoice.findUnique({ where: { id }, include: withItems });
     if (!row) throw new Error("NOT_FOUND");
@@ -362,7 +366,13 @@ export async function issueInvoice(id: string): Promise<InvoiceState> {
 
     const issued = await tx.invoice.update({
       where: { id },
-      data: { number, status: "ISSUED", issuedAt: new Date(), settingsSnapshot: settings as object },
+      data: {
+        number, status: "ISSUED", issuedAt: new Date(),
+        settingsSnapshot: settings as object,
+        // The wording is frozen alongside the switches: editing a template later must not rewrite
+        // an invoice a client already holds.
+        templateSnapshot: wording.content as object,
+      },
       include: withItems,
     });
     return toState(issued as never);

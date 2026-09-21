@@ -83,6 +83,7 @@ export default async function InvoiceSettingsPage() {
         description="What every invoice shows, and the details printed on it."
         action={
           <span className="hidden items-center gap-2 lg:flex">
+            <Link href="/admin/invoices/templates" className="a-btn">Templates</Link>
             <Link href="/admin/invoices/settings/item-codes" className="a-btn">HSN codes</Link>
             <Link href="/admin/invoices" className="a-btn">All invoices</Link>
           </span>
