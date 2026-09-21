@@ -81,7 +81,12 @@ export default async function InvoiceSettingsPage() {
         eyebrow="Invoices"
         title="Invoice settings"
         description="What every invoice shows, and the details printed on it."
-        action={<span className="hidden lg:block"><Link href="/admin/invoices" className="a-btn">All invoices</Link></span>}
+        action={
+          <span className="hidden items-center gap-2 lg:flex">
+            <Link href="/admin/invoices/settings/item-codes" className="a-btn">HSN codes</Link>
+            <Link href="/admin/invoices" className="a-btn">All invoices</Link>
+          </span>
+        }
       />
 
       <form action={saveAction} className="flex flex-col gap-4">

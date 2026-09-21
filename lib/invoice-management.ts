@@ -308,6 +308,10 @@ async function logEdits(tx: typeof prisma, invoiceId: string, before: Record<str
  */
 export async function saveInvoice(inv: InvoiceState, editedBy?: string): Promise<InvoiceState> {
   await requireAdmin();
+  // Fill in any HSN code the owner has already chosen for an item name. Done before the transaction
+  // so the lookup is not holding one open, and it never overwrites a code already typed on the row.
+  const items = await attachKnownCodes(inv.items);
+  inv = { ...inv, items };
   return prisma.$transaction(async (tx) => {
     const data = toInput(inv);
     if (inv.id) {
@@ -485,8 +489,7 @@ export async function convertQuotationToInvoice(quotationId: string): Promise<In
     today,
     SELLER_STATE,
   );
-  // An HSN code the owner has already chosen for an item name comes across automatically.
-  draft.items = await attachKnownCodes(draft.items);
+  // saveInvoice fills in any HSN code already chosen for these item names.
   return saveInvoice(draft);
 }
 
