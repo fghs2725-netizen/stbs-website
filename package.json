@@ -24,6 +24,7 @@
     "test:quotation-editor": "npx tsx scripts/test-quotation-editor-logic.ts",
     "test:quotation-studio": "npx tsx scripts/test-quotation-studio-logic.ts",
     "test:quotation-items-ui": "npx tsx scripts/test-quotation-items-ui.ts",
+    "test:invoice": "npx tsx scripts/test-invoice-logic.ts",
     "test:website": "npx tsx scripts/test-website-config.ts",
     "test:services": "npx tsx scripts/test-service-pages.ts",
     "test:projects": "npx tsx scripts/test-projects-data.ts",

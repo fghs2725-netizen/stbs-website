@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tax Invoice — design v1</title>
+<style>
+@font-face { font-family: "InterL"; src: url("../public/fonts/inter-latin-400.woff2") format("woff2"); font-weight: 400; }
+@font-face { font-family: "InterL"; src: url("../public/fonts/inter-latin-500.woff2") format("woff2"); font-weight: 500; }
+@font-face { font-family: "InterL"; src: url("../public/fonts/inter-latin-600.woff2") format("woff2"); font-weight: 600 700; }
+
+:root{
+  --ink:#3d4852;        /* headings and labels */
+  --body:#5b6670;       /* ordinary text */
+  --strong:#2b333b;     /* values that matter */
+  --rule:#d9dee2;       /* hairlines */
+  --rule-dark:#3d4852;  /* the two structural rules around the table */
+}
+*{box-sizing:border-box}
+body{margin:0;background:#4a4f54;padding:30px 20px 60px;font-family:InterL,Arial,sans-serif}
+
+.i-page{
+  width:210mm;height:297mm;position:relative;overflow:hidden;background:#fff;
+  margin:0 auto 26px;box-shadow:0 18px 50px #0006;
+  padding:14mm 15mm 7mm;
+  color:var(--body);font-size:10.5px;line-height:1.5;
+  display:flex;flex-direction:column;
+}
+
+/* ---------- masthead ---------- */
+.i-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20mm}
+.i-from h2{margin:0 0 5px;font:600 16px InterL;color:var(--ink);letter-spacing:-.01em}
+.i-from p{margin:0;font-size:10.5px;line-height:1.5;color:var(--body)}
+.i-from .gst{display:block;margin-top:7px;font-weight:600;color:var(--strong);letter-spacing:.02em}
+.i-logo{width:46mm;height:20mm;display:flex;align-items:flex-start;justify-content:flex-end;flex:none}
+.i-logo img{max-width:100%;max-height:100%;object-fit:contain;object-position:right top}
+
+/* ---------- the word INVOICE ---------- */
+.i-title{margin-top:4mm;text-align:right}
+.i-title h1{margin:0;font:700 27px InterL;letter-spacing:.14em;color:var(--ink);text-transform:uppercase}
+.i-title .sub{display:block;margin-top:4px;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#93a0aa;font-weight:600}
+
+/* ---------- bill-to on the left, numbers on the right ---------- */
+.i-parties{display:flex;justify-content:space-between;gap:12mm;margin-top:5mm}
+.i-who{flex:1;max-width:104mm;display:flex;gap:9mm}
+.i-who>div{flex:1;min-width:0}
+
+
+.i-bill .lbl,.i-ship .lbl{font-weight:700;color:var(--ink);font-size:10px;letter-spacing:.01em}
+.i-bill b,.i-ship b{display:block;margin:4px 0 3px;font:400 14px InterL;color:var(--strong);letter-spacing:-.01em}
+.i-bill p,.i-ship p{margin:0;font-size:10.5px;line-height:1.45}
+.i-bill .gst,.i-ship .gst{display:block;margin-top:5px;font-weight:600;color:var(--strong)}
+
+
+.i-facts{min-width:62mm}
+.i-facts div{display:flex;justify-content:space-between;gap:10mm;padding:2.5px 0}
+.i-facts dt{font-weight:700;color:var(--ink);font-size:10.5px}
+.i-facts dd{margin:0;color:var(--strong);font-variant-numeric:tabular-nums;text-align:right}
+.i-facts .note{color:#93a0aa;font-weight:500;font-size:9.5px}
+
+/* ---------- items ---------- */
+table{width:100%;border-collapse:collapse;margin-top:5mm;font-size:10.5px}
+thead th{font-weight:700;color:var(--ink);text-align:left;padding:0 6px 7px;border-bottom:1px solid var(--rule-dark);white-space:nowrap}
+tbody td{padding:5px 6px;color:var(--body);vertical-align:top}
+tbody tr:last-child td{padding-bottom:8px;border-bottom:1px solid var(--rule-dark)}
+.c-qty{width:11%}.c-hsn{width:13%}.c-unit{width:11%}.c-rate{width:15%}.c-amt{width:17%}
+th.num,td.num{text-align:right}
+td.num{color:var(--strong);font-variant-numeric:tabular-nums}
+td:first-child{padding-left:0}
+th:first-child{padding-left:0}
+td:last-child,th:last-child{padding-right:0}
+.i-name{display:block;color:var(--strong)}
+.i-det{display:block;margin-top:2px;font-size:9px;line-height:1.45;color:#93a0aa;white-space:pre-line}
+
+/* ---------- totals, aligned under the right half like the sample ---------- */
+.i-sum{display:flex;justify-content:flex-end}
+.i-sum .box{display:block;width:62%;max-width:95mm}
+.i-sum .box>div{display:flex;justify-content:space-between;gap:10mm;padding:2.5px 6px;border-bottom:1px solid var(--rule)}
+.i-sum .box>div span:last-child{color:var(--strong);font-variant-numeric:tabular-nums}
+.i-sum .total{border-bottom:none;border-top:1px solid var(--rule-dark);margin-top:2px;padding-top:7px;font-weight:700;color:var(--ink);font-size:12px}
+.i-sum .total span:last-child{font-weight:700;color:var(--ink)}
+.i-sum .paid span:last-child{color:#2f6b45}
+.i-sum .balance{border-bottom:none;font-weight:700;color:var(--ink)}
+.i-sum .balance span:last-child{font-weight:700;color:var(--ink)}
+
+.i-words{margin-top:4mm;font-size:10px;color:var(--body)}
+.i-words b{color:var(--ink);font-weight:700}
+
+/* ---------- closing blocks ---------- */
+.i-foot{margin-top:auto;padding-top:4mm;display:flex;justify-content:space-between;gap:14mm;align-items:flex-end}
+.i-foot h3{margin:0 0 5px;font:700 10.5px InterL;color:var(--ink)}
+.i-terms{max-width:105mm}
+.i-terms p{margin:0 0 3px;font-size:10px;line-height:1.55}
+.i-pay{margin-bottom:4mm}
+.i-pay dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:2px 14px;font-size:10px}
+.i-pay dt{color:#93a0aa}
+.i-pay dd{margin:0;color:var(--strong);font-weight:500;font-variant-numeric:tabular-nums}
+
+.i-sign{width:58mm;text-align:center;flex:none}
+.i-sign .for{font-size:10px;color:var(--body)}
+.i-signbox{height:9mm;display:grid;place-items:center}
+.i-signbox small{font-size:8.5px;color:#c2cad0;letter-spacing:.04em}
+.i-sign .line{border-top:1px solid var(--rule-dark);padding-top:6px;font-weight:700;color:var(--ink);font-size:10px}
+
+.i-page footer{margin-top:3mm;padding-top:6px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;font-size:9px;color:#a6b0b8}
+</style>
+</head>
+<body>
+
+<div class="i-page">
+
+  <div class="i-top">
+    <div class="i-from">
+      <h2>Saini Tubewell Boring Service</h2>
+      <p>12, New Market, Bahalgarh,<br>Sonipat, Haryana 131001<br>+91 98120 03001 · stbs2025@gmail.com</p>
+      <span class="gst">GSTIN 06AWTPS2732A1ZI</span>
+    </div>
+    <div class="i-logo">
+      <img src="../public/stbs-logo-dark.png" alt="STBS">
+    </div>
+  </div>
+
+  <div class="i-title">
+    <h1>Tax Invoice</h1>
+    <span class="sub">Original for recipient</span>
+  </div>
+
+  <div class="i-parties">
+    <div class="i-who">
+      <div class="i-bill">
+        <span class="lbl">Bill To</span>
+        <b>Sample Industrial Works Pvt. Ltd.</b>
+        <p>Attn: Mr. Sample Contact<br>Unit 4, Block C, Sample Logistics Park<br>Kundli, Sonipat, Haryana 131028<br>+91 98120 00000</p>
+        <span class="gst">GSTIN 06ABCDE1234F1Z5</span>
+      </div>
+
+      <div class="i-ship">
+        <span class="lbl">Ship To / Site</span>
+        <b>Plant 2, Bahalgarh</b>
+        <p>Survey 118, Sample Village Road<br>Sonipat, Haryana 131021<br>Site contact: +91 79880 00000</p>
+      </div>
+    </div>
+
+    <div class="i-facts">
+      <div><dt>Invoice #</dt><dd>STBS/INV/2026-27/0031</dd></div>
+      <div><dt>Invoice date</dt><dd>21 Sep 2026</dd></div>
+      <div><dt>Due date</dt><dd>05 Oct 2026</dd></div>
+      <div><dt>Place of supply</dt><dd>Haryana (06)</dd></div>
+      <div><dt>Quotation</dt><dd>STBS/2026-27/0142</dd></div>
+      <div><dt class="note">Reverse charge</dt><dd class="note">No</dd></div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th class="c-qty num">QTY</th>
+        <th>Description</th>
+        <th class="c-hsn">HSN/SAC</th>
+        <th class="c-unit">Unit</th>
+        <th class="c-rate num">Rate</th>
+        <th class="c-amt num">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="num">2</td>
+        <td><span class="i-name">Submersible pump set 5 HP</span><span class="i-det">Kirloskar Brothers Limited
+Model KDS-5, 3 phase, 415 V</span></td>
+        <td>8413</td><td>Nos</td><td class="num">48,500.00</td><td class="num">₹97,000.00</td>
+      </tr>
+      <tr>
+        <td class="num">120</td>
+        <td><span class="i-name">PVC casing pipe 200 mm</span><span class="i-det">Supreme Industries, ISI marked, 6 m lengths</span></td>
+        <td>3917</td><td>Meter</td><td class="num">640.00</td><td class="num">₹76,800.00</td>
+      </tr>
+      <tr>
+        <td class="num">90</td>
+        <td><span class="i-name">Drilling of 8 inch borewell up to 300 ft</span></td>
+        <td>995434</td><td>Meter</td><td class="num">1,250.00</td><td class="num">₹1,12,500.00</td>
+      </tr>
+      <tr>
+        <td class="num">6</td>
+        <td><span class="i-name">Gravel packing</span><span class="i-det">Washed river gravel, graded 6 to 12 mm</span></td>
+        <td>2517</td><td>Cu.m</td><td class="num">3,200.00</td><td class="num">₹19,200.00</td>
+      </tr>
+      <tr>
+        <td class="num">1</td>
+        <td><span class="i-name">Development and flushing of borewell</span></td>
+        <td>995434</td><td>Job</td><td class="num">15,000.00</td><td class="num">₹15,000.00</td>
+      </tr>
+      <tr>
+        <td class="num">1</td>
+        <td><span class="i-name">Starter and control panel</span><span class="i-det">L&amp;T DOL starter with overload protection</span></td>
+        <td>8537</td><td>Set</td><td class="num">21,000.00</td><td class="num">₹21,000.00</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="i-sum">
+    <div class="box">
+      <div><span>Subtotal</span><span>₹3,41,500.00</span></div>
+      <div><span>Discount (2%)</span><span>−₹6,830.00</span></div>
+      <div><span>Taxable value</span><span>₹3,34,670.00</span></div>
+      <div><span>CGST (9%)</span><span>₹30,120.30</span></div>
+      <div><span>SGST (9%)</span><span>₹30,120.30</span></div>
+      <div class="total"><span>Total (INR)</span><span>₹3,94,910.60</span></div>
+      <div class="paid"><span>Advance received</span><span>−₹1,00,000.00</span></div>
+      <div class="balance"><span>Balance due</span><span>₹2,94,910.00</span></div>
+    </div>
+  </div>
+
+  <p class="i-words"><b>In words:</b> Rupees Two Lakh Ninety Four Thousand Nine Hundred and Ten Only</p>
+
+  <div class="i-foot">
+    <div class="i-terms">
+      <div class="i-pay">
+        <h3>Payment Details</h3>
+        <dl>
+          <dt>Account name</dt><dd>Saini Tubewell Boring Service</dd>
+          <dt>Account no.</dt><dd>0000 0000 0000</dd>
+          <dt>IFSC</dt><dd>XXXX0000000</dd>
+          <dt>Bank / branch</dt><dd>Bank name, Branch</dd>
+          <dt>UPI</dt><dd>name@bank</dd>
+        </dl>
+      </div>
+      <h3>Terms and Conditions</h3>
+      <p>Payment is due within 14 days of the invoice date, by NEFT, RTGS or UPI to the account shown. Disputes are subject to Sonipat jurisdiction.</p>
+    </div>
+
+    <div class="i-sign">
+      <span class="for">For Saini Tubewell Boring Service</span>
+      <div class="i-signbox"><small>Signature &amp; stamp</small></div>
+      <div class="line">Authorised Signatory</div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Saini Tubewell Boring Service · GSTIN 06AWTPS2732A1ZI</span>
+    <span>Page 1 of 1</span>
+  </footer>
+</div>
+
+</body>
+</html>

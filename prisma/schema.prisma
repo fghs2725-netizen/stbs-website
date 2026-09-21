@@ -148,6 +148,7 @@ model Client {
   siteAddress   String?
   projects      Project[]
   quotations    Quotation[]
+  invoices      Invoice[]
   documents     Document[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -327,6 +328,7 @@ model Quotation {
   template          QuotationTemplate?   @relation(fields: [templateId], references: [id], onDelete: SetNull)
   templateSnapshot  Json?
   items             QuotationItem[]
+  invoices          Invoice[]
   finalizedAt       DateTime?
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
@@ -1000,3 +1002,191 @@ model WebsiteRevision {
   @@index([entityType, entityId, createdAt])
 }
 
+
+// ─── Invoicing ───────────────────────────────────────────────────────────────
+// Added for the invoice feature (owner's answers, 2026-09-21). Purely additive: no existing model,
+// column or index is touched, and a quotation is linked only by an optional foreign key on Invoice.
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTLY_PAID
+  PAID
+  CANCELLED
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  // Bare running number, allocated only on issue, so an abandoned draft leaves no gap in the series.
+  number        Int?          @unique
+  date          String
+  dueDate       String?
+  status        InvoiceStatus @default(DRAFT)
+  subject       String?
+  purchaseOrder String?
+  reverseCharge Boolean       @default(false)
+
+  clientId            String?
+  client              Client? @relation(fields: [clientId], references: [id])
+  clientCompanyName   String
+  clientContactPerson String?
+  clientAddressLine1  String?
+  clientAddressLine2  String?
+  clientCity          String?
+  clientState         String?
+  clientPinCode       String?
+  clientPhone         String?
+  clientEmail         String?
+  clientGstin         String?
+
+  // Printed only when it differs from the billing address.
+  shipToSameAsBilling Boolean @default(true)
+  shipToName          String?
+  shipToAddressLine1  String?
+  shipToAddressLine2  String?
+  shipToCity          String?
+  shipToState         String?
+  shipToPinCode       String?
+  shipToPhone         String?
+
+  discountType  String? // PERCENT | FLAT | null
+  discountValue Decimal @default(0) @db.Decimal(12, 2)
+  gstEnabled    Boolean @default(true)
+  gstMode       String  @default("CGST_SGST") // CGST_SGST | IGST
+  gstRate       Decimal @default(18) @db.Decimal(5, 2)
+
+  // The quotation it was converted from, if any. A copy, not a live link: editing either document
+  // never changes the other, and the reference is kept only so each can show the other.
+  quotationId        String?
+  quotation          Quotation? @relation(fields: [quotationId], references: [id], onDelete: SetNull)
+  quotationReference String?
+
+  templateId       String?
+  template         InvoiceTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  templateSnapshot Json?
+  // The switch settings this invoice was drawn with, frozen on issue so a later settings change
+  // cannot silently alter an invoice already in a client's hands.
+  settingsSnapshot Json?
+
+  items       InvoiceItem[]
+  payments    InvoicePayment[]
+  creditNotes CreditNote[]
+  edits       InvoiceEdit[]
+
+  issuedAt        DateTime?
+  cancelledAt     DateTime?
+  cancelledReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  @@index([status])
+  @@index([clientId])
+  @@index([quotationId])
+  @@index([dueDate])
+}
+
+model InvoiceItem {
+  id              String   @id @default(cuid())
+  invoiceId       String
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  position        Int      @default(0)
+  description     String
+  unit            String
+  quantity        Decimal  @db.Decimal(10, 2)
+  rate            Decimal  @db.Decimal(12, 2)
+  // Optional and independent of GST: the owner may charge GST with no HSN, or print HSN without GST.
+  hsn             String?
+  discountPercent Decimal? @db.Decimal(5, 2)
+  gstRate         Decimal? @db.Decimal(5, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([invoiceId])
+}
+
+model InvoicePayment {
+  id        String   @id @default(cuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  date      String
+  amount    Decimal  @db.Decimal(12, 2)
+  method    String?
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([invoiceId])
+}
+
+model CreditNote {
+  id        String    @id @default(cuid())
+  number    Int?      @unique
+  invoiceId String
+  invoice   Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  date      String
+  amount    Decimal   @db.Decimal(12, 2)
+  reason    String
+  issuedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([invoiceId])
+}
+
+// Editing an issued invoice stays allowed (the owner's choice), so every change is recorded here.
+model InvoiceEdit {
+  id        String   @id @default(cuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  field     String
+  oldValue  String?
+  newValue  String?
+  editedBy  String?
+  createdAt DateTime @default(now())
+
+  @@index([invoiceId, createdAt])
+}
+
+// Wording for an invoice. The page design lives in code and is picked by `layout`.
+model InvoiceTemplate {
+  id         String    @id @default(cuid())
+  name       String
+  layout     String    @default("clean")
+  content    Json
+  isDefault  Boolean   @default(false)
+  // A proforma prints a different title and takes no number from the GST series.
+  isProforma Boolean   @default(false)
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  invoices   Invoice[]
+
+  @@index([isDefault])
+}
+
+// One row. Holds the switch settings, the business values the owner fills in, and the uploaded
+// signature, stamp and UPI QR images.
+model InvoiceSetting {
+  id           String   @id @default("singleton")
+  settings     Json
+  bankDetails  Json?
+  signatureUrl String?
+  stampUrl     String?
+  upiQrUrl     String?
+  updatedAt    DateTime @updatedAt
+}
+
+// The HSN or SAC code the owner has chosen for an item name, so it is typed once and then remembered.
+model InvoiceItemCode {
+  id          String   @id @default(cuid())
+  description String   @unique
+  hsn         String
+  unit        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model InvoiceNumberCounter {
+  id         String @id @default("invoice")
+  lastNumber Int    @default(764)
+}
