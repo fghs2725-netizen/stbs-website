@@ -26,6 +26,7 @@
     "test:quotation-items-ui": "npx tsx scripts/test-quotation-items-ui.ts",
     "test:invoice": "npx tsx scripts/test-invoice-logic.ts",
     "test:invoice-snapshot": "npx tsx scripts/test-invoice-snapshot.ts",
+    "test:invoice-editor-ui": "npx tsx scripts/test-invoice-editor-ui.ts",
     "test:website": "npx tsx scripts/test-website-config.ts",
     "test:services": "npx tsx scripts/test-service-pages.ts",
     "test:projects": "npx tsx scripts/test-projects-data.ts",

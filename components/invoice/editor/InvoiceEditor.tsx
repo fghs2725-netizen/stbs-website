@@ -25,6 +25,11 @@ type Props = {
   save: (inv: InvoiceState) => Promise<InvoiceState>;
   /** Offered for a client's state, so the CGST/SGST vs IGST choice is not typed by hand. */
   gstModeFor: (state: string, gstin?: string) => Promise<"CGST_SGST" | "IGST" | null>;
+  /**
+   * Where to go after a save. The admin pages leave this out and land on the saved invoice; the
+   * dev-only harness passes its own so the editor can be exercised without a database behind it.
+   */
+  onSaved?: (saved: InvoiceState) => void;
 };
 
 const newRow = (): InvoiceItem => ({
@@ -34,7 +39,7 @@ const newRow = (): InvoiceItem => ({
 
 const num = (v: string) => (v.trim() === "" ? 0 : Number(v));
 
-export function InvoiceEditor({ initial, settings, save, gstModeFor }: Props) {
+export function InvoiceEditor({ initial, settings, save, gstModeFor, onSaved }: Props) {
   const [inv, setInv] = useState<InvoiceState>(initial);
   const [saving, startSaving] = useTransition();
   const [error, setError] = useState("");
@@ -80,7 +85,8 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor }: Props) {
       try {
         const saved = await save(inv);
         setInv(saved);
-        router.push(`/admin/invoices/${saved.id}`);
+        if (onSaved) onSaved(saved);
+        else router.push(`/admin/invoices/${saved.id}`);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not save this invoice.");
       }
