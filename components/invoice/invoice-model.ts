@@ -52,8 +52,11 @@ export type InvoiceStatus = "DRAFT" | "ISSUED" | "PARTLY_PAID" | "PAID" | "CANCE
 
 export type InvoiceState = {
   id?: string;
-  /** Taken only when the invoice is issued, so an abandoned draft leaves no gap in the series. */
-  number?: string;
+  /**
+   * The running number, taken only when the invoice is issued so an abandoned draft leaves no gap.
+   * Held as a number, matching both the counter and the column; `formatInvoiceNumber` prints it.
+   */
+  number?: number;
   date: string;
   dueDate?: string;
   status: InvoiceStatus;
