@@ -13,14 +13,25 @@ export const DEFAULT_NAV_LINKS: NavLink[] = [
   { label: "Services", href: "/services" },
   { label: "Clients", href: "/clients" },
   { label: "Projects", href: "/projects" },
+  { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
 
 /** Live pages that are not in the navbar but stay reachable from the footer. */
 export const FOOTER_ONLY_LINKS: NavLink[] = [
-  { label: "About", href: "/about" },
   { label: "Gallery", href: "/gallery" },
 ];
+
+/**
+ * About is always in the navbar, even when published CMS nav rows predate it,
+ * so it sits just before Contact (or last if there is no Contact link).
+ */
+export function ensureAboutLink(links: NavLink[]): NavLink[] {
+  if (links.some((l) => l.href === "/about")) return links;
+  const about: NavLink = { label: "About", href: "/about" };
+  const at = links.findIndex((l) => l.href === "/contact");
+  return at === -1 ? [...links, about] : [...links.slice(0, at), about, ...links.slice(at)];
+}
 
 /** The four service pages all belong to the "Services" nav item. */
 const SERVICE_PATHS = ["/services", "/borewell-drilling", "/rainwater-harvesting", "/borewell-material-supply", "/tubewell-construction"];

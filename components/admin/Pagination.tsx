@@ -1,4 +1,4 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 
 interface PaginationProps {
   page: number;
@@ -14,10 +14,13 @@ interface PaginationProps {
  * Hidden when everything fits on one page.
  */
 export function Pagination({ page, totalPages, totalItems, basePath, params }: PaginationProps) {
+  const rule = { borderTop: '1px solid var(--a-hairline)' };
+  const count = `${totalItems} ${totalItems === 1 ? 'result' : 'results'}`;
+
   if (totalPages <= 1) {
     return (
-      <div data-testid="result-line" className="px-4 py-3 border-t border-white/5 text-xs text-gray-500">
-        {totalItems} {totalItems === 1 ? 'result' : 'results'}
+      <div data-testid="result-line" className="px-4 py-3 text-[0.75rem]" style={{ ...rule, color: 'var(--a-faint)' }}>
+        {count}
       </div>
     );
   }
@@ -40,42 +43,38 @@ export function Pagination({ page, totalPages, totalItems, basePath, params }: P
   const end = Math.min(totalPages, start + 2);
   for (let p = start; p <= end; p++) pages.push(p);
 
+  const step = 'inline-flex min-h-11 items-center rounded-[10px] px-3 text-[0.875rem]';
+  const box = { border: '1px solid var(--a-hairline-strong)', color: 'var(--a-body)' };
+  const boxOff = { border: '1px solid var(--a-hairline)', color: 'var(--a-faint)' };
+
   return (
-    <div data-testid="result-line" className="px-4 py-3 border-t border-white/5 flex flex-wrap items-center justify-between gap-3">
-      <span className="text-xs text-gray-500">
-        {totalItems} {totalItems === 1 ? 'result' : 'results'} Â· page {page} of {totalPages}
+    <div data-testid="result-line" className="flex flex-wrap items-center justify-between gap-3 px-4 py-3" style={rule}>
+      <span className="text-[0.75rem]" style={{ color: 'var(--a-faint)' }}>
+        {count} · page {page} of {totalPages}
       </span>
       <nav aria-label="Pagination" className="flex items-center gap-1">
         {prev ? (
-          <Link href={prev} aria-label="Previous page" className="min-h-11 px-3 inline-flex items-center rounded-lg border border-white/10 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
-            Prev
-          </Link>
+          <Link href={prev} aria-label="Previous page" className={step} style={box}>Prev</Link>
         ) : (
-          <span aria-disabled="true" className="min-h-11 px-3 inline-flex items-center rounded-lg border border-white/5 text-sm text-gray-600">
-            Prev
-          </span>
+          <span aria-disabled="true" className={step} style={boxOff}>Prev</span>
         )}
-        {start > 1 && <span className="px-1 text-gray-600">â€¦</span>}
+        {start > 1 && <span className="px-1" style={{ color: 'var(--a-faint)' }}>…</span>}
         {pages.map((p) =>
           p === page ? (
-            <span key={p} aria-current="page" className="min-h-11 min-w-[40px] px-2 inline-flex items-center justify-center rounded-lg bg-signal text-sm font-bold text-black">
+            <span key={p} aria-current="page" className="a-num inline-flex min-h-11 min-w-[40px] items-center justify-center rounded-[10px] px-2 text-[0.875rem] font-semibold" style={{ background: 'var(--a-brand)', color: '#fff' }}>
               {p}
             </span>
           ) : (
-            <Link key={p} href={hrefFor(p)} className="min-h-11 min-w-[40px] px-2 inline-flex items-center justify-center rounded-lg border border-white/10 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
+            <Link key={p} href={hrefFor(p)} className="a-num inline-flex min-h-11 min-w-[40px] items-center justify-center rounded-[10px] px-2 text-[0.875rem]" style={box}>
               {p}
             </Link>
           )
         )}
-        {end < totalPages && <span className="px-1 text-gray-600">â€¦</span>}
+        {end < totalPages && <span className="px-1" style={{ color: 'var(--a-faint)' }}>…</span>}
         {next ? (
-          <Link href={next} aria-label="Next page" className="min-h-11 px-3 inline-flex items-center rounded-lg border border-white/10 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
-            Next
-          </Link>
+          <Link href={next} aria-label="Next page" className={step} style={box}>Next</Link>
         ) : (
-          <span aria-disabled="true" className="min-h-11 px-3 inline-flex items-center rounded-lg border border-white/5 text-sm text-gray-600">
-            Next
-          </span>
+          <span aria-disabled="true" className={step} style={boxOff}>Next</span>
         )}
       </nav>
     </div>

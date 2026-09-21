@@ -5,7 +5,7 @@ import { Menu, X, Phone, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useWebsiteEditor } from "@/lib/website/editor-context";
-import { DEFAULT_NAV_LINKS, isActiveNavLink, isPublicNavLink, type NavLink } from "@/lib/website/nav-defaults";
+import { DEFAULT_NAV_LINKS, ensureAboutLink, isActiveNavLink, isPublicNavLink, type NavLink } from "@/lib/website/nav-defaults";
 import { formatIndianPhone, telHref } from "@/lib/phone";
 
 const CTA_LABEL = "Request a proposal";
@@ -18,7 +18,7 @@ const CTA_HREF = "/quote";
  * never rendered here (the quote page is the CTA button).
  */
 export function SiteHeader({ navLinks, businessName, logoUrl, mobileLogoUrl, phone }: { navLinks?: NavLink[]; businessName?: string; logoUrl?: string; mobileLogoUrl?: string; phone?: string }) {
-  const links = (navLinks?.length ? navLinks : DEFAULT_NAV_LINKS).filter(isPublicNavLink);
+  const links = ensureAboutLink((navLinks?.length ? navLinks : DEFAULT_NAV_LINKS).filter(isPublicNavLink));
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const editor = useWebsiteEditor();

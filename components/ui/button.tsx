@@ -3,8 +3,21 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const variants = cva("inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2 focus-visible:ring-offset-ink disabled:pointer-events-none disabled:opacity-50", {
-  variants: { variant: { primary: "bg-signal text-white hover:bg-water-dark", secondary: "border border-white/[.12] bg-surface text-white hover:bg-white/[.08]", ghost: "text-zinc-300 hover:bg-white/[.08] hover:text-white", destructive: "bg-red-500 text-white hover:bg-red-400", outline: "border border-white/[.25] text-white hover:border-signal hover:text-signal", dark: "bg-water-dark text-white hover:bg-signal" }, size: { sm: "min-h-10 px-3 text-[13px]", default: "min-h-11 px-4", lg: "min-h-12 px-6", icon: "size-11 min-h-11 p-0" } },
+// Only the admin uses this button, and the admin is wrapped in `.theme-admin`,
+// so the visual definition lives with the rest of that design system in
+// app/admin/admin.css. This file just maps variants onto those classes.
+const variants = cva("a-btn", {
+  variants: {
+    variant: {
+      primary: "a-btn-primary",
+      secondary: "a-btn-secondary",
+      ghost: "a-btn-quiet",
+      destructive: "a-btn-danger",
+      outline: "a-btn-secondary",
+      dark: "a-btn-primary",
+    },
+    size: { sm: "a-btn-sm", default: "", lg: "min-h-[48px] px-6", icon: "size-11 !px-0" },
+  },
   defaultVariants: { variant: "primary", size: "default" },
 });
 

@@ -6,7 +6,7 @@ import type { CmsSettings } from "@/components/public/sections";
 import { businessInfo } from "@/lib/company";
 import { formatIndianPhone, telHref } from "@/lib/phone";
 import { useWebsiteEditor } from "@/lib/website/editor-context";
-import { DEFAULT_NAV_LINKS, FOOTER_ONLY_LINKS, isPublicNavLink } from "@/lib/website/nav-defaults";
+import { DEFAULT_NAV_LINKS, ensureAboutLink, FOOTER_ONLY_LINKS, isPublicNavLink } from "@/lib/website/nav-defaults";
 import { SERVICE_PAGES } from "@/lib/website/service-pages";
 
 type FooterSettings = Pick<CmsSettings, "businessName" | "shortDescription" | "phone" | "phone2" | "email" | "address" | "whatsapp" | "primaryLogoUrl" | "lightLogoUrl" | "darkLogoUrl" | "logoUrl">;
@@ -26,7 +26,7 @@ export function SiteFooter({ settings, navLinks }: { settings?: FooterSettings |
   const address = settings?.address || (businessInfo.registeredOffice ? `${businessInfo.registeredOffice}, Haryana ${businessInfo.pinCode}` : "");
   const whatsapp = (settings?.whatsapp || phones[0] || "").replace(/\D/g, "").replace(/^91(?=\d{10}$)/, "");
   // Main nav links first, then footer-only pages (About, Gallery) that are no longer in the navbar.
-  const main = (navLinks?.length ? navLinks : DEFAULT_NAV_LINKS).filter(isPublicNavLink);
+  const main = ensureAboutLink((navLinks?.length ? navLinks : DEFAULT_NAV_LINKS).filter(isPublicNavLink));
   const links = [...main, ...FOOTER_ONLY_LINKS.filter((x) => !main.some((m) => m.href === x.href))];
   const editor = useWebsiteEditor();
   const isEditor = editor.isEditor;
@@ -119,6 +119,7 @@ export function SiteFooter({ settings, navLinks }: { settings?: FooterSettings |
           <ul className="flex flex-wrap gap-x-u3">
             <li><Link className={LINK} href="/privacy">Privacy Policy</Link></li>
             <li><Link className={LINK} href="/terms">Terms of Service</Link></li>
+            <li><Link className={LINK} href="/admin">Admin</Link></li>
           </ul>
         </div>
       </div>

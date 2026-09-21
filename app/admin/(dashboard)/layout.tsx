@@ -1,59 +1,41 @@
 import { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
-import { AdminSidebar } from '@/components/admin/AdminSidebar';
-import { AdminMobileNav } from '@/components/admin/AdminMobileNav';
-import { Search, User } from 'lucide-react';
-import { NotificationBell } from '@/components/admin/NotificationBell';
+import { company } from '@/lib/company';
+import { getPublishedSettings } from '@/lib/website/queries';
+import { AdminSidebar } from '@/components/admin/shell/AdminSidebar';
+import { AdminTabBar } from '@/components/admin/shell/AdminTabBar';
+import { AdminTopBar } from '@/components/admin/shell/AdminTopBar';
+import '../admin.css';
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const session = await auth();
+  if (!session) redirect('/admin/login');
 
-  if (!session) {
-    redirect('/admin/login');
+  // The business name is CMS-owned; fall back to the static one if the row is
+  // missing or the database is unreachable, so the shell always renders.
+  let businessName = company.name;
+  try {
+    const settings = (await getPublishedSettings()) as { businessName?: string | null } | null;
+    if (settings?.businessName) businessName = settings.businessName;
+  } catch {
+    /* keep the fallback */
   }
 
   return (
-    <div className="flex min-h-screen min-h-[100dvh] w-full bg-ink text-gray-200 overflow-hidden">
-      {/* Sidebar Navigation */}
-      <AdminSidebar />
+    <div className="theme-admin flex min-h-[100dvh] w-full">
+      <AdminSidebar businessName={businessName} />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex min-w-0 flex-col min-h-0 overflow-hidden">
-        {/* Header */}
-        <header className="h-14 flex-shrink-0 border-b border-white/[.08] bg-[#141416] flex items-center justify-between px-4 lg:px-6 gap-3">
-          <div className="flex items-center flex-1 min-w-0">
-            <AdminMobileNav userName={session.user?.name} />
-            <form action="/admin/search" method="GET" className="hidden sm:flex h-10 max-w-xl flex-1 items-center rounded-lg border border-white/[.08] bg-black/20 px-3 text-gray-400 focus-within:border-signal/70 ml-2 md:ml-0 min-w-0">
-              <Search className="w-4 h-4 mr-2 flex-shrink-0" />
-              <input
-                type="search"
-                name="q"
-                placeholder="Search documents, clients..."
-                className="bg-transparent border-none outline-none text-[16px] w-full placeholder:text-gray-500"
-              />
-            </form>
-          </div>
-          
-          <div className="flex items-center gap-2 sm:gap-4">
-            <NotificationBell />
-            <div className="flex items-center gap-2 border-l border-white/10 pl-3 sm:pl-4">
-              <div className="size-9 rounded-full bg-surface border border-white/10 flex items-center justify-center text-sm font-semibold">
-                {session.user?.name?.charAt(0) || <User className="w-4 h-4" />}
-              </div>
-              <span className="text-sm font-medium hidden md:block">
-                {session.user?.name || 'Admin User'}
-              </span>
-            </div>
-          </div>
-        </header>
-
-        {/* Page Content — overflow-x-hidden prevents horizontal scroll from editor canvas */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 pb-[calc(24px+env(safe-area-inset-bottom))] lg:px-6 lg:py-8 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <AdminTopBar businessName={businessName} userName={session.user?.name} />
+        {/* The phone tab bar floats over the content, so the last row needs
+            clearance; on desktop the bar is gone and normal padding applies. */}
+        <main className="flex-1 px-4 py-5 pb-[calc(78px+env(safe-area-inset-bottom))] lg:px-8 lg:py-8 lg:pb-10">
           {children}
         </main>
       </div>
-    </div>
 
+      <AdminTabBar />
+    </div>
   );
 }

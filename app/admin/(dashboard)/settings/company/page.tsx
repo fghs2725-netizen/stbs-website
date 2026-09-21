@@ -127,7 +127,7 @@ export default function CompanySettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+        <Loader2 className="w-6 h-6 text-[color:var(--a-muted)] animate-spin" />
       </div>
     );
   }
@@ -136,13 +136,13 @@ export default function CompanySettingsPage() {
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight text-white mb-1">Company Information</h1>
-          <p className="text-gray-400 text-sm">Manage your company details, addresses, and contacts.</p>
+          <h1 className="text-3xl font-display font-bold tracking-tight text-[color:var(--a-ink)] mb-1">Company Information</h1>
+          <p className="text-[color:var(--a-muted)] text-sm">Manage your company details, addresses, and contacts.</p>
         </div>
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 px-6 py-2.5 bg-signal text-ink text-sm font-bold rounded-lg hover:bg-signal/90 transition-colors disabled:opacity-70"
+          className="a-btn a-btn-primary"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
           {saving ? 'Saving...' : saved ? 'Saved' : 'Save Changes'}
@@ -213,8 +213,8 @@ export default function CompanySettingsPage() {
 
 function Section({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="bg-steel/40 border border-white/5 rounded-2xl p-6 backdrop-blur-sm">
-      <h2 className="text-lg font-medium text-white mb-5 flex items-center gap-2 pl-2 border-l-2 border-signal">
+    <div className="bg-[color:var(--a-surface-2)] border border-[color:var(--a-hairline)] rounded-2xl p-6 backdrop-blur-sm">
+      <h2 className="text-lg font-medium text-[color:var(--a-ink)] mb-5 flex items-center gap-2 pl-2 border-l-2 border-[color:var(--a-brand)]">
         {icon}
         {title}
       </h2>
@@ -228,10 +228,10 @@ function Section({ title, icon, children }: { title: string; icon?: React.ReactN
 function Field({ label, value, onChange, placeholder, textarea }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; textarea?: boolean }) {
   return (
     <div>
-      <label className="block text-xs text-gray-400 mb-1.5 font-medium">{label}</label>
+      <label className="block text-xs text-[color:var(--a-muted)] mb-1.5 font-medium">{label}</label>
       {textarea ? (
         <textarea
-          className="w-full bg-surface border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-signal/50 focus:ring-1 focus:ring-signal/50 transition-all resize-none"
+          className="a-input resize-none"
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
@@ -240,7 +240,7 @@ function Field({ label, value, onChange, placeholder, textarea }: { label: strin
       ) : (
         <input
           type="text"
-          className="w-full bg-surface border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-signal/50 focus:ring-1 focus:ring-signal/50 transition-all"
+          className="a-input"
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowDown, ArrowUp, Download, Plus } from "lucide-react";
+import { Download, FileText, Search, SlidersHorizontal } from "lucide-react";
 import { auth } from "@/auth";
 import { listQuotations, type QuotationSort } from "@/lib/quotation-management";
 import { duplicateAction } from "./actions";
@@ -9,6 +9,7 @@ import { DuplicateQuotationButton } from "@/components/quotation/DuplicateQuotat
 import { DeleteQuotationButton } from "@/components/quotation/DeleteQuotationButton";
 import { formatINR } from "@/components/quotation/quotation-model";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { EmptyState, FloatingAction, Pill } from "@/components/admin/shell/ui";
 import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
@@ -19,8 +20,13 @@ const SORTS: { key: QuotationSort; label: string }[] = [
   { key: "reference", label: "Number" },
   { key: "client", label: "Client" },
 ];
+const STATUSES = [
+  { key: "ALL", label: "All" },
+  { key: "DRAFT", label: "Drafts" },
+  { key: "FINAL", label: "Final" },
+];
 const isSort = (v?: string): v is QuotationSort => SORTS.some((s) => s.key === v);
-const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB");
+const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
 
 export default async function QuotationsPage({
   searchParams,
@@ -55,116 +61,138 @@ export default async function QuotationsPage({
   const outOfRange = !error && total > 0 && pageNumber > totalPages;
   const filtered = Boolean(query || from || to || statusFilter !== "ALL");
   const baseParams = { q: query || undefined, status: statusFilter === "ALL" ? undefined : statusFilter, from: from || undefined, to: to || undefined };
-  const sortHref = (key: QuotationSort) => {
+  // The status segment keeps the current search and dates; only the status changes.
+  const statusHref = (key: string) => {
     const next = new URLSearchParams();
-    Object.entries({ ...baseParams, sort: key, dir: sort === key && dir === "desc" ? "asc" : "desc" }).forEach(([k, v]) => { if (v) next.set(k, v); });
-    return `/admin/quotations?${next.toString()}`;
+    Object.entries({ ...baseParams, status: key === "ALL" ? undefined : key }).forEach(([k, v]) => { if (v) next.set(k, v); });
+    const qs = next.toString();
+    return qs ? `/admin/quotations?${qs}` : "/admin/quotations";
   };
 
   return (
-    <div className="admin-page">
-        <PageHeader eyebrow="Documents" title="Quotations" description="Search, review and continue quotation work." action={<Button asChild><Link href="/admin/quotations/new"><Plus className="size-4" />New quotation</Link></Button>} />
+    <div className="a-page">
+      <PageHeader
+        eyebrow="Documents"
+        title="Quotations"
+        description="Search, review and continue quotation work."
+        action={<span className="hidden lg:block"><Link href="/admin/quotations/new" className="a-btn a-btn-primary">New quotation</Link></span>}
+      />
 
-        <form className="admin-card flex flex-col sm:flex-row flex-wrap items-end gap-3 p-4">
-          <label className="min-w-0 flex-1 basis-56 text-xs text-white/50">Search
-            <input name="q" defaultValue={query} placeholder="Reference, client, service" className="admin-input mt-1 w-full" />
-          </label>
-          <label className="text-xs text-white/50">Status
-            <select name="status" defaultValue={statusFilter} className="admin-input mt-1 block w-auto sm:text-sm">
-              <option value="ALL">All</option>
-              <option value="DRAFT">Draft</option>
-              <option value="FINAL">Final</option>
-            </select>
-          </label>
-          <label className="text-xs text-white/50">Created from
-            <input type="date" name="from" defaultValue={from} className="admin-input mt-1 block w-auto sm:text-sm" />
-          </label>
-          <label className="text-xs text-white/50">Created to
-            <input type="date" name="to" defaultValue={to} className="admin-input mt-1 block w-auto sm:text-sm" />
-          </label>
-          <label className="text-xs text-white/50">Sort by
-            <select name="sort" defaultValue={sort} className="admin-input mt-1 block w-auto sm:text-sm">
-              {SORTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
-            </select>
-          </label>
-          <label className="text-xs text-white/50">Order
-            <select name="dir" defaultValue={dir} className="admin-input mt-1 block w-auto sm:text-sm">
-              <option value="desc">Newest / Z-A first</option>
-              <option value="asc">Oldest / A-Z first</option>
-            </select>
-          </label>
-          <Button type="submit" variant="secondary">Apply</Button>
-          {filtered && <Button asChild variant="secondary"><Link href="/admin/quotations">Clear</Link></Button>}
+      <div className="flex flex-col gap-3">
+        <form action="/admin/quotations" method="GET" role="search" className="flex gap-2">
+          {statusFilter !== "ALL" && <input type="hidden" name="status" value={statusFilter} />}
+          <div className="relative min-w-0 flex-1">
+            <Search size={16} strokeWidth={1.75} aria-hidden className="pointer-events-none absolute left-[13px] top-1/2 -translate-y-1/2" style={{ color: "var(--a-faint)" }} />
+            <label className="sr-only" htmlFor="quotation-search">Search quotations</label>
+            <input id="quotation-search" name="q" defaultValue={query} placeholder="Reference, client, service" className="a-input a-input-search" />
+          </div>
+          <Button type="submit" variant="secondary">Search</Button>
         </form>
 
-        {error && <p role="alert" className="border border-red-400/40 p-4 text-red-300">{error}</p>}
-
-        <div className="admin-card overflow-hidden">
-          {outOfRange ? (
-            <div className="flex flex-col items-center border border-white/10 bg-white/[.035] p-8 text-center">
-              <h2 className="text-lg font-bold uppercase">Page out of range</h2>
-              <p className="mt-1 text-sm text-white/50">That page goes past the last result. Head back to the first page.</p>
-              <Link href="/admin/quotations" className="mt-4 inline-flex min-h-[40px] items-center bg-signal px-5 py-3 text-xs font-bold uppercase tracking-wider text-black">
-                Go to page 1
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <nav className="a-segment" aria-label="Filter by status">
+            {STATUSES.map((s) => (
+              <Link key={s.key} href={statusHref(s.key)} data-active={statusFilter === s.key} aria-current={statusFilter === s.key ? "page" : undefined}>
+                {s.label}
               </Link>
-            </div>
-          ) : (
-            <>
-              {rows.length > 0 && (
-                <div className="hidden items-center gap-4 border-b border-white/[.08] px-5 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/40 md:flex">
-                  <Link href={sortHref("reference")} className="inline-flex w-44 items-center gap-1 hover:text-white" aria-label="Sort by number">Number{sort === "reference" && (dir === "asc" ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />)}</Link>
-                  <Link href={sortHref("client")} className="inline-flex min-w-0 flex-1 items-center gap-1 hover:text-white" aria-label="Sort by client">Client{sort === "client" && (dir === "asc" ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />)}</Link>
-                  <Link href={sortHref("created")} className="inline-flex w-24 items-center gap-1 hover:text-white" aria-label="Sort by created date">Created{sort === "created" && (dir === "asc" ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />)}</Link>
-                  <span className="w-32 text-right">Amount</span>
-                  <span className="w-20">Status</span>
-                  <span className="w-[28rem]">Actions</span>
-                </div>
-              )}
-              {rows.map((q) => (
-                <article key={q.id} data-testid="quotation-row" className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-white/[.08] p-4 sm:px-5 last:border-b-0">
-                  <div className="w-full md:w-44">
-                    <Link href={`/admin/quotations/${q.id}`} className="font-semibold text-signal truncate hover:text-white">
-                      {q.quotationReference}
-                    </Link>
-                  </div>
-                  <div className="min-w-0 flex-1 basis-full md:basis-0">
-                    <p className="truncate text-sm text-zinc-200">{q.client.companyName || "Unnamed client"}</p>
-                    <p className="truncate text-xs text-white/45">{q.serviceType} · {q.itemCount} item{q.itemCount === 1 ? "" : "s"}</p>
-                  </div>
-                  <span className="text-sm text-white/60 md:w-24">{day(q.createdAt)}</span>
-                  <span className="text-sm font-semibold tabular-nums md:w-32 md:text-right">{q.itemCount ? formatINR(q.amount) : "—"}</span>
-                  <span className={`text-xs font-semibold md:w-20 ${q.status === "FINAL" ? "text-emerald-300" : "text-amber-200"}`}>{q.status === "FINAL" ? "Final" : "Draft"}</span>
-                  <div className="flex flex-wrap gap-2 md:w-[28rem]">
-                    <Button asChild size="sm">
-                      <Link href={`/admin/quotations/${q.id}`}>View</Link>
-                    </Button>
-                    {q.status === "DRAFT" && (
-                      <Button asChild variant="secondary" size="sm">
-                        <Link href={`/admin/quotations/${q.id}/edit`}>Edit</Link>
-                      </Button>
-                    )}
-                    <Button asChild variant="secondary" size="sm">
-                      <a href={`/api/quotations/${q.id}/pdf`} download><Download className="size-4" />PDF</a>
-                    </Button>
-                    <Button asChild variant="secondary" size="sm">
-                      <a href={`/api/quotations/${q.id}/docx`} download><Download className="size-4" />Word</a>
-                    </Button>
-                    <form action={duplicateAction.bind(null, q.id)}>
-                      <DuplicateQuotationButton />
-                    </form>
-                    <DeleteQuotationButton id={q.id} reference={q.quotationReference} status={q.status} />
-                  </div>
-                </article>
-              ))}
-              {!rows.length && !error && (
-                <div className="flex flex-col items-center gap-3 py-12 text-center">
-                  <p className="text-white/60">{filtered ? "No quotations match these filters." : "No quotations yet."}</p>
-                  <Button asChild size="sm"><Link href={filtered ? "/admin/quotations" : "/admin/quotations/new"}>{filtered ? "Clear filters" : "Create the first quotation"}</Link></Button>
-                </div>
-              )}
-            </>
-          )}
+            ))}
+          </nav>
+          {filtered && <Link href="/admin/quotations" className="a-link text-[0.875rem]">Clear filters</Link>}
         </div>
+
+        {/* Date range and sort are secondary: folded away so the list starts higher. */}
+        <details className="a-card-flat px-4 py-3">
+          <summary className="flex cursor-pointer list-none items-center gap-2 text-[0.875rem] font-medium" style={{ color: "var(--a-body)" }}>
+            <SlidersHorizontal size={15} strokeWidth={1.75} aria-hidden />
+            Date range and sorting
+          </summary>
+          <form action="/admin/quotations" method="GET" className="mt-3 flex flex-wrap items-end gap-3">
+            {query && <input type="hidden" name="q" value={query} />}
+            {statusFilter !== "ALL" && <input type="hidden" name="status" value={statusFilter} />}
+            <label className="a-label">Created from
+              <input type="date" name="from" defaultValue={from} className="a-input mt-1 w-auto" />
+            </label>
+            <label className="a-label">Created to
+              <input type="date" name="to" defaultValue={to} className="a-input mt-1 w-auto" />
+            </label>
+            <label className="a-label">Sort by
+              <select name="sort" defaultValue={sort} className="a-input mt-1 w-auto">
+                {SORTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+              </select>
+            </label>
+            <label className="a-label">Order
+              <select name="dir" defaultValue={dir} className="a-input mt-1 w-auto">
+                <option value="desc">Newest / Z-A first</option>
+                <option value="asc">Oldest / A-Z first</option>
+              </select>
+            </label>
+            <Button type="submit" variant="secondary">Apply</Button>
+          </form>
+        </details>
+      </div>
+
+      {error && <p role="alert" className="a-card p-4 text-[0.9375rem]" style={{ color: "var(--a-danger)" }}>{error}</p>}
+
+      <div className="a-card overflow-hidden">
+        {outOfRange ? (
+          <EmptyState
+            icon={FileText}
+            title="Page out of range"
+            description="That page goes past the last result."
+            action={<Link href="/admin/quotations" className="a-btn a-btn-primary a-btn-sm">Go to page 1</Link>}
+          />
+        ) : rows.length === 0 && !error ? (
+          <EmptyState
+            icon={FileText}
+            title={filtered ? "No matches" : "No quotations yet"}
+            description={filtered ? "No quotations match these filters." : "Create the first quotation and it will appear here."}
+            action={
+              <Link href={filtered ? "/admin/quotations" : "/admin/quotations/new"} className="a-btn a-btn-primary a-btn-sm">
+                {filtered ? "Clear filters" : "New quotation"}
+              </Link>
+            }
+          />
+        ) : (
+          <ul className="a-divide">
+            {rows.map((q) => (
+              <li key={q.id} data-testid="quotation-row" className="p-4 sm:px-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Link href={`/admin/quotations/${q.id}`} className="truncate text-[0.9375rem] font-semibold" style={{ color: "var(--a-ink)" }}>
+                        {q.client.companyName || "Unnamed client"}
+                      </Link>
+                      <Pill tone={q.status === "FINAL" ? "positive" : "warn"}>{q.status === "FINAL" ? "Final" : "Draft"}</Pill>
+                    </div>
+                    <p className="a-num mt-[3px] truncate text-[0.8125rem]" style={{ color: "var(--a-faint)" }}>
+                      {q.quotationReference} · {day(q.createdAt)} · {q.itemCount} item{q.itemCount === 1 ? "" : "s"}
+                    </p>
+                  </div>
+                  <p className="a-num shrink-0 text-[0.9375rem] font-semibold" style={{ color: "var(--a-ink)" }}>
+                    {q.itemCount ? formatINR(q.amount) : "—"}
+                  </p>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button asChild size="sm"><Link href={`/admin/quotations/${q.id}`}>View</Link></Button>
+                  {q.status === "DRAFT" && (
+                    <Button asChild variant="secondary" size="sm"><Link href={`/admin/quotations/${q.id}/edit`}>Edit</Link></Button>
+                  )}
+                  <Button asChild variant="secondary" size="sm">
+                    <a href={`/api/quotations/${q.id}/pdf`} download><Download className="size-4" />PDF</a>
+                  </Button>
+                  <Button asChild variant="secondary" size="sm">
+                    <a href={`/api/quotations/${q.id}/docx`} download><Download className="size-4" />Word</a>
+                  </Button>
+                  <form action={duplicateAction.bind(null, q.id)}>
+                    <DuplicateQuotationButton />
+                  </form>
+                  <DeleteQuotationButton id={q.id} reference={q.quotationReference} status={q.status} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
 
         {!error && (
           <Pagination
@@ -175,6 +203,9 @@ export default async function QuotationsPage({
             params={{ ...baseParams, sort: sort === "updated" ? undefined : sort, dir: dir === "desc" ? undefined : dir }}
           />
         )}
+      </div>
+
+      <FloatingAction href="/admin/quotations/new" label="New quotation" />
     </div>
   );
 }

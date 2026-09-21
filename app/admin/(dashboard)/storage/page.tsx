@@ -129,19 +129,19 @@ export default function StoragePage() {
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-bold text-white">Storage</h1>
-          <p className="text-sm text-gray-400 mt-1">
+          <h1 className="text-2xl font-display font-bold text-[color:var(--a-ink)]">Storage</h1>
+          <p className="text-sm text-[color:var(--a-muted)] mt-1">
             Manage file storage and monitor usage
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={fetchData}
-            className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-gray-400 hover:text-white transition-colors"
+            className="px-3 py-1.5 bg-black/[.03] hover:bg-black/5 border border-[color:var(--a-hairline)] rounded-lg text-sm text-[color:var(--a-muted)] hover:text-[color:var(--a-ink)] transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
-          <label className="px-4 py-2 bg-signal text-ink text-sm font-bold rounded-lg hover:bg-signal/90 transition-colors cursor-pointer shadow-[0_0_15px_rgba(247,198,0,0.3)]">
+          <label className="a-btn a-btn-primary cursor-pointer">
             <Upload className="w-4 h-4 inline mr-2" />
             Upload
             <input
@@ -155,61 +155,61 @@ export default function StoragePage() {
       </div>
 
       {/* Storage Usage */}
-      <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+      <div className="bg-[color:var(--a-surface-2)] backdrop-blur-xl border border-[color:var(--a-hairline)] rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-display font-semibold text-white">
+          <h2 className="text-lg font-display font-semibold text-[color:var(--a-ink)]">
             Storage Usage
           </h2>
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-[color:var(--a-muted)]">
             {storageInfo.fileCount} files
           </span>
         </div>
 
         <div className="mb-4">
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-400">
+            <span className="text-[color:var(--a-muted)]">
               {formatBytes(storageInfo.usedBytes)} used
             </span>
-            <span className="text-gray-400">
+            <span className="text-[color:var(--a-muted)]">
               {formatBytes(storageInfo.maxBytes)} max
             </span>
           </div>
-          <div className="h-3 bg-surface rounded-full overflow-hidden">
+          <div className="h-3 bg-white rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
                 usagePercentage > 90
                   ? "bg-red-500"
                   : usagePercentage > 70
                   ? "bg-yellow-500"
-                  : "bg-signal"
+                  : "bg-[color:var(--a-brand)]"
               }`}
               style={{ width: `${Math.min(usagePercentage, 100)}%` }}
             />
           </div>
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="text-xs text-[color:var(--a-faint)] mt-2">
             {usagePercentage.toFixed(1)}% used
           </p>
         </div>
       </div>
 
       {/* File List */}
-      <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
-        <div className="p-4 border-b border-white/5">
+      <div className="bg-[color:var(--a-surface-2)] backdrop-blur-xl border border-[color:var(--a-hairline)] rounded-2xl overflow-hidden">
+        <div className="p-4 border-b border-[color:var(--a-hairline)]">
           <div className="flex gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[color:var(--a-faint)]" />
               <input
                 type="text"
                 placeholder="Search files..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-surface border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-signal/50"
+                className="w-full bg-white border border-[color:var(--a-hairline)] rounded-lg pl-10 pr-4 py-2 text-sm text-[color:var(--a-ink)] placeholder:text-[color:var(--a-faint)] focus:outline-none focus:border-[color:var(--a-brand)]"
               />
             </div>
             <select
               value={entityFilter}
               onChange={(e) => setEntityFilter(e.target.value)}
-              className="bg-surface border border-white/10 rounded-lg px-4 py-2 text-sm text-gray-300 focus:outline-none focus:border-signal/50"
+              className="a-input w-auto"
             >
               <option value="">All Types</option>
               <option value="document">Documents</option>
@@ -222,34 +222,34 @@ export default function StoragePage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/5">
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <tr className="border-b border-[color:var(--a-hairline)]">
+                <th className="text-left px-6 py-3 text-xs font-semibold text-[color:var(--a-faint)] uppercase tracking-wider">
                   Name
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="text-left px-6 py-3 text-xs font-semibold text-[color:var(--a-faint)] uppercase tracking-wider">
                   Type
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="text-left px-6 py-3 text-xs font-semibold text-[color:var(--a-faint)] uppercase tracking-wider">
                   Size
                 </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="text-left px-6 py-3 text-xs font-semibold text-[color:var(--a-faint)] uppercase tracking-wider">
                   Uploaded
                 </th>
-                <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="text-right px-6 py-3 text-xs font-semibold text-[color:var(--a-faint)] uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-[color:var(--a-hairline)]">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-12 text-center text-[color:var(--a-faint)]">
                     Loading...
                   </td>
                 </tr>
               ) : files.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-12 text-center text-[color:var(--a-faint)]">
                     No files found
                   </td>
                 </tr>
@@ -257,33 +257,33 @@ export default function StoragePage() {
                 files.map((file) => (
                   <tr
                     key={file.id}
-                    className="hover:bg-white/5 transition-colors"
+                    className="hover:bg-black/5 transition-colors"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <div className="p-2 bg-surface rounded-lg mr-3">
+                        <div className="p-2 bg-white rounded-lg mr-3">
                           {getFileIcon(file.type)}
                         </div>
-                        <span className="text-sm text-white">{file.name}</span>
+                        <span className="text-sm text-[color:var(--a-ink)]">{file.name}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-400">{file.type}</span>
+                      <span className="text-sm text-[color:var(--a-muted)]">{file.type}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-400">
+                      <span className="text-sm text-[color:var(--a-muted)]">
                         {formatBytes(file.size)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-400">
+                      <span className="text-sm text-[color:var(--a-muted)]">
                         {new Date(file.uploadedAt).toLocaleDateString()}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => handleDelete(file.id)}
-                        className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                        className="p-1.5 text-[color:var(--a-muted)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

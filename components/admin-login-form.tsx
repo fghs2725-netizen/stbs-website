@@ -24,5 +24,22 @@ export function AdminLoginForm() {
     window.location.assign(result?.url || "/admin");
   }
 
-  return <form onSubmit={submit} className="space-y-5" noValidate><div><label htmlFor="admin-email" className="text-xs font-bold uppercase tracking-wider text-white/60">Email or username</label><input id="admin-email" name="email" type="text" autoComplete="username" required className="field mt-2" /></div><div><label htmlFor="admin-password" className="text-xs font-bold uppercase tracking-wider text-white/60">Password</label><input id="admin-password" name="password" type="password" autoComplete="current-password" required className="field mt-2" /></div>{error && <p role="alert" className="border border-red-400/30 bg-red-400/10 p-3 text-sm text-red-200">{error}</p>}<button type="submit" disabled={loading} className="flex h-12 w-full items-center justify-center bg-signal px-5 text-xs font-extrabold uppercase tracking-wider text-black transition hover:bg-white disabled:cursor-wait disabled:opacity-60">{loading ? "Signing in…" : "Sign in"}</button></form>;
+  return (
+    <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
+      <div>
+        <label htmlFor="admin-email" className="a-label mb-1">Email or username</label>
+        <input id="admin-email" name="email" type="text" autoComplete="username" required className="a-input" />
+      </div>
+      <div>
+        <label htmlFor="admin-password" className="a-label mb-1">Password</label>
+        <input id="admin-password" name="password" type="password" autoComplete="current-password" required className="a-input" />
+      </div>
+      {error && (
+        <p role="alert" className="rounded-[10px] p-3 text-sm" style={{ background: "var(--a-danger-soft)", color: "var(--a-danger)" }}>{error}</p>
+      )}
+      <button type="submit" disabled={loading} className="a-btn a-btn-primary w-full">
+        {loading ? "Signing in…" : "Sign in"}
+      </button>
+    </form>
+  );
 }

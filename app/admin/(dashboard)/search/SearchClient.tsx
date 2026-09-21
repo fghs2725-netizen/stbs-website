@@ -96,7 +96,7 @@ export default function SearchClient({ initialQuery = "" }: { initialQuery?: str
       case "template":
         return <LayoutTemplate className="w-4 h-4 text-purple-400" />;
       default:
-        return <Database className="w-4 h-4 text-gray-400" />;
+        return <Database className="w-4 h-4 text-[color:var(--a-muted)]" />;
     }
   };
 
@@ -104,8 +104,8 @@ export default function SearchClient({ initialQuery = "" }: { initialQuery?: str
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-display font-bold text-white">Search</h1>
-          <p className="text-sm text-gray-400 mt-1">
+          <h1 className="text-2xl font-display font-bold text-[color:var(--a-ink)]">Search</h1>
+          <p className="text-sm text-[color:var(--a-muted)] mt-1">
             Full-text search across all entities
           </p>
         </div>
@@ -124,27 +124,27 @@ export default function SearchClient({ initialQuery = "" }: { initialQuery?: str
 
       {/* Search Input */}
       <form onSubmit={handleSearch}>
-        <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+        <div className="bg-[color:var(--a-surface-2)] backdrop-blur-xl border border-[color:var(--a-hairline)] rounded-2xl p-6">
           <div className="relative">
-            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[color:var(--a-faint)]" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search documents, clients, templates..."
-              className="w-full bg-surface border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-signal/50 focus:ring-1 focus:ring-signal/50 transition-all"
+              className="w-full bg-white border border-[color:var(--a-hairline)] rounded-xl pl-12 pr-4 py-3 text-[color:var(--a-ink)] placeholder:text-[color:var(--a-faint)] focus:outline-none focus:border-[color:var(--a-brand)] focus:ring-1 focus:ring-[color:var(--a-brand)] transition-all"
             />
           </div>
         </div>
       </form>
 
       {/* Index Stats */}
-      <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+      <div className="bg-[color:var(--a-surface-2)] backdrop-blur-xl border border-[color:var(--a-hairline)] rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-display font-semibold text-white">
+          <h2 className="text-lg font-display font-semibold text-[color:var(--a-ink)]">
             Index Statistics
           </h2>
-          <div className="flex items-center text-sm text-gray-400">
+          <div className="flex items-center text-sm text-[color:var(--a-muted)]">
             <TrendingUp className="w-4 h-4 mr-1" />
             {indexStats.totalIndexed} total indexed
           </div>
@@ -154,54 +154,54 @@ export default function SearchClient({ initialQuery = "" }: { initialQuery?: str
             indexStats.byType.map((item) => (
               <div
                 key={item.type}
-                className="p-3 bg-surface border border-white/5 rounded-xl"
+                className="p-3 bg-white border border-[color:var(--a-hairline)] rounded-xl"
               >
                 <div className="flex items-center mb-2">
                   {getEntityIcon(item.type)}
-                  <span className="ml-2 text-xs text-gray-500 uppercase">
+                  <span className="ml-2 text-xs text-[color:var(--a-faint)] uppercase">
                     {item.type}
                   </span>
                 </div>
-                <div className="text-xl font-bold text-white">{item.count}</div>
+                <div className="text-xl font-bold text-[color:var(--a-ink)]">{item.count}</div>
               </div>
             ))
           ) : (
             <>
-              <div className="p-3 bg-surface border border-white/5 rounded-xl">
+              <div className="p-3 bg-white border border-[color:var(--a-hairline)] rounded-xl">
                 <div className="flex items-center mb-2">
                   <FileText className="w-4 h-4 text-blue-400" />
-                  <span className="ml-2 text-xs text-gray-500 uppercase">
+                  <span className="ml-2 text-xs text-[color:var(--a-faint)] uppercase">
                     Documents
                   </span>
                 </div>
-                <div className="text-xl font-bold text-white">-</div>
+                <div className="text-xl font-bold text-[color:var(--a-ink)]">-</div>
               </div>
-              <div className="p-3 bg-surface border border-white/5 rounded-xl">
+              <div className="p-3 bg-white border border-[color:var(--a-hairline)] rounded-xl">
                 <div className="flex items-center mb-2">
                   <Users className="w-4 h-4 text-green-400" />
-                  <span className="ml-2 text-xs text-gray-500 uppercase">
+                  <span className="ml-2 text-xs text-[color:var(--a-faint)] uppercase">
                     Clients
                   </span>
                 </div>
-                <div className="text-xl font-bold text-white">-</div>
+                <div className="text-xl font-bold text-[color:var(--a-ink)]">-</div>
               </div>
-              <div className="p-3 bg-surface border border-white/5 rounded-xl">
+              <div className="p-3 bg-white border border-[color:var(--a-hairline)] rounded-xl">
                 <div className="flex items-center mb-2">
                   <LayoutTemplate className="w-4 h-4 text-purple-400" />
-                  <span className="ml-2 text-xs text-gray-500 uppercase">
+                  <span className="ml-2 text-xs text-[color:var(--a-faint)] uppercase">
                     Templates
                   </span>
                 </div>
-                <div className="text-xl font-bold text-white">-</div>
+                <div className="text-xl font-bold text-[color:var(--a-ink)]">-</div>
               </div>
-              <div className="p-3 bg-surface border border-white/5 rounded-xl">
+              <div className="p-3 bg-white border border-[color:var(--a-hairline)] rounded-xl">
                 <div className="flex items-center mb-2">
-                  <Database className="w-4 h-4 text-gray-400" />
-                  <span className="ml-2 text-xs text-gray-500 uppercase">
+                  <Database className="w-4 h-4 text-[color:var(--a-muted)]" />
+                  <span className="ml-2 text-xs text-[color:var(--a-faint)] uppercase">
                     Total
                   </span>
                 </div>
-                <div className="text-xl font-bold text-white">
+                <div className="text-xl font-bold text-[color:var(--a-ink)]">
                   {indexStats.totalIndexed}
                 </div>
               </div>
@@ -211,52 +211,52 @@ export default function SearchClient({ initialQuery = "" }: { initialQuery?: str
       </div>
 
       {/* Results */}
-      <div className="bg-steel/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
-        <div className="p-4 border-b border-white/5">
-          <h2 className="text-lg font-display font-semibold text-white">
+      <div className="bg-[color:var(--a-surface-2)] backdrop-blur-xl border border-[color:var(--a-hairline)] rounded-2xl overflow-hidden">
+        <div className="p-4 border-b border-[color:var(--a-hairline)]">
+          <h2 className="text-lg font-display font-semibold text-[color:var(--a-ink)]">
             Search Results
           </h2>
         </div>
 
-        <div className="divide-y divide-white/5">
+        <div className="divide-y divide-[color:var(--a-hairline)]">
           {loading ? (
-            <div className="px-6 py-12 text-center text-gray-500">
+            <div className="px-6 py-12 text-center text-[color:var(--a-faint)]">
               Searching...
             </div>
           ) : !searched ? (
-            <div className="px-6 py-12 text-center text-gray-500">
+            <div className="px-6 py-12 text-center text-[color:var(--a-faint)]">
               Enter a search query to find documents, clients, and templates
             </div>
           ) : results.length === 0 ? (
-            <div className="px-6 py-12 text-center text-gray-500">
+            <div className="px-6 py-12 text-center text-[color:var(--a-faint)]">
               No results found for &quot;{query}&quot;
             </div>
           ) : (
             results.map((result) => (
               <div
                 key={result.id}
-                className="px-6 py-4 hover:bg-white/5 transition-colors"
+                className="px-6 py-4 hover:bg-black/5 transition-colors"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start">
-                    <div className="p-2 bg-surface border border-white/5 rounded-lg mr-4 mt-0.5">
+                    <div className="p-2 bg-white border border-[color:var(--a-hairline)] rounded-lg mr-4 mt-0.5">
                       {getEntityIcon(result.entityType)}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-medium text-white">
+                        <span className="text-sm font-medium text-[color:var(--a-ink)]">
                           {result.title}
                         </span>
-                        <span className="px-2 py-0.5 text-xs text-gray-500 bg-surface rounded">
+                        <span className="px-2 py-0.5 text-xs text-[color:var(--a-faint)] bg-white rounded">
                           {result.entityType}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-400 line-clamp-2">
+                      <p className="text-sm text-[color:var(--a-muted)] line-clamp-2">
                         {result.content}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center text-xs text-gray-500">
+                  <div className="flex items-center text-xs text-[color:var(--a-faint)]">
                     <TrendingUp className="w-3 h-3 mr-1" />
                     {result.rank.toFixed(2)}
                   </div>

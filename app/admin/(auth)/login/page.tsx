@@ -1,9 +1,21 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AdminLoginForm } from "@/components/admin-login-form";
+import "../../admin.css";
 
 export const metadata: Metadata = { title: "Admin Login", robots: { index: false, follow: false } };
 
 export default function AdminLoginPage() {
-  return <main className="grid min-h-screen place-items-center bg-black px-5 py-24 text-white"><div className="w-full max-w-md border border-white/10 bg-white/[.035] p-8 shadow-2xl sm:p-10"><div className="mb-10"><p className="text-xs font-bold uppercase tracking-[.25em] text-signal">STBS / Secure access</p><h1 className="mt-5 font-display text-5xl font-bold uppercase leading-none">Admin login</h1><p className="mt-4 text-sm leading-7 text-white/50">Sign in to manage the STBS administration area.</p></div><Suspense fallback={<div className="h-48 animate-pulse bg-white/5" />}><AdminLoginForm /></Suspense></div></main>;
+  return (
+    <main className="theme-admin grid min-h-[100dvh] place-items-center px-5 py-16">
+      <div className="a-card w-full max-w-[400px] p-8">
+        <p className="a-eyebrow">Secure access</p>
+        <h1 className="a-title mt-2">Admin sign in</h1>
+        <p className="a-sub mt-2">Manage quotations, clients and the site gallery.</p>
+        <Suspense fallback={<div className="mt-8 h-48 animate-pulse rounded-[10px]" style={{ background: "rgba(0,0,0,.05)" }} />}>
+          <AdminLoginForm />
+        </Suspense>
+      </div>
+    </main>
+  );
 }
