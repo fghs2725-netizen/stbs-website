@@ -1,6 +1,7 @@
 # STBS rebuild: TODO
 
-Last updated 2026-09-19, after Phase 7b (discount / GST / multi-page quotation) and the client logo wall. Nothing here has been pushed or applied to production.
+Last updated 2026-09-21, after the invoicing work (Brief 3). The quotation discount/GST migration and the
+invoice migration have both been applied to production; the homepage content migration has not.
 
 ## A. Done: Phases 4c, 5 and 6
 
@@ -28,8 +29,8 @@ Last updated 2026-09-19, after Phase 7b (discount / GST / multi-page quotation) 
 - [ ] Dockerfile copies `.next/standalone` but `next.config.ts` never sets `output: "standalone"`
 
 ### Repo hygiene
-- [ ] Untrack committed dev-server `.log` files, `project_structure.json` (5.6 MB) and `tsconfig.tsbuildinfo`
-- [ ] Remove dead code: `components/documents/sections/**`, `lib/documents/**`, `lib/cache/redis-cache.ts`, `SavedQuotationPdf.tsx`
+- [x] The `.log` files, `project_structure.json` and `tsconfig.tsbuildinfo` are already untracked (checked 2026-09-21; `git ls-files` returns none of them)
+- [ ] Remove dead code: `components/documents/sections/**` (7 files plus its CSS) and `components/documents/shared/PageWrapper.tsx`, which only those files use, and `lib/cache/redis-cache.ts`. Checked 2026-09-21: **`lib/documents/**` is NOT dead** — the approvals and document-versions API routes import it, so the earlier note here was wrong. There is no `SavedQuotationPdf.tsx` in the repo.
 - [ ] Remove unused deps: `react-hook-form`, `@hookform/resolvers`, `@phosphor-icons/react`, `motion` (duplicate of framer-motion), `shadcn-ui` (a CLI)
 - [ ] Old static `Testimonials` placeholder component in `site-additions.tsx` (unused; kept because testimonial content must not be deleted)
 
@@ -44,8 +45,31 @@ Last updated 2026-09-19, after Phase 7b (discount / GST / multi-page quotation) 
 - [ ] Not browser-tested: the full editor (autosave, finalize, list actions) because saving writes to the database in `.env`, which is production. Table, keyboard, undo and dialogs are covered by `npm run test:quotation-items-ui` on a dev-only harness (`/internal/quotation-items-harness`). Please click through the editor once on a non-production database.
 - [x] Phase 8: Word (.docx) export via the `docx` library, `STBS-Quotation-{number}-{clientSlug}` filenames for PDF and Word, Word/Print buttons in the editor, Word on the detail page and list. Word is a close match, not pixel-identical: the side-panel artwork, watermark and brand fonts (Calibri fallback) are not reproduced. Not done: Share on WhatsApp (needs a shareable PDF link).
 - [x] Phase 9 (code complete, browser-untested): server-side validation before every website save and a publish preflight that refuses to publish broken content (`lib/website/validation.ts`, zod); character counters on headlines and SEO fields; image upload guardrails (type/size check, auto-compression to WebP); required alt text; unsaved-changes warning; publish confirmation with a summary; toasts instead of `alert()`; version history UI with restore.
-- [ ] Phase 9 needs the owner: apply migration `20260919_website_revisions` (adds one table) to turn on version history; until then history shows "No earlier versions yet" and everything else works. Two live gallery photos have file names as alt text (WhatsApp image names) and will block publish until described. Alt text cannot be enforced (no column) for service images, testimonial and founder photos, logos, favicon and OG image.
+- [x] Phase 9 migration `20260919_website_revisions` is applied (confirmed 2026-09-21 by `prisma migrate status`), so version history is live. Still open from Phase 9: two live gallery photos have file names as alt text (WhatsApp image names) and will block publish until described. Alt text cannot be enforced (no column) for service images, testimonial and founder photos, logos, favicon and OG image.
 - [ ] Phase 9 not verified in a browser: the website admin needs a login and every save writes to the live database, so I did not click through it. Test on a non-production database.
+
+### Brief 3: invoicing (built 2026-09-21; migration applied, never run in a browser)
+
+Owner's decisions are recorded in `docs/invoice-questionnaire.md` and were answered in full. The design
+is `docs/invoice-design-v1.html`; the SQL that was applied is `docs/invoice-migration.sql`.
+
+- [x] Migration `20260921_invoice` applied to production: 9 new tables, no existing table altered, no
+      destructive statement. Verified after applying — 83 quotations, 893 quotation items and 1 client untouched.
+- [x] Pure logic: totals, discount, CGST/SGST vs IGST from the client's state, round off, payments and
+      balance, numbering from 764, conversion from a quotation (`npm run test:invoice`, 37 checks).
+- [x] The printed invoice, with page breaks held by `npm run test:invoice-snapshot` (22 checks, 5 fixtures)
+      — the check that matters is that nothing sits below the page box, because the heights are estimates.
+- [x] Data layer: settings, save, issue, cancel, payments, credit notes, edit log, HSN library.
+- [x] Screens: list with overdue ageing, detail with issue/pay/cancel, editor, settings, HSN codes.
+- [x] Editor driven in a real browser on a dev-only harness (`npm run test:invoice-editor-ui`, 12 checks).
+- [x] PDF, and share on WhatsApp or email, reusing the quotation's renderer and share sheet.
+- [x] Raise invoice on a quotation; it then links to the invoice instead (one invoice per quotation).
+- [ ] **Never run against a real database.** Issuing, recording a payment and the PDF route have never
+      executed: they need a login and a database write, and `.env` points at production, where issuing
+      would consume number 765 for good. Test on a Neon branch before raising a real invoice.
+- [ ] Owner still to supply, all uploads in Settings: bank details, signature and stamp images, UPI QR image.
+- [ ] Not built (optional, agreed): invoice template editor UI (the wording model exists and invoices use
+      the built-in text), the proforma variant, and a credit-note screen (the data layer has one).
 
 ### Migration (`scripts/migrate-homepage.ts`, 12 steps, 38 changes, dry run only)
 - [ ] Decide: run `--rehearse` against production (executes writes inside a transaction, then rolls back), then `--apply`
