@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, ChevronDown, Copy, Plus, Trash2 } from "lucide-reac
 import { calcAmount, formatINR, isItemValid, validateItem, type QuotationItem } from "../quotation-model";
 import { formatCell, MAX_QUANTITY, MAX_RATE, parseNumeric, sanitizeNumericText } from "../editor-logic";
 import { ITEM_PRESETS, UNIT_OPTIONS } from "./studio-logic";
+import { limitDetailsInput } from "../item-text";
 
 type Field = "description" | "unit" | "quantity" | "rate";
 const ORDER: Field[] = ["description", "unit", "quantity", "rate"];
@@ -116,7 +117,7 @@ export function LineItems({ items, focusId, onEdit, onAdd, onRemove, onDuplicate
       <div className="qs-items" role="table" aria-label="Price items" ref={root}>
         <div className="qs-items-head" role="row">
           <span role="columnheader">Sr.</span>
-          <span role="columnheader">Description</span>
+          <span role="columnheader">Item</span>
           <span role="columnheader">Unit</span>
           <span role="columnheader">Qty</span>
           <span role="columnheader">Rate</span>
@@ -135,10 +136,10 @@ export function LineItems({ items, focusId, onEdit, onAdd, onRemove, onDuplicate
               <span role="cell" className="it-desc">
                 <GrowingText
                   data-cell={`${item.id}:description`}
-                  aria-label={`Item ${n} description`}
+                  aria-label={`Item ${n} name`}
                   aria-invalid={bad("description") || undefined}
                   className="qs-cell"
-                  placeholder="Describe the work or material"
+                  placeholder="Item name"
                   value={item.description}
                   onFocus={() => { original.current = item.description; }}
                   onBlur={() => touch(item.id, "description")}
@@ -146,6 +147,19 @@ export function LineItems({ items, focusId, onEdit, onAdd, onRemove, onDuplicate
                   onKeyDown={(e) => {
                     if (e.key === "Escape") { e.stopPropagation(); onEdit(item.id, { description: original.current }, `${item.id}:description:esc`); (e.target as HTMLElement).blur(); return; }
                     onCellKey(row, "description")(e);
+                  }}
+                />
+                {/* Optional. Sits under the name so it is written in the same place as the units and prices. */}
+                <GrowingText
+                  data-cell={`${item.id}:details`}
+                  aria-label={`Item ${n} details (optional)`}
+                  className="qs-cell qs-details"
+                  placeholder="Details (optional): company or brand, model, size…"
+                  value={item.details ?? ""}
+                  onFocus={() => { original.current = item.details ?? ""; }}
+                  onChange={(e) => onEdit(item.id, { details: limitDetailsInput(e.target.value) || undefined }, `${item.id}:details`)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") { e.stopPropagation(); onEdit(item.id, { details: original.current || undefined }, `${item.id}:details:esc`); (e.target as HTMLElement).blur(); }
                   }}
                 />
               </span>

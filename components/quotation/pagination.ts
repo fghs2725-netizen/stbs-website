@@ -1,3 +1,4 @@
+import { cleanDetails } from "./item-text";
 import { calcTotals, formatINR, getValidItems, hasDiscount, serviceLabel, type QuotationItem, type QuotationState, type QuotationTotals } from "./quotation-model";
 
 /**
@@ -25,6 +26,11 @@ export const PRICE_LAYOUT = {
   totalsGap: 10,
   supportLine: 12.6,
   supportCharsPerLine: 60,
+  // Details print under the item name in a smaller face (7.5px, line-height 1.35). The width factor turns the
+  // column into "name-size" pixels, which is what the glyph widths below are measured in.
+  detailLineHeight: 10.2,
+  detailGap: 2,
+  detailWidthFactor: 8.1 / 7.5,
 } as const;
 
 export const FIXED_PAGES = 3;
@@ -63,11 +69,15 @@ export function wrapLines(text: string, maxPx: number): number {
 
 export function estimateRowHeight(item: QuotationItem): number {
   const L = PRICE_LAYOUT;
-  const desc = wrapLines(item.description, L.descWidthPx);
+  const nameLines = wrapLines(item.description, L.descWidthPx);
+  const details = cleanDetails(item.details);
+  const detailLines = details ? details.split("\n").reduce((n, line) => n + wrapLines(line, L.descWidthPx * L.detailWidthFactor), 0) : 0;
   const unit = wrapLines(item.unit, L.unitWidthPx);
   const amount = formatINR(Math.round(item.quantity * item.rate * 100) / 100);
   const numeric = [formatINR(item.rate), amount, String(item.quantity)].some((t) => t.length > L.numericMaxChars) ? 2 : 1;
-  return L.rowChrome + L.lineHeight * Math.max(desc, unit, numeric);
+  // With no details this is exactly the old formula, so existing quotations paginate identically.
+  const descHeight = L.lineHeight * nameLines + (detailLines ? L.detailGap + L.detailLineHeight * detailLines : 0);
+  return L.rowChrome + Math.max(descHeight, L.lineHeight * Math.max(unit, numeric));
 }
 
 /** Rows above FINAL TOTAL in the totals block (subtotal, discount, taxable, CGST/SGST/IGST). */

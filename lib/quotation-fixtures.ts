@@ -1,7 +1,7 @@
 import { buildDraft, type QuotationItem, type QuotationState } from "@/components/quotation/quotation-model";
 
 // Fixed, fictional data for the template regression test. Never persisted anywhere.
-const item = (n: number, description: string, unit: string, quantity: number, rate: number): QuotationItem => ({ id: `fx-${n}`, description, unit, quantity, rate });
+const item = (n: number, description: string, unit: string, quantity: number, rate: number, details?: string): QuotationItem => ({ id: `fx-${n}`, description, unit, quantity, rate, ...(details ? { details } : {}) });
 
 const baseClient = {
   gstin: "",
@@ -95,5 +95,28 @@ export const QUOTATION_FIXTURES: Record<string, QuotationState> = {
     client: baseClient,
     serviceType: "Borewell Construction",
     items: Array.from({ length: 9 }, (_, i) => item(i + 1, `Item ${i + 1}: supply, transportation, installation, testing and commissioning of the complete assembly including all fittings, fasteners, sealing compounds, cabling, protective covers and site clearance as directed by the engineer in charge at the client premises`, "Set", 2, 12345.5)),
+  }),
+  // Items with optional details (brand or company, model, size...) under the item name: short and long, one line and six,
+  // mixed with plain rows. Enough of them to run onto a second price page.
+  "with-details": buildDraft({
+    quotationReference: "FIXTURE/DETAILS/009",
+    quotationDate: "01 January 2026",
+    validity: "15 days from date of submission",
+    client: baseClient,
+    serviceType: "Borewell Material Supply",
+    items: [
+      item(1, "Submersible pump set 5 HP", "Nos", 2, 48500, "Kirloskar Brothers Limited\nModel KDS-5, 3 phase, 415 V\nCopper winding with thermal cut-out"),
+      item(2, "PVC casing pipe 200 mm", "Meter", 120, 640, "Supreme Industries, ISI marked, 6 m lengths"),
+      item(3, "Drilling of 8 inch borewell up to 300 ft", "Meter", 90, 1250),
+      item(4, "MS reducer and cap", "Nos", 4, 950, "Fabricated in-house, 6 mm plate, painted with primer"),
+      item(5, "Gravel packing", "Cu.m", 6, 3200, "Washed river gravel, graded 6 to 12 mm, supplied and placed around the casing to the full depth of the slotted section, as directed by the site engineer"),
+      item(6, "Development and flushing of borewell", "Job", 1, 15000),
+      item(7, "Delivery pipe GI 50 mm", "Meter", 90, 780, "Jindal Hisar\nClass B\nThreaded ends with sockets\nGalvanised inside and out\nTested at 10 kg/cm2\nSupplied in 6 m lengths"),
+      item(8, "Starter and control panel", "Set", 1, 21000, "L&T DOL starter with overload protection and single phasing preventer"),
+      item(9, "Cable 4 core 10 sq mm", "Meter", 120, 260, "Polycab, copper conductor, flat submersible type"),
+      item(10, "Site labour and machine shifting", "Lot", 1, 18000),
+      item(11, "Non-return valve 50 mm", "Nos", 1, 3400, "Zoloto, gunmetal"),
+      item(12, "Pressure gauge with cock", "Nos", 1, 1800, "Range 0 to 10 kg/cm2, 2.5 inch dial"),
+    ],
   }),
 };

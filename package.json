@@ -19,6 +19,7 @@
     "test:password-policy": "npx tsx scripts/test-password-policy.ts",
     "test:quotation-share": "npx tsx scripts/test-quotation-share.ts",
     "test:studio-css": "npx tsx scripts/test-studio-css.ts",
+    "test:quotation-item-text": "npx tsx scripts/test-quotation-item-text.ts",
     "test:quotation-templates": "npx tsx scripts/test-quotation-templates.ts",
     "test:quotation-editor": "npx tsx scripts/test-quotation-editor-logic.ts",
     "test:quotation-studio": "npx tsx scripts/test-quotation-studio-logic.ts",

@@ -1,4 +1,5 @@
 import { CLASSIC_CONTENT, DEFAULT_LAYOUT, visibleTerms } from "./template/template-model";
+import { cleanDetails } from "./item-text";
 import { serviceLabel, type QuotationState, getValidItems, calcAmount, calcTotals, formatINR, hasDiscount } from "./quotation-model";
 import { pricePagesFor, FIXED_PAGES } from "./pagination";
 import { amountInWords } from "@/lib/amount-in-words";
@@ -217,16 +218,20 @@ function ClassicLayout({ quotation, isEditorPreview = false }: DocumentProps) {
               </thead>
               <tbody>
                 {rows.length ? (
-                  rows.map((item, n) => (
+                  rows.map((item, n) => {
+                    // Details sit under the item name. With none, the cell is exactly what it always was.
+                    const details = cleanDetails(item.details);
+                    return (
                     <tr key={item.id}>
                       <td>{pad2(pricePages.starts[pi] + n + 1)}</td>
-                      <td>{item.description}</td>
+                      <td>{details ? <><span className="q-item-name">{item.description}</span><span className="q-item-details">{details}</span></> : item.description}</td>
                       <td>{item.unit}</td>
                       <td>{item.quantity}</td>
                       <td>{formatINR(item.rate)}</td>
                       <td>{formatINR(calcAmount(item.quantity, item.rate))}</td>
                     </tr>
-                  ))
+                    );
+                  })
                 ) : (
                   isEditorPreview && isFirst ? (
                     <tr className="no-items-row">

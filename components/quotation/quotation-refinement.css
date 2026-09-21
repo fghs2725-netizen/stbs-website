@@ -38,3 +38,6 @@
 .glance-grid span,.glance-head,.glance-head small{color:#f5f0e7;-webkit-text-fill-color:#f5f0e7}
 .q-page table thead th{color:#f5f0e7;-webkit-text-fill-color:#f5f0e7;background:#171a1b}
 @media print{html,body{background:#fff!important;color:#171a1b!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.saved-pdf-page{background:#fff!important;padding:0!important}.saved-pdf-screen,.saved-pdf-screen *{display:none!important}.quotation-print-root{display:block!important;visibility:visible!important;opacity:1!important;background:#fff!important}.quotation-print-root .q-document{display:block!important;width:210mm!important}.quotation-print-root .q-page{display:block!important;visibility:visible!important;opacity:1!important;box-shadow:none!important;margin:0!important;width:210mm!important;height:297mm!important;break-after:page!important;page-break-after:always!important}.quotation-print-root .q-page:last-child{break-after:auto!important;page-break-after:auto!important}}
+/* A price row's optional details (brand or company, model, size...), printed under the item name. */
+.q-page .q-item-name{display:block}
+.q-page .q-item-details{display:block;margin-top:2px;font-size:7.5px;line-height:1.35;color:#6b6a63;white-space:pre-line;overflow-wrap:anywhere}

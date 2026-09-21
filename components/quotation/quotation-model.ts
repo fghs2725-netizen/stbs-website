@@ -1,5 +1,7 @@
 import type { QuotationTemplateRef } from "./template/template-model";
-export type QuotationItem = { id: string; description: string; unit: string; quantity: number; rate: number };
+import { detailsProblem } from "./item-text";
+/** `description` is the item name. `details` is optional (brand or company, model, size...) and prints under it. */
+export type QuotationItem = { id: string; description: string; unit: string; quantity: number; rate: number; details?: string };
 export type ClientDetails = { gstin: string; companyName: string; contactPerson: string; addressLine1: string; addressLine2: string; city: string; state: string; pinCode: string; phone: string; email: string };
 export type QuotationState = { id?: string; clientId?: string; saveClientForFuture?: boolean; quotationReference: string; quotationDate: string; validity: string; client: ClientDetails; serviceType: string; customServiceType: string; subject: string; items: QuotationItem[]; status?: "DRAFT" | "FINAL"; discountType?: DiscountType | null; discountValue?: number; gstEnabled?: boolean; gstMode?: GstMode; gstRate?: number; templateId?: string; template?: QuotationTemplateRef };
 export type DiscountType = "PERCENT" | "FLAT";
@@ -25,7 +27,7 @@ export function buildDraft(overrides: Partial<QuotationState> = {}): QuotationSt
 }
 
 // --- Item validation ---
-export type ItemValidation = { description?: string; unit?: string; quantity?: string; rate?: string };
+export type ItemValidation = { description?: string; unit?: string; quantity?: string; rate?: string; details?: string };
 
 // Normalize a raw form/serialized value into a finite number. Numeric strings
 // from inputs become numbers; empty/invalid values yield NaN so "0"/""/NaN
@@ -57,7 +59,9 @@ export function validateItem(item: QuotationItem): ItemValidation {
   const errors: ItemValidation = {};
   const quantity = toNumber(item.quantity);
   const rate = toNumber(item.rate);
-  if (!toTrimmedString(item.description)) errors.description = "Description is required";
+  if (!toTrimmedString(item.description)) errors.description = "Item name is required";
+  const dp = detailsProblem(item.details);
+  if (dp) errors.details = dp;
   if (!toTrimmedString(item.unit)) errors.unit = "Unit is required";
   if (!Number.isFinite(quantity) || quantity <= 0) errors.quantity = "Quantity must be greater than 0";
   if (!Number.isFinite(rate) || rate < 0) errors.rate = "Rate must be 0 or greater";

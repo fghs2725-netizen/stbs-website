@@ -180,6 +180,8 @@
 .qs-row .it-amount { padding: 6px 7px 0 0; text-align: right; font: 600 13px var(--font-inter), sans-serif; font-variant-numeric: tabular-nums; }
 .qs-row[data-incomplete] .it-amount { color: var(--ink-faint); font-weight: 400; }
 .qs-row .it-actions { display: flex; gap: 1px; justify-content: flex-end; padding-top: 3px; }
+/* The optional details line under an item name: smaller and quieter than the name, borderless like every other cell. */
+.qs-details { margin-top: 1px; font-size: 11.5px; line-height: 1.4; color: var(--ink-soft); }
 .qs-row .it-actions button {
   display: inline-flex; align-items: center; justify-content: center;
   width: 26px; height: 26px; border: 1px solid transparent; border-radius: 5px;

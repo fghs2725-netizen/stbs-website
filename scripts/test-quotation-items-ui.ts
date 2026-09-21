@@ -50,11 +50,11 @@ async function main() {
     });
 
     await check("Escape cancels a text edit and a numeric edit", async () => {
-      await page.click('[aria-label="Item 1 description"]');
+      await page.click('[aria-label="Item 1 name"]');
       await frame(page);
       await page.keyboard.type("XYZ");
       await page.keyboard.press("Escape");
-      assert.equal(await val(page, '[aria-label="Item 1 description"]'), "Pipe");
+      assert.equal(await val(page, '[aria-label="Item 1 name"]'), "Pipe");
       await page.click('[aria-label="Item 1 quantity"]');
       await frame(page);
       await page.keyboard.type("999");
@@ -63,20 +63,20 @@ async function main() {
     });
 
     await check("Enter walks cells, and on the last cell of the last row adds a row focused on its description", async () => {
-      await page.click('[aria-label="Item 1 description"]');
+      await page.click('[aria-label="Item 1 name"]');
       await page.keyboard.press("Enter"); assert.equal(await active(page), "unit");
       await page.keyboard.press("Enter"); assert.equal(await active(page), "quantity");
       await page.keyboard.press("Enter"); assert.equal(await active(page), "rate");
       await page.keyboard.press("Enter");
-      await page.waitForSelector('[aria-label="Item 2 description"]');
+      await page.waitForSelector('[aria-label="Item 2 name"]');
       assert.equal(await rows(page), 2);
-      await page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Item 2 description", { timeout: 4000 }).catch(async () => { throw new Error(`focus did not move to the new row; active=${await page.evaluate(() => document.activeElement?.tagName + ":" + (document.activeElement?.getAttribute("aria-label") ?? ""))}`); });
+      await page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Item 2 name", { timeout: 4000 }).catch(async () => { throw new Error(`focus did not move to the new row; active=${await page.evaluate(() => document.activeElement?.tagName + ":" + (document.activeElement?.getAttribute("aria-label") ?? ""))}`); });
     });
 
     await check("duplicate and move-down keep order; blank row deletes without confirmation", async () => {
       await page.click('[aria-label="Duplicate item 1"]');
       assert.equal(await rows(page), 3);
-      assert.equal(await val(page, '[aria-label="Item 2 description"]'), "Pipe");
+      assert.equal(await val(page, '[aria-label="Item 2 name"]'), "Pipe");
       await page.click('[aria-label="Move item 1 down"]');
       await page.click('[aria-label="Delete item 3"]');
       assert.equal(await page.$('[role="alertdialog"]'), null);
