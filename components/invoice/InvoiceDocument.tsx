@@ -11,7 +11,7 @@ import {
   calcInvoiceTotals, formatINR, getValidItems, lineAmount, overdueBy,
   type InvoiceState, type InvoiceSettings,
 } from "./invoice-model";
-import { paginateInvoiceItems, summaryHeight, INVOICE_LAYOUT } from "./invoice-pagination";
+import { invoicePages } from "./invoice-pagination";
 import { resolveTemplate, type InvoiceTemplateRef } from "./template/invoice-template-model";
 import { placeOfSupply } from "@/lib/india-gst";
 import { formatInvoiceNumber } from "@/lib/invoice-numbering";
@@ -65,15 +65,7 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
   const showAdvance = blocks.advanceBalance && totals.paid > 0;
   const showRoundOff = blocks.roundOff && totals.roundOff !== 0;
 
-  const closingHeight =
-    summaryHeight({
-      hasDiscount: showDiscount, gstEnabled: invoice.gstEnabled,
-      igst: invoice.gstMode === "IGST", roundOff: showRoundOff, advance: showAdvance,
-    }) +
-    (blocks.amountWords ? INVOICE_LAYOUT.wordsPx : 0) +
-    INVOICE_LAYOUT.closingPx + INVOICE_LAYOUT.footerPx;
-
-  const paged = paginateInvoiceItems(invoice.items, settings, closingHeight);
+  const paged = invoicePages(invoice, settings);
   const totalPages = paged.total;
 
   const supply = placeOfSupply(invoice.client.state, invoice.client.gstin);

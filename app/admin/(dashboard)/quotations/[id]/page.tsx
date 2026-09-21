@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect, notFound } from 'next/navigation';
-import { Calendar, FileText, UserRound } from 'lucide-react';
+import { Calendar, FileText, ReceiptText, UserRound } from 'lucide-react';
 import { auth } from '@/auth';
 import { getQuotation } from '@/lib/quotation-management';
 import { QuotationPreview } from '@/components/quotation/QuotationPreview';
@@ -9,6 +9,9 @@ import { DuplicateQuotationButton } from '@/components/quotation/DuplicateQuotat
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { QuotationPdfActions } from '@/components/quotation/share/QuotationPdfActions';
+import { invoicesForQuotation } from '@/lib/invoice-management';
+import { formatInvoiceNumber } from '@/lib/invoice-numbering';
+import { convertQuotationAction } from '../../invoices/actions';
 import { shareSubjectFrom } from '@/components/quotation/share/share-model';
 import { calcAmount, calcTotal, formatINR } from '@/components/quotation/quotation-model';
 
@@ -42,6 +45,7 @@ export default async function ViewPage({ params }: { params: Promise<{ id: strin
   const total = calcTotal(quotation.items);
   const isFinal = quotation.status === 'FINAL';
   const validForPdf = quotation.items.length > 0 && quotation.client.companyName;
+  const [raisedInvoice] = await invoicesForQuotation(quotation.id);
 
   const actions = (
     <div className="flex flex-wrap items-center gap-2">
@@ -57,6 +61,24 @@ export default async function ViewPage({ params }: { params: Promise<{ id: strin
       <form action={duplicateAction.bind(null, quotation.id)}>
         <DuplicateQuotationButton />
       </form>
+      {/* Once an invoice exists, this quotation shows the way to it rather than offering a second one. */}
+      {raisedInvoice ? (
+        <Button asChild variant="secondary">
+          <Link href={`/admin/invoices/${raisedInvoice.id}`}>
+            <ReceiptText className="size-4" />
+            {raisedInvoice.number ? `View invoice ${formatInvoiceNumber(raisedInvoice.number)}` : 'View draft invoice'}
+          </Link>
+        </Button>
+      ) : (
+        validForPdf && (
+          <form action={convertQuotationAction.bind(null, quotation.id)}>
+            <Button type="submit" variant="secondary">
+              <ReceiptText className="size-4" />
+              Raise invoice
+            </Button>
+          </form>
+        )
+      )}
     </div>
   );
 

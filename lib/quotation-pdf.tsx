@@ -9,10 +9,10 @@ import { trustedPdfOrigin, assertPdfRenderPathname } from "@/lib/pdf-origin";
 import { deploymentContext } from "@/lib/deployment-info";
 
 export type PdfDiagnostic = (event: string, extra?: Record<string, unknown>) => void;
-type PdfContext = { stage: string; startedAt: number; emit?: PdfDiagnostic };
+export type PdfContext = { stage: string; startedAt: number; emit?: PdfDiagnostic };
 
 function diag(event: string, context: PdfContext, extra: Record<string, unknown> = {}) { context.emit?.(event, extra); }
-function fail(context: PdfContext, error: unknown): never {
+export function fail(context: PdfContext, error: unknown): never {
   const value = error instanceof Error ? error : new Error("Unknown PDF error");
   diag("FAILURE", context, { stage: context.stage, errorName: value.name, safeErrorCode: value.message.slice(0, 80), durationMs: Date.now() - context.startedAt, ...deploymentContext() });
   const failure = new Error("PDF_GENERATION_FAILED"); failure.cause = value; (failure as Error & { stage?: string }).stage = context.stage; throw failure;
@@ -64,8 +64,8 @@ async function launch(context: PdfContext) {
 }
 
 
-async function waitReady(page: Page, context: PdfContext) {
-  const documentRootFound = await page.$eval('#quotation-pdf-document', el => !!el).catch(() => false);
+async function waitReady(page: Page, context: PdfContext, root = '#quotation-pdf-document') {
+  const documentRootFound = await page.$eval(root, el => !!el).catch(() => false);
   if (!documentRootFound) {
     const pageTitle = await page.title().then(t => t.replace(/token=[^&\s]+/g, "token=[REDACTED]")).catch(() => "unavailable");
     const pathname = await page.evaluate(() => window.location.pathname).catch(() => "unavailable");
@@ -73,9 +73,10 @@ async function waitReady(page: Page, context: PdfContext) {
     throw new Error("PDF_SELECTOR_NOT_FOUND");
   }
 
-  const readyMarkerFound = await page.$eval('#quotation-pdf-document[data-pdf-ready="true"]', el => el.getAttribute('data-pdf-ready') === 'true').catch(() => false);
+  const ready = `${root}[data-pdf-ready="true"]`;
+  const readyMarkerFound = await page.$eval(ready, el => el.getAttribute('data-pdf-ready') === 'true').catch(() => false);
   context.stage = 'ready-marker';
-  if (!readyMarkerFound) await page.waitForSelector('#quotation-pdf-document[data-pdf-ready="true"]', { timeout: 15_000 });
+  if (!readyMarkerFound) await page.waitForSelector(ready, { timeout: 15_000 });
 
   context.stage = 'ready';
   diag('PDF_DIAG_RENDER_READY', context, { waitedForMarker: !readyMarkerFound });
@@ -91,7 +92,8 @@ async function waitReady(page: Page, context: PdfContext) {
     })));
   });
 }
-async function renderPdf(url: string, context: PdfContext, expectedPages: number) {
+/** Shared by the quotation and the invoice: the only difference is the root element waited for. */
+export async function renderPdf(url: string, context: PdfContext, expectedPages: number, root?: string) {
   let browser: Browser | undefined;
   try {
     browser = await launch(context);
@@ -112,7 +114,7 @@ async function renderPdf(url: string, context: PdfContext, expectedPages: number
     }
     diag("RENDER_NAVIGATION_SUCCESS", context);
     assertPdfRenderPathname(page.url());
-    await waitReady(page, context);
+    await waitReady(page, context, root);
     context.stage = "pdf-generation"; diag("PDF_GENERATION_START", context);
     const pdf = await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true, margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" } });
     const bytes = Buffer.from(pdf); diag("PDF_GENERATION_SUCCESS", context); diag("PDF_BYTES", context, { pdfBytes: bytes.length });

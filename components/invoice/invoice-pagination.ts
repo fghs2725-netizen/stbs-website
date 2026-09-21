@@ -11,7 +11,7 @@
  * The snapshot test renders real fixtures and fails if any page overflows, so a constant that drifts
  * is caught rather than silently clipping a row off the bottom of an invoice.
  */
-import { getValidItems, type InvoiceItem } from "./invoice-model";
+import { calcInvoiceTotals, getValidItems, type InvoiceItem, type InvoiceState } from "./invoice-model";
 import type { InvoiceSettings } from "./invoice-settings";
 import { cleanDetails } from "../quotation/item-text";
 
@@ -168,3 +168,26 @@ export function paginateInvoiceItems(items: unknown, settings: InvoiceSettings, 
 
   return { pages, starts, total: pages.length };
 }
+
+/**
+ * The page break for a whole invoice: the one place that decides how tall everything after the table
+ * is. The document and the PDF's page-count check both call this, so they cannot disagree about how
+ * many pages an invoice has.
+ */
+export function invoicePages(inv: InvoiceState, settings: InvoiceSettings): InvoicePages {
+  const L = INVOICE_LAYOUT;
+  const totals = calcInvoiceTotals(inv, settings);
+  const closing =
+    summaryHeight({
+      hasDiscount: Boolean(inv.discountType) && totals.discount > 0,
+      gstEnabled: inv.gstEnabled,
+      igst: inv.gstMode === "IGST",
+      roundOff: settings.blocks.roundOff && totals.roundOff !== 0,
+      advance: settings.blocks.advanceBalance && totals.paid > 0,
+    }) +
+    (settings.blocks.amountWords ? L.wordsPx : 0) +
+    L.closingPx + L.footerPx;
+  return paginateInvoiceItems(inv.items, settings, closing);
+}
+
+export const invoicePageCount = (inv: InvoiceState, settings: InvoiceSettings): number => invoicePages(inv, settings).total;
