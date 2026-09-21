@@ -191,7 +191,7 @@ export default async function InvoiceDetailPage({
               )}
 
               {invoice.status !== "CANCELLED" && uncredited > 0 && (
-                <form action={createCreditNoteAction.bind(null, id)} className="mt-3 flex flex-col gap-2">
+                <form action={createCreditNoteAction.bind(null, id)} data-testid="credit-note-form" className="mt-3 flex flex-col gap-2">
                   <label className="a-label">Date
                     <input type="date" name="date" defaultValue={new Date().toISOString().slice(0, 10)} className="a-input mt-1" required />
                   </label>

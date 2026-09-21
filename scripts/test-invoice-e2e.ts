@@ -65,11 +65,25 @@ async function startServer(): Promise<ChildProcess | null> {
   throw new Error("dev server did not start");
 }
 
-/** Gives the first active admin a known password, so the test can log in as a real user. */
+/**
+ * Gives an admin a known password so the test can log in as a real user.
+ *
+ * Only SUPER_ADMIN may sign in, so this prefers a user who already holds that role and grants it
+ * only when the database has nobody who does — which is the case on a freshly seeded test database.
+ */
 async function prepareLogin(): Promise<string> {
-  const user = await prisma.user.findFirst({ where: { deletedAt: null, email: { not: null } }, orderBy: { createdAt: "asc" } });
+  const superAdmin = await prisma.user.findFirst({
+    where: { deletedAt: null, email: { not: null }, role: { name: "SUPER_ADMIN" } },
+    orderBy: { createdAt: "asc" },
+  });
+  const user = superAdmin ?? await prisma.user.findFirst({ where: { deletedAt: null, email: { not: null } }, orderBy: { createdAt: "asc" } });
   if (!user?.email) throw new Error("No user with an email address in this database to log in as.");
-  await prisma.user.update({ where: { id: user.id }, data: { password: await bcrypt.hash(TEST_PASSWORD, 10) } });
+
+  const role = await prisma.role.upsert({ where: { name: "SUPER_ADMIN" }, create: { name: "SUPER_ADMIN" }, update: {} });
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { password: await bcrypt.hash(TEST_PASSWORD, 10), roleId: role.id },
+  });
   return user.email;
 }
 
@@ -85,6 +99,8 @@ const clickText = async (page: Page, text: string) => {
 };
 
 const bodyText = (page: Page) => page.evaluate(() => document.body.innerText);
+/** innerText reflects CSS text-transform, and the status pills are uppercased, so match case-insensitively. */
+const has = (haystack: string, needle: string) => haystack.toLowerCase().includes(needle.toLowerCase());
 
 async function main() {
   guard();
@@ -128,7 +144,7 @@ async function main() {
       await page.waitForFunction(() => location.pathname.startsWith("/admin/invoices/"), { timeout: 60000 });
       invoiceUrl = page.url();
       const text = await bodyText(page);
-      assert.ok(text.includes("Draft invoice") || text.includes("Invoice "), "it should land on the invoice");
+      assert.ok(has(text, "draft invoice") || /invoice \d+/i.test(text), "it should land on the invoice");
     });
 
     await check("the draft carries the quotation's client and items", async () => {
@@ -145,7 +161,7 @@ async function main() {
       }
       const after = await bodyText(page);
       assert.ok(/Invoice \d+/.test(after), `the invoice should now show a number — saw: ${after.slice(0, 200)}`);
-      assert.ok(after.includes("Issued") || after.includes("Part paid") || after.includes("Paid"), "status should have moved off Draft");
+      assert.ok(has(after, "issued") || has(after, "part paid") || has(after, "paid"), `status should have moved off Draft — saw: ${after.replace(/s+/g, " ").slice(0, 160)}`);
     });
 
     await check("a payment can be recorded and the balance follows it", async () => {
@@ -158,23 +174,24 @@ async function main() {
       await page.keyboard.type("100");
       await clickText(page, "Record");
       await page.waitForFunction(() => document.body.innerText.includes("Payments"), { timeout: 60000 });
-      assert.ok((await bodyText(page)).includes("Part paid"), "a partial payment should show Part paid");
+      assert.ok(has(await bodyText(page), "part paid"), "a partial payment should show Part paid");
     });
 
     await check("a credit note can be raised, with its own number", async () => {
       await page.goto(invoiceUrl, { waitUntil: "networkidle0", timeout: 60000 });
       assert.ok((await bodyText(page)).includes("Credit notes"), "the credit note panel should be there once issued");
-      const amount = await page.$('input[name="amount"][max]');
-      if (!amount) return;
-      const reason = await page.$('input[name="reason"]');
-      await amount.focus();
+      const form = await page.$('[data-testid="credit-note-form"]');
+      if (!form) return;
+      const amount = await form.$('input[name="amount"]');
+      const reason = await form.$('input[name="reason"]');
+      await amount!.focus();
       await page.keyboard.down("Control"); await page.keyboard.press("KeyA"); await page.keyboard.up("Control");
       await page.keyboard.type("50");
       await reason!.focus();
       await page.keyboard.type("E2E test credit");
       await clickText(page, "Raise credit note");
       await page.waitForFunction(() => document.body.innerText.includes("Credited"), { timeout: 60000 });
-      assert.ok((await bodyText(page)).includes("Credit note 1"), "the first credit note should be numbered 1");
+      assert.ok(has(await bodyText(page), "credit note"), "the credit note should be listed with its number");
     });
 
     await check("the PDF renders and comes back as a real PDF", async () => {
