@@ -86,6 +86,7 @@ export default async function ViewPage({ params }: { params: Promise<{ id: strin
                 </span>
               </DetailRow>
               <DetailRow label="Subject">{quotation.subject || 'Not specified'}</DetailRow>
+              <DetailRow label="Template">{quotation.template?.name ?? 'STBS Classic'}{isFinal ? ' · frozen' : ''}</DetailRow>
               <div className="grid grid-cols-2 gap-4">
                 <DetailRow label="Total">
                   <span className="a-num font-semibold">{formatINR(total)}</span>

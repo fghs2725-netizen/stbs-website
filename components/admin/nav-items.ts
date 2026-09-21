@@ -4,6 +4,7 @@ import {
   FileText,
   Home,
   Images,
+  LayoutTemplate,
   ReceiptText,
   RotateCcw,
   Truck,
@@ -36,6 +37,7 @@ export const ADMIN_WORK_NAV: NavItemDef[] = [
 /** Setup, reached from the sidebar's second group or the phone More sheet. */
 export const ADMIN_SETUP_NAV: NavItemDef[] = [
   { name: 'Company', href: '/admin/settings/company', icon: Building2 },
+  { name: 'Quotation templates', href: '/admin/templates', icon: LayoutTemplate },
   { name: 'Website photos', href: '/admin/photos', icon: Images },
   { name: 'Data & files', href: '/admin/storage', icon: Database },
 ];

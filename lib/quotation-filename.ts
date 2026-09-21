@@ -24,6 +24,6 @@ export function referenceForFilename(reference: string): string {
   return cleaned || "draft";
 }
 
-export function quotationFilename(quotation: { quotationReference: string; client: { companyName: string } }, ext: "pdf" | "docx"): string {
+export function quotationFilename(quotation: { quotationReference: string; client: { companyName: string } }, ext: "pdf"): string {
   return `STBS-Quotation-${referenceForFilename(quotation.quotationReference)}-${clientSlug(quotation.client.companyName)}.${ext}`;
 }

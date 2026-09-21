@@ -181,9 +181,6 @@ export default async function QuotationsPage({
                   <Button asChild variant="secondary" size="sm">
                     <a href={`/api/quotations/${q.id}/pdf`} download><Download className="size-4" />PDF</a>
                   </Button>
-                  <Button asChild variant="secondary" size="sm">
-                    <a href={`/api/quotations/${q.id}/docx`} download><Download className="size-4" />Word</a>
-                  </Button>
                   <form action={duplicateAction.bind(null, q.id)}>
                     <DuplicateQuotationButton />
                   </form>

@@ -6,6 +6,7 @@ import { AlertTriangle, ArrowLeft, Check, FileDown, FileText, Lock, Printer, Red
 import type { QuotationState } from "../quotation-model";
 import { formatINR } from "../quotation-model";
 import type { ReusableClient } from "@/lib/quotation-management";
+import type { QuotationTemplateRef } from "../template/template-model";
 import { ConfirmDialog, Toaster } from "../feedback";
 import { QuotationPreview } from "../QuotationPreview";
 import { QuotationPrintDocument } from "../QuotationPrintDocument";
@@ -19,8 +20,8 @@ const PREVIEW_DEBOUNCE_MS = 250;
  * Quotation editor. One editable A4 sheet you type directly on, a review rail that tracks what is
  * still missing, and a full preview over the top when you want to see all pages as printed.
  */
-export function QuotationStudio({ initial, clients = [], backHref = "/admin/quotations", backLabel = "Quotations" }: {
-  initial: QuotationState; clients?: ReusableClient[]; backHref?: string; backLabel?: string;
+export function QuotationStudio({ initial, clients = [], templates = [], backHref = "/admin/quotations", backLabel = "Quotations" }: {
+  initial: QuotationState; clients?: ReusableClient[]; templates?: QuotationTemplateRef[]; backHref?: string; backLabel?: string;
 }) {
   const s = useQuotationSession(initial);
   const { q, dirty, isFinal, status, totals, busy } = s;
@@ -55,6 +56,16 @@ export function QuotationStudio({ initial, clients = [], backHref = "/admin/quot
     (el.matches("input,select,textarea") ? el : el.querySelector<HTMLElement>("input,select,textarea,button"))?.focus?.();
   };
 
+  // Switching template swaps the wording instantly. The validity line follows the template only while it is
+  // still the previous template's wording, so a validity you typed yourself is never overwritten.
+  const chooseTemplate = (id: string) => {
+    const next = templates.find((t) => t.id === id);
+    if (!next) return;
+    s.patch({ templateId: next.id, template: next, validity: q.validity === q.template?.content.validity ? next.content.validity : q.validity });
+  };
+  // A draft pinned to an archived template still shows it, so the select never displays the wrong name.
+  const templateOptions = q.template && !templates.some((t) => t.id === q.template!.id) ? [q.template, ...templates] : templates;
+
   const exportDisabled = !status.ready || s.overflow;
   const exportTitle = status.ready ? (s.overflow ? "A price page is overfull — shorten a description first" : undefined) : `Still needed: ${status.missing.join(", ")}`;
 
@@ -82,6 +93,19 @@ export function QuotationStudio({ initial, clients = [], backHref = "/admin/quot
           )}
           {isFinal && (
             <p className="qs-alert qs-alert-info"><Lock size={15} aria-hidden /> This quotation is final and read-only. Duplicate it from the list to make changes.</p>
+          )}
+          {(templateOptions.length > 0 || isFinal) && (
+            <div className="qs-template-bar">
+              <label htmlFor="qs-template">Template</label>
+              {isFinal ? (
+                <span>{q.template?.name ?? "STBS Classic"} · wording is frozen now that this is final</span>
+              ) : (
+                <select id="qs-template" value={q.template?.id ?? q.templateId ?? ""} onChange={(e) => chooseTemplate(e.target.value)}>
+                  {templateOptions.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+              )}
+              <Link href="/admin/templates" onClick={leave}>Manage templates</Link>
+            </div>
           )}
           <fieldset className="qs-fieldset" disabled={isFinal}>
             <Sheet s={s} clients={clients} onPreview={openPreview} />
@@ -117,7 +141,6 @@ export function QuotationStudio({ initial, clients = [], backHref = "/admin/quot
             <h2>Output</h2>
             <div className="qs-stack">
               <button type="button" className="qs-btn" onClick={openPreview}><FileText size={15} aria-hidden /> Preview {s.pageCount} pages</button>
-              <button type="button" className="qs-btn" onClick={() => void s.exportWord()} disabled={exportDisabled || busy.word || !q.id} title={q.id ? exportTitle : "Save the draft first"}>{busy.word ? "Preparing…" : <><FileDown size={15} aria-hidden /> Word</>}</button>
               <button type="button" className="qs-btn" onClick={() => window.print()}><Printer size={15} aria-hidden /> Print</button>
               <button type="button" className="qs-btn" onClick={() => setConfirmFinalize(true)} disabled={!status.ready || !q.id || isFinal || busy.finalize} title={q.id ? exportTitle : "Save the draft first"}><Lock size={15} aria-hidden /> Finalize</button>
             </div>

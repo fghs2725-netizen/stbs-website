@@ -322,6 +322,10 @@ model Quotation {
   gstEnabled        Boolean              @default(false)
   gstMode           String?              // CGST_SGST | IGST
   gstRate           Decimal              @default(18) @db.Decimal(5, 2)
+  // null = follows the default template. A FINAL quotation freezes the wording it was sent with.
+  templateId        String?
+  template          QuotationTemplate?   @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  templateSnapshot  Json?
   items             QuotationItem[]
   finalizedAt       DateTime?
   createdAt         DateTime             @default(now())
@@ -330,6 +334,21 @@ model Quotation {
 
   @@index([status])
   @@index([clientId])
+}
+
+// Wording for a quotation (letter, profile, terms). The page design lives in code and is picked by `layout`.
+model QuotationTemplate {
+  id         String      @id @default(cuid())
+  name       String
+  layout     String      @default("classic")
+  content    Json
+  isDefault  Boolean     @default(false)
+  archivedAt DateTime?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  quotations Quotation[]
+
+  @@index([isDefault])
 }
 
 model QuotationItem {

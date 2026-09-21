@@ -1,0 +1,30 @@
+/* Live preview of a template: one A4 page at a time, on the light admin canvas. */
+
+.tpl-preview { display: flex; flex-direction: column; gap: 12px; }
+.tpl-preview-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.tpl-tab { position: relative; border: 0; background: transparent; font: inherit; cursor: pointer; }
+.tpl-dot { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--a-danger); }
+.tpl-gst { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; color: var(--a-muted); font-size: 0.8125rem; cursor: pointer; }
+.tpl-gst input { width: 16px; height: 16px; accent-color: var(--a-brand); }
+
+.tpl-stage { border-radius: var(--a-r); background: #d9d9de; padding: 14px 0; overflow: hidden; }
+/* Only the chosen page is shown; the document itself always renders all of them. */
+.tpl-stage .q-document { display: block; padding: 0; height: auto !important; gap: 0; }
+.tpl-stage .q-page { margin: 0 auto !important; scale: none !important; }
+.tpl-stage[data-page="1"] .q-page:not(:nth-child(1)),
+.tpl-stage[data-page="2"] .q-page:not(:nth-child(2)),
+.tpl-stage[data-page="3"] .q-page:not(:nth-child(3)),
+.tpl-stage[data-page="4"] .q-page:not(:nth-child(n + 4)) { display: none; }
+.tpl-stage[data-page="4"] .q-page:nth-child(n + 5) { display: none; }
+
+/* Off-screen but laid out, so scrollHeight and clientHeight are real. */
+.tpl-measure { position: absolute; left: -10000px; top: 0; width: 794px; height: 0; overflow: hidden; visibility: hidden; pointer-events: none; }
+.tpl-measure .q-document { display: block !important; padding: 0; height: auto !important; }
+.tpl-measure .q-page { margin: 0 !important; scale: none !important; }
+
+/* Thumbnail of a template's cover page for the list. */
+.tpl-thumb { position: relative; flex-shrink: 0; width: 224px; height: 317px; overflow: hidden; border-radius: 8px; background: #d9d9de; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); pointer-events: none; user-select: none; }
+.tpl-thumb-inner { width: 794px; transform: scale(0.2821); transform-origin: top left; }
+.tpl-thumb .q-document { display: block; padding: 0; height: auto !important; gap: 0; }
+.tpl-thumb .q-page { margin: 0 !important; scale: none !important; box-shadow: none; }
+.tpl-thumb .q-page:not(:nth-child(1)) { display: none; }

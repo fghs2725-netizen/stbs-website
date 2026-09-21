@@ -1,4 +1,4 @@
-import { quotation as fixed } from "./quotation-data";
+import { CLASSIC_CONTENT, DEFAULT_LAYOUT, visibleTerms } from "./template/template-model";
 import { serviceLabel, type QuotationState, getValidItems, calcAmount, calcTotals, formatINR, hasDiscount } from "./quotation-model";
 import { pricePagesFor, FIXED_PAGES } from "./pagination";
 import { amountInWords } from "@/lib/amount-in-words";
@@ -65,15 +65,17 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
   <div className="q-section"><h2>{title}</h2>{children}</div>
 );
 
-/* ==========================================================================
-   QuotationDocument
-   Contains ONLY the four A4 pages. No editor UI. Suitable for PDF rendering.
-   ========================================================================== */
-export function QuotationDocument({ quotation, isEditorPreview = false }: {
+type DocumentProps = {
   quotation: QuotationState;
   /** When true, shows dev-only hints like "No items added". Must be false for PDF. */
   isEditorPreview?: boolean;
-}) {
+};
+
+/* ==========================================================================
+   ClassicLayout
+   Contains ONLY the A4 pages. No editor UI. Suitable for PDF rendering.
+   ========================================================================== */
+function ClassicLayout({ quotation, isEditorPreview = false }: DocumentProps) {
   const service = serviceLabel(quotation);
   const validItems = getValidItems(quotation.items);
   const hasItems = validItems.length > 0;
@@ -82,11 +84,13 @@ export function QuotationDocument({ quotation, isEditorPreview = false }: {
   const totalPages = FIXED_PAGES + pricePages.pages.length;
   const showDiscount = hasDiscount(quotation, totals);
   const gstRate = Number(quotation.gstRate ?? 0);
-  // Terms are the owner's fixed wording; the "Taxes" line is only hidden when the totals state the tax explicitly.
+  // The wording comes from the quotation's template; quotations that carry none print the built-in wording.
+  // A term flagged hideWhenGst (the "Taxes" line) is dropped when the totals state the tax explicitly.
   // Clients with a staged logo become a logo wall; the rest keep the existing text list. Nothing is dropped.
-  const clientLogos = fixed.clients.map((name: string) => logoFor(name)).filter(Boolean) as ClientLogo[];
-  const clientNames = fixed.clients.filter((name: string) => !logoFor(name));
-  const terms = fixed.terms.filter(([t]: readonly string[]) => !(quotation.gstEnabled && t === "Taxes"));
+  const t = quotation.template?.content ?? CLASSIC_CONTENT;
+  const clientLogos = t.profile.clients.map((name: string) => logoFor(name)).filter(Boolean) as ClientLogo[];
+  const clientNames = t.profile.clients.filter((name: string) => !logoFor(name));
+  const terms = visibleTerms(t, Boolean(quotation.gstEnabled));
 
   // Build client lines for display
   const clientLines = [
@@ -130,39 +134,35 @@ export function QuotationDocument({ quotation, isEditorPreview = false }: {
           <div>
             <label>PREPARED BY</label>
             <strong>
-              SAINI TUBEWELL BORING SERVICE
-              <span>Rajesh Saini · Managing Director</span>
-              <span>9812003001 / 7988024114</span>
-              <span>stbs2025@gmail.com</span>
+              {t.preparedBy.company}
+              {t.preparedBy.contact && <span>{t.preparedBy.contact}</span>}
+              {t.preparedBy.phones && <span>{t.preparedBy.phones}</span>}
+              {t.preparedBy.email && <span>{t.preparedBy.email}</span>}
               {quotation.gstEnabled && businessInfo.gstin && <span>GSTIN: {businessInfo.gstin}</span>}
             </strong>
           </div>
         </div>
         <Section title="Subject"><p className="q-subject">{subject}</p></Section>
         <div className="q-letter">
-          <p>Dear Sir,</p>
-          <p>We are pleased to have the opportunity to serve you and thank you for inviting us to submit our quotation for the above-mentioned work.</p>
-          <p>The following annexures are attached for your reference.</p>
-          <ul>
-            <li>Annexure-I · Company Profile</li>
-            <li>Annexure-II · Terms and Conditions</li>
-            <li>Annexure-III · Price Offer for Subject Job</li>
-          </ul>
-          <p>We trust that the above proposal meets your requirements. We thank you for the opportunity and assure you of our best services at all times.</p>
-          <p className="closing">Yours Truly,<br /><b>(For SAINI TUBEWELL BORING SERVICE)</b></p>
-          <p className="signature">Rajesh Saini<br /><span>Managing Director</span></p>
+          <p>{t.letter.greeting}</p>
+          <p>{t.letter.opening}</p>
+          {t.letter.annexuresIntro && <p>{t.letter.annexuresIntro}</p>}
+          {t.letter.annexures.length > 0 && <ul>{t.letter.annexures.map((a: string, i: number) => <li key={`annexure-${i}`}>{a}</li>)}</ul>}
+          <p>{t.letter.closing}</p>
+          <p className="closing">{t.letter.signOff}{t.letter.signatoryCompany && <><br /><b>{t.letter.signatoryCompany}</b></>}</p>
+          <p className="signature">{t.letter.signatoryName}{t.letter.signatoryTitle && <><br /><span>{t.letter.signatoryTitle}</span></>}</p>
         </div>
       </Page>
 
       {/* ──── PAGE 2: Company Profile ──── */}
       <Page n={2} total={totalPages} kicker="ANNEXURE I" title="Company Profile">
-        <Section title="About Us"><p>{fixed.about}</p></Section>
+        <Section title="About Us"><p>{t.profile.about}</p></Section>
         <div className="profile-grid">
-          <Section title="Mission"><p>{fixed.mission}</p></Section>
-          <Section title="Vision"><p>{fixed.vision}</p></Section>
+          <Section title="Mission"><p>{t.profile.mission}</p></Section>
+          <Section title="Vision"><p>{t.profile.vision}</p></Section>
         </div>
         <Section title="Core Capabilities / Distinctive Qualities">
-          <ul className="capabilities">{fixed.capabilities.map((x: string, i: number) => <li key={`capability-${i}`}>{x}</li>)}</ul>
+          <ul className="capabilities">{t.profile.capabilities.map((x: string, i: number) => <li key={`capability-${i}`}>{x}</li>)}</ul>
         </Section>
         <Section title="Our Esteemed Clients">
           {clientLogos.length > 0 && (
@@ -181,20 +181,17 @@ export function QuotationDocument({ quotation, isEditorPreview = false }: {
       {/* ──── PAGE 3: Terms & Conditions ──── */}
       <Page n={3} total={totalPages} kicker="ANNEXURE II" title="Terms &amp; Conditions">
         <div className="terms">
-          {terms.map(([t, d]: readonly string[], i: number) => (
-            <article key={`term-${i}-${t}`}>
+          {terms.map((term, i: number) => (
+            <article key={`term-${i}-${term.title}`}>
               <b>{String(i + 1).padStart(2, "0")}</b>
-              <div><h3>{t}</h3><p>{d}</p></div>
+              <div><h3>{term.title}</h3><p>{term.text}</p></div>
             </article>
           ))}
         </div>
         <div className="glance">
           <div className="glance-head"><span>AT A GLANCE</span><small>STBS / FIELD RECORD</small></div>
           <div className="glance-grid">
-            <div><b>34+</b><span>Years Experience</span></div>
-            <div><b>500+</b><span>Projects Delivered</span></div>
-            <div><b>100%</b><span>ISI Certified</span></div>
-            <div><b>24/7</b><span>Site Support</span></div>
+            {t.glance.map((g, i: number) => <div key={`glance-${i}`}><b>{g.value}</b><span>{g.label}</span></div>)}
           </div>
         </div>
       </Page>
@@ -273,4 +270,17 @@ export function QuotationDocument({ quotation, isEditorPreview = false }: {
       })}
     </div>
   );
+}
+
+/* ==========================================================================
+   QuotationDocument
+   Picks the page design named by the quotation's template. A new design is a new layout component
+   added here and to TEMPLATE_LAYOUTS in template/template-model.ts; an unknown name falls back to
+   Classic so a quotation can never fail to render.
+   ========================================================================== */
+const LAYOUTS: Record<string, (props: DocumentProps) => React.JSX.Element> = { [DEFAULT_LAYOUT]: ClassicLayout };
+
+export function QuotationDocument(props: DocumentProps) {
+  const Layout = LAYOUTS[props.quotation.template?.layout ?? DEFAULT_LAYOUT] ?? ClassicLayout;
+  return <Layout {...props} />;
 }

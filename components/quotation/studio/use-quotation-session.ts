@@ -5,7 +5,6 @@ import { buildDraft, calcTotals, getValidItems, type QuotationState } from "../q
 import { createHistory, pushHistory, redoHistory, replaceHistoryPresent, undoHistory, type History } from "../editor-logic";
 import { quotationPageCount } from "../pagination";
 import { openQuotationPdf, pdfActionMessage, pdfFailureMessage } from "../requestQuotationPdf";
-import { downloadQuotationDocx } from "../requestQuotationDocx";
 import { useToasts } from "../feedback";
 import { readiness } from "./studio-logic";
 
@@ -14,7 +13,7 @@ export type SaveState = "saved" | "saving" | "unsaved" | "error";
 
 /**
  * Everything the editor screen needs that is not layout: the document state with undo/redo, saving
- * (manual + autosave share one path), finalising, and the PDF / Word / print exports.
+ * (manual + autosave share one path), finalising, and the PDF / print exports.
  */
 export function useQuotationSession(initial: QuotationState) {
   const [history, setHistory] = useState<History<QuotationState>>(() => createHistory(buildDraft(initial)));
@@ -42,7 +41,7 @@ export function useQuotationSession(initial: QuotationState) {
   const savedJson = useRef(JSON.stringify(q));
   const savingRef = useRef(false);
   const failedJson = useRef("");
-  const [busy, setBusy] = useState({ pdf: false, word: false, finalize: false });
+  const [busy, setBusy] = useState({ pdf: false, finalize: false });
   const [overflow, setOverflow] = useState(false);
   const { toasts, push, dismiss } = useToasts();
 
@@ -116,18 +115,6 @@ export function useQuotationSession(initial: QuotationState) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overflow, busy.pdf, push]);
 
-  const exportWord = useCallback(async () => {
-    if (!readiness(qRef.current).ready || busy.word) return;
-    if (!qRef.current.id) { push("error", "Save the draft first (Ctrl+S), then export to Word."); return; }
-    setBusy((b) => ({ ...b, word: true }));
-    try {
-      await saveBeforeExport("Word file");
-      push("success", `Word document downloaded: ${await downloadQuotationDocx(qRef.current)}`);
-    } catch (error) { push("error", error instanceof Error ? error.message : "Word export failed. Please try again."); }
-    finally { setBusy((b) => ({ ...b, word: false })); }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [busy.word, push]);
-
   const finalize = useCallback(async () => {
     const cur = qRef.current;
     if (!cur.id || !readiness(cur).ready) return false;
@@ -162,7 +149,7 @@ export function useQuotationSession(initial: QuotationState) {
   return {
     q, setQ, patch, undo, redo, canUndo: history.past.length > 0 && !isFinal, canRedo: history.future.length > 0 && !isFinal,
     dirty, isFinal, saveState: saveState === "saved" && dirty ? "unsaved" as SaveState : saveState, saveLabel, persist,
-    generatePdf, exportWord, finalize, busy, overflow, setOverflow,
+    generatePdf, finalize, busy, overflow, setOverflow,
     status, totals, validItems, pageCount, toasts, push, dismiss,
   };
 }

@@ -281,6 +281,13 @@
 .qs-stack { display: flex; flex-direction: column; gap: 7px; }
 .qs-stack .qs-btn { justify-content: flex-start; }
 
+/* ---------- Template picker ---------- */
+.qs-template-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; max-width: 900px; margin: 0 auto 14px; color: #b9bbb8; font-size: 13px; }
+.qs-template-bar label { font-weight: 600; color: #e9eae7; }
+.qs-template-bar select { min-height: 40px; max-width: 100%; padding: 0 34px 0 12px; border: 1px solid rgba(255, 255, 255, .18); border-radius: 8px; background: #1c1c1f url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23b9bbb8' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center; -webkit-appearance: none; appearance: none; color: #e9eae7; font: 500 16px var(--font-inter), sans-serif; cursor: pointer; }
+.qs-template-bar a { margin-left: auto; color: #e6b672; text-decoration: none; }
+.qs-template-bar a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
 /* ---------- Mobile action bar ---------- */
 .qs-mobile-bar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 35;

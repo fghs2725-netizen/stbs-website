@@ -1,6 +1,7 @@
+import type { QuotationTemplateRef } from "./template/template-model";
 export type QuotationItem = { id: string; description: string; unit: string; quantity: number; rate: number };
 export type ClientDetails = { gstin: string; companyName: string; contactPerson: string; addressLine1: string; addressLine2: string; city: string; state: string; pinCode: string; phone: string; email: string };
-export type QuotationState = { id?: string; clientId?: string; saveClientForFuture?: boolean; quotationReference: string; quotationDate: string; validity: string; client: ClientDetails; serviceType: string; customServiceType: string; subject: string; items: QuotationItem[]; status?: "DRAFT" | "FINAL"; discountType?: DiscountType | null; discountValue?: number; gstEnabled?: boolean; gstMode?: GstMode; gstRate?: number };
+export type QuotationState = { id?: string; clientId?: string; saveClientForFuture?: boolean; quotationReference: string; quotationDate: string; validity: string; client: ClientDetails; serviceType: string; customServiceType: string; subject: string; items: QuotationItem[]; status?: "DRAFT" | "FINAL"; discountType?: DiscountType | null; discountValue?: number; gstEnabled?: boolean; gstMode?: GstMode; gstRate?: number; templateId?: string; template?: QuotationTemplateRef };
 export type DiscountType = "PERCENT" | "FLAT";
 export type GstMode = "CGST_SGST" | "IGST";
 export const DEFAULT_GST_RATE = 18;
