@@ -1,14 +1,25 @@
 import { calcTotals, formatINR, serviceLabel, type QuotationState } from "../quotation-model";
 import { CLASSIC_CONTENT } from "../template/template-model";
 import { quotationFilename } from "@/lib/quotation-filename";
+import { invoiceFilename } from "@/lib/invoice-filename";
+import { parseInvoiceNumber } from "@/lib/invoice-numbering";
 
 /**
  * Sharing a quotation: the words that go with the PDF, the file name, and the links that hand it to WhatsApp
  * or a mail app. Pure (no browser, no network), so the parts that are easy to get subtly wrong can be tested exactly.
  */
 
-/** Everything the message needs. Plain data, so a server page can build it and pass it to the client. */
+/**
+ * Everything the message needs. Plain data, so a server page can build it and pass it to the client.
+ *
+ * Invoices share the same sheet, so `kind` chooses the wording and the file name. It is optional and
+ * absent means a quotation, which keeps every existing caller working unchanged.
+ */
 export type ShareSubject = {
+  kind?: "quotation" | "invoice";
+  /** Invoices only: when payment is due, and what is left to pay. */
+  dueDate?: string;
+  balance?: number;
   reference: string;
   clientName: string;
   contact?: string;
@@ -49,22 +60,35 @@ export function shareSubjectFrom(q: Pick<QuotationState, "quotationReference" | 
   };
 }
 
+/** "Quotation" or "Invoice", as the document calls itself in a message. */
+export const documentLabel = (s: Pick<ShareSubject, "kind">) => (s.kind === "invoice" ? "Invoice" : "Quotation");
+
 /** The subject line for mail and the title in a share sheet. */
 export function shareTitle(s: ShareSubject): string {
   const ref = s.reference ? ` ${s.reference}` : "";
   const svc = s.service ? ` for ${s.service}` : "";
-  return `Quotation${ref}${svc} - ${s.company}`;
+  return `${documentLabel(s)}${ref}${svc} - ${s.company}`;
 }
 
 /** The message that goes with the PDF. Editable in the sheet before it is used. */
 export function buildShareMessage(s: ShareSubject): string {
   const to = s.contact || s.clientName || "Sir/Madam";
-  const lines = [`Dear ${to},`, "", `Please find attached our quotation${s.reference ? ` ${s.reference}` : ""}${s.service ? ` for ${s.service}` : ""}.`];
+  const isInvoice = s.kind === "invoice";
+  const noun = isInvoice ? "invoice" : "quotation";
+  const lines = [`Dear ${to},`, "", `Please find attached our ${noun}${s.reference ? ` ${s.reference}` : ""}${s.service ? ` for ${s.service}` : ""}.`];
+
   const facts: string[] = [];
   if (s.total && s.total > 0) facts.push(`Total: ${formatINR(s.total)}`);
-  if (s.validity) facts.push(`Valid: ${s.validity}`);
+  if (isInvoice) {
+    // An invoice that has had part payment should ask for what is left, not the whole total again.
+    if (typeof s.balance === "number" && s.balance > 0 && s.balance !== s.total) facts.push(`Balance due: ${formatINR(s.balance)}`);
+    if (s.dueDate) facts.push(`Due by: ${s.dueDate}`);
+  } else if (s.validity) {
+    facts.push(`Valid: ${s.validity}`);
+  }
   if (facts.length) lines.push("", ...facts);
-  lines.push("", "Thank you for the opportunity.", "", "Regards,", `${s.signatory}${s.signatoryTitle ? `, ${s.signatoryTitle}` : ""}`, s.company);
+
+  lines.push("", isInvoice ? "Thank you for your business." : "Thank you for the opportunity.", "", "Regards,", `${s.signatory}${s.signatoryTitle ? `, ${s.signatoryTitle}` : ""}`, s.company);
   if (s.phones) lines.push(s.phones);
   return lines.join("\n");
 }
@@ -123,21 +147,25 @@ export function sanitizeFileBase(input: string, fallback: string, max = 100): st
 /** Every file gets exactly one .pdf, however the base was typed. */
 export const withPdfExtension = (base: string) => `${base}.pdf`;
 
-/** The name a quotation is saved under unless you change it (without the extension). */
-export function defaultFileBase(s: Pick<ShareSubject, "reference" | "clientName">): string {
-  return quotationFilename({ quotationReference: s.reference, client: { companyName: s.clientName } }, "pdf").replace(/\.pdf$/, "");
+/** The name the document is saved under unless you change it (without the extension). */
+export function defaultFileBase(s: Pick<ShareSubject, "reference" | "clientName" | "kind">): string {
+  const name = s.kind === "invoice"
+    ? invoiceFilename({ number: parseInvoiceNumber(s.reference) ?? undefined, client: { companyName: s.clientName } })
+    : quotationFilename({ quotationReference: s.reference, client: { companyName: s.clientName } }, "pdf");
+  return name.replace(/\.pdf$/, "");
 }
 
 /** A few one-tap alternatives to the default, in the order most people want them. Duplicates are dropped. */
-export function fileNameSuggestions(s: Pick<ShareSubject, "reference" | "clientName" | "service">): string[] {
+export function fileNameSuggestions(s: Pick<ShareSubject, "reference" | "clientName" | "service" | "kind">): string[] {
   const fallback = defaultFileBase(s);
   const ref = s.reference ? s.reference.replace(/^STBS\//i, "") : "";
   const client = s.clientName.trim();
+  const label = documentLabel(s);
   const raw = [
     fallback,
-    client && `${client} - Quotation`,
-    client && ref && `${client} - Quotation ${ref}`,
-    ref && `Quotation ${ref}`,
+    client && `${client} - ${label}`,
+    client && ref && `${client} - ${label} ${ref}`,
+    ref && `${label} ${ref}`,
     client && s.service && `${client} - ${s.service}`,
   ].filter((x): x is string => Boolean(x));
   const seen = new Set<string>();

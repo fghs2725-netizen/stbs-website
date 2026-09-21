@@ -8,6 +8,8 @@ import { InvoiceDocument } from "@/components/invoice/InvoiceDocument";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Pill } from "@/components/admin/shell/ui";
 import { Button } from "@/components/ui/button";
+import { InvoicePdfActions } from "@/components/invoice/share/InvoicePdfActions";
+import { shareSubjectFromInvoice } from "@/components/invoice/share/invoice-share";
 import {
   cancelInvoiceAction, deletePaymentAction, duplicateInvoiceAction, issueInvoiceAction, recordPaymentAction,
 } from "../actions";
@@ -82,9 +84,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           </form>
         )}
         {invoice.number && (
-          <Button asChild variant="secondary">
-            <a href={`/api/invoices/${id}/pdf`} target="_blank" rel="noopener noreferrer">Download PDF</a>
-          </Button>
+          <InvoicePdfActions id={id} subject={shareSubjectFromInvoice(invoice, settings, { grandTotal: totals.grandTotal, balance: totals.balance })} />
         )}
         <form action={duplicateInvoiceAction.bind(null, id)}>
           <Button type="submit" variant="secondary">Duplicate</Button>

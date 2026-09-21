@@ -2,7 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ReceiptText, Search, SlidersHorizontal } from "lucide-react";
 import { auth } from "@/auth";
-import { listInvoices, type InvoiceSort } from "@/lib/invoice-management";
+import { getInvoiceConfig, listInvoices, type InvoiceSort } from "@/lib/invoice-management";
+import { InvoicePdfActions } from "@/components/invoice/share/InvoicePdfActions";
+import { shareSubjectFromInvoice } from "@/components/invoice/share/invoice-share";
 import { formatINR, overdueBy, type InvoiceStatus } from "@/components/invoice/invoice-model";
 import { formatInvoiceNumber } from "@/lib/invoice-numbering";
 import { Pagination } from "@/components/admin/Pagination";
@@ -53,6 +55,7 @@ export default async function InvoicesPage({
   const from = p.from || "";
   const to = p.to || "";
 
+  const { settings } = await getInvoiceConfig();
   let rows: Awaited<ReturnType<typeof listInvoices>>["rows"] = [];
   let total = 0;
   let totalPages = 1;
@@ -210,9 +213,10 @@ export default async function InvoicesPage({
                       <Button asChild variant="secondary" size="sm"><Link href={`/admin/invoices/${inv.id}/edit`}>Edit</Link></Button>
                     )}
                     {inv.number && (
-                      <Button asChild variant="secondary" size="sm">
-                        <a href={`/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer">PDF</a>
-                      </Button>
+                      <InvoicePdfActions
+                        id={inv.id!}
+                        subject={shareSubjectFromInvoice(inv, settings, { grandTotal: inv.grandTotal, balance: inv.balance })}
+                      />
                     )}
                   </div>
                 </li>
