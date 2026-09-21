@@ -46,6 +46,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         action={
           <span className="hidden items-center gap-2 lg:flex">
             <Link href="/admin/invoices" className="a-btn">All invoices</Link>
+            {invoice.status !== "CANCELLED" && (
+              <Link href={`/admin/invoices/${id}/edit`} className="a-btn a-btn-primary">Edit</Link>
+            )}
           </span>
         }
       />

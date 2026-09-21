@@ -90,6 +90,7 @@ export default async function InvoicesPage({
         action={
           <span className="hidden items-center gap-2 lg:flex">
             <Link href="/admin/invoices/settings" className="a-btn">Settings</Link>
+            <Link href="/admin/invoices/new" className="a-btn a-btn-primary">New invoice</Link>
           </span>
         }
       />
@@ -163,12 +164,12 @@ export default async function InvoicesPage({
             description={
               filtered
                 ? "No invoices match these filters."
-                : "Open a quotation and raise the invoice from it. Numbering continues from 764."
+                : "Raise one from a quotation, or start a fresh invoice. Numbering continues from 764."
             }
             action={
               filtered
                 ? <Link href="/admin/invoices" className="a-btn a-btn-primary a-btn-sm">Clear filters</Link>
-                : <Link href="/admin/quotations" className="a-btn a-btn-primary a-btn-sm">Go to quotations</Link>
+                : <Link href="/admin/invoices/new" className="a-btn a-btn-primary a-btn-sm">New invoice</Link>
             }
           />
         ) : (
@@ -205,6 +206,9 @@ export default async function InvoicesPage({
 
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Button asChild size="sm"><Link href={`/admin/invoices/${inv.id}`}>View</Link></Button>
+                    {inv.status !== "CANCELLED" && (
+                      <Button asChild variant="secondary" size="sm"><Link href={`/admin/invoices/${inv.id}/edit`}>Edit</Link></Button>
+                    )}
                     {inv.number && (
                       <Button asChild variant="secondary" size="sm">
                         <a href={`/api/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer">PDF</a>
@@ -228,6 +232,7 @@ export default async function InvoicesPage({
         )}
       </div>
 
+      <FloatingAction href="/admin/invoices/new" label="New invoice" />
     </div>
   );
 }
