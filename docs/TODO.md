@@ -73,6 +73,16 @@ is `docs/invoice-design-v1.html`; the SQL that was applied is `docs/invoice-migr
 - [x] Credit notes: their own consecutive numbered series, raised from an issued invoice. They reduce
       what is owed without altering the invoice as printed.
 
+### Migration history
+- [x] Fixed 2026-09-21: the history could not build a database from scratch. It began with ALTERs against
+      six tables nothing ever created (including `Quotation`), because the original schema was pushed
+      straight to the database instead of migrated. `20260101000000_baseline` fills that gap; a fresh
+      database now builds from migrations alone with zero drift from schema.prisma, verified against a
+      real PostgreSQL.
+- [ ] Production still shows the baseline as pending. It is idempotent, so deploying it is a harmless
+      no-op, but the tidy fix runs no SQL at all:
+      `npx prisma migrate resolve --applied 20260101000000_baseline`
+
 ### Migration (`scripts/migrate-homepage.ts`, 12 steps, 38 changes, dry run only)
 - [ ] Decide: run `--rehearse` against production (executes writes inside a transaction, then rolls back), then `--apply`
 - [ ] After apply: check live homepage, `/clients` logos, navbar (Services, Clients, Projects, Contact)
