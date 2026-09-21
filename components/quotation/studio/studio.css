@@ -18,12 +18,13 @@
   --field-focus: #fff;
   display: flex;
   flex-direction: column;
-  min-height: 100%;
-  margin: -24px -16px calc(-24px - env(safe-area-inset-bottom));
+  min-height: 100dvh;
+  /* An absolutely positioned dropdown (client picker, presets) can reach past the
+     right edge while closed; clip, not hidden, so the sticky top bar keeps working. */
+  overflow-x: clip;
   background: #101012;
   font-family: var(--font-inter), system-ui, sans-serif;
 }
-@media (min-width: 1024px) { .qs { margin: -32px -24px; } }
 
 /* ---------- Top bar ---------- */
 .qs-bar {
@@ -307,8 +308,13 @@
 /* The hidden copy exists only so the paginator's overflow check has something to measure. */
 .qs-offscreen { position: absolute; left: -10000px; top: 0; width: 900px; height: 1px; overflow: hidden; pointer-events: none; }
 
+/* The print copy of the document is rendered on every screen so its fonts and images are ready
+   before printing, but it must not be seen. Off-screen rather than display:none, so the images
+   still load; the print block below puts it back in the flow. */
+.quotation-print-root { position: absolute; left: -10000px; top: 0; width: 210mm; height: 1px; overflow: hidden; pointer-events: none; }
+
 /* ---------- Print: only the real document ---------- */
 @media print {
   .qs, .qs-bar, .qs-rail, .qs-mobile-bar, .qs-overlay, .qs-offscreen, .qs-canvas { display: none !important; }
-  .quotation-print-root { display: block !important; }
+  .quotation-print-root { display: block !important; position: static !important; left: auto !important; height: auto !important; overflow: visible !important; pointer-events: auto; }
 }
