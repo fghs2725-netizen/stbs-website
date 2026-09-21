@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowLeft, Check, FileDown, FileText, Lock, Printer, Redo2, Undo2, X } from "lucide-react";
@@ -12,6 +12,9 @@ import { QuotationPreview } from "../QuotationPreview";
 import { QuotationPrintDocument } from "../QuotationPrintDocument";
 import { useQuotationSession } from "./use-quotation-session";
 import { Sheet } from "./sheet";
+import { ShareQuotation } from "../share/ShareQuotation";
+import { shareSubjectFrom } from "../share/share-model";
+import { requestQuotationPdf } from "../requestQuotationPdf";
 import "./studio.css";
 
 const PREVIEW_DEBOUNCE_MS = 250;
@@ -66,6 +69,14 @@ export function QuotationStudio({ initial, clients = [], templates = [], backHre
   // A draft pinned to an archived template still shows it, so the select never displays the wrong name.
   const templateOptions = q.template && !templates.some((t) => t.id === q.template!.id) ? [q.template, ...templates] : templates;
 
+  // The PDF is made from the saved quotation, so pending edits are saved first or the file would be stale.
+  const shareSubject = useMemo(() => shareSubjectFrom(q, totals.grandTotal), [q, totals.grandTotal]);
+  const getPdf = useCallback(async () => {
+    await s.saveBeforeExport("PDF");
+    return requestQuotationPdf(s.latest());
+  }, [s]);
+  const registerPdf = useCallback((open: () => void) => { s.pdfShortcut.current = open; }, [s.pdfShortcut]);
+
   const exportDisabled = !status.ready || s.overflow;
   const exportTitle = status.ready ? (s.overflow ? "A price page is overfull — shorten a description first" : undefined) : `Still needed: ${status.missing.join(", ")}`;
 
@@ -82,7 +93,12 @@ export function QuotationStudio({ initial, clients = [], templates = [], backHre
           <button type="button" className="qs-icon" onClick={s.undo} disabled={!s.canUndo} aria-label="Undo (Ctrl+Z)" title="Undo (Ctrl+Z)"><Undo2 size={16} /></button>
           <button type="button" className="qs-icon" onClick={s.redo} disabled={!s.canRedo} aria-label="Redo (Ctrl+Y)" title="Redo (Ctrl+Y)"><Redo2 size={16} /></button>
           <button type="button" className="qs-btn" onClick={() => void s.persist("manual")} disabled={s.saveState === "saving" || isFinal} title="Save draft (Ctrl+S)">{s.saveState === "saving" ? "Saving…" : "Save"}</button>
-          <button type="button" className="qs-btn qs-btn-solid" onClick={() => void s.generatePdf()} disabled={exportDisabled || busy.pdf} title={exportTitle}>{busy.pdf ? "Generating…" : "PDF"}</button>
+          <ShareQuotation intent="share" subject={shareSubject} getPdf={getPdf} render={({ open }) => (
+            <button type="button" className="qs-btn" onClick={open} disabled={exportDisabled} title={exportTitle ?? "Send the PDF by WhatsApp, email and more"}>Share</button>
+          )} />
+          <ShareQuotation intent="save" subject={shareSubject} getPdf={getPdf} registerOpen={registerPdf} render={({ open }) => (
+            <button type="button" className="qs-btn qs-btn-solid" onClick={open} disabled={exportDisabled} title={exportTitle ?? "Save the PDF (Ctrl+P)"}>PDF</button>
+          )} />
         </div>
       </header>
 
@@ -152,7 +168,12 @@ export function QuotationStudio({ initial, clients = [], templates = [], backHre
       <div className="qs-mobile-bar" role="toolbar" aria-label="Quotation actions">
         <button type="button" onClick={() => void s.persist("manual")} disabled={s.saveState === "saving" || isFinal}>{s.saveState === "saving" ? "Saving…" : "Save"}</button>
         <button type="button" onClick={openPreview}>Preview</button>
-        <button type="button" className="qs-mobile-primary" onClick={() => void s.generatePdf()} disabled={exportDisabled || busy.pdf} title={exportTitle}>{busy.pdf ? "Generating…" : "PDF"}</button>
+        <ShareQuotation intent="share" subject={shareSubject} getPdf={getPdf} render={({ open }) => (
+          <button type="button" onClick={open} disabled={exportDisabled} title={exportTitle}>Share</button>
+        )} />
+        <ShareQuotation intent="save" subject={shareSubject} getPdf={getPdf} render={({ open }) => (
+          <button type="button" className="qs-mobile-primary" onClick={open} disabled={exportDisabled} title={exportTitle}>PDF</button>
+        )} />
       </div>
 
       {preview && (

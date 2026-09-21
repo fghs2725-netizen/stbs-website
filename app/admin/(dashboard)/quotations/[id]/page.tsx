@@ -8,6 +8,8 @@ import { duplicateAction } from '../actions';
 import { DuplicateQuotationButton } from '@/components/quotation/DuplicateQuotationButton';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
+import { QuotationPdfActions } from '@/components/quotation/share/QuotationPdfActions';
+import { shareSubjectFrom } from '@/components/quotation/share/share-model';
 import { calcAmount, calcTotal, formatINR } from '@/components/quotation/quotation-model';
 
 export const dynamic = 'force-dynamic';
@@ -51,6 +53,7 @@ export default async function ViewPage({ params }: { params: Promise<{ id: strin
           </Link>
         </Button>
       )}
+      <QuotationPdfActions id={quotation.id} subject={shareSubjectFrom(quotation)} />
       <form action={duplicateAction.bind(null, quotation.id)}>
         <DuplicateQuotationButton />
       </form>

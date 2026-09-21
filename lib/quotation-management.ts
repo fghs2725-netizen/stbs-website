@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { financialYearStart, formatQuotationReference } from "@/lib/quotation-reference";
 import type { QuotationState } from "@/components/quotation/quotation-model";
-import { calcTotal, getValidItems, isQuotationPdfReady } from "@/components/quotation/quotation-model";
+import { calcTotal, calcTotals, getValidItems, isQuotationPdfReady } from "@/components/quotation/quotation-model";
 import { resolveQuotationTemplate, storableTemplateId } from "@/lib/quotation-templates";
 
 export async function requireAdmin() { const session = await auth(); if (!session?.user) throw new Error("UNAUTHORIZED"); }
@@ -50,7 +50,9 @@ export async function listQuotations(search = "", status = "ALL", page = 1, page
   return {
     rows: rows.map((x: any) => {
       const items = x.items.map((i: any) => ({ id: "", description: "x", unit: "x", quantity: Number(i.quantity), rate: Number(i.rate) }));
-      return { ...state({ ...x, items: [] }), createdAt: x.createdAt.toISOString(), itemCount: items.length, amount: calcTotal(getValidItems(items)) };
+      const base = state({ ...x, items: [] });
+      const valid = getValidItems(items);
+      return { ...base, createdAt: x.createdAt.toISOString(), itemCount: items.length, amount: calcTotal(valid), grandTotal: calcTotals({ ...base, items: valid }).grandTotal };
     }),
     total,
     totalPages: Math.max(1, Math.ceil(total / pageSize)),

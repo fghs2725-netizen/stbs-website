@@ -4,7 +4,6 @@ import { saveDraftAction, finalizeAction } from "@/app/admin/(dashboard)/quotati
 import { buildDraft, calcTotals, getValidItems, type QuotationState } from "../quotation-model";
 import { createHistory, pushHistory, redoHistory, replaceHistoryPresent, undoHistory, type History } from "../editor-logic";
 import { quotationPageCount } from "../pagination";
-import { openQuotationPdf, pdfActionMessage, pdfFailureMessage } from "../requestQuotationPdf";
 import { useToasts } from "../feedback";
 import { readiness } from "./studio-logic";
 
@@ -13,7 +12,7 @@ export type SaveState = "saved" | "saving" | "unsaved" | "error";
 
 /**
  * Everything the editor screen needs that is not layout: the document state with undo/redo, saving
- * (manual + autosave share one path), finalising, and the PDF / print exports.
+ * (manual + autosave share one path), finalising, and the PDF and share exports.
  */
 export function useQuotationSession(initial: QuotationState) {
   const [history, setHistory] = useState<History<QuotationState>>(() => createHistory(buildDraft(initial)));
@@ -41,7 +40,7 @@ export function useQuotationSession(initial: QuotationState) {
   const savedJson = useRef(JSON.stringify(q));
   const savingRef = useRef(false);
   const failedJson = useRef("");
-  const [busy, setBusy] = useState({ pdf: false, finalize: false });
+  const [busy, setBusy] = useState({ finalize: false });
   const [overflow, setOverflow] = useState(false);
   const { toasts, push, dismiss } = useToasts();
 
@@ -104,16 +103,8 @@ export function useQuotationSession(initial: QuotationState) {
     if (cur.id && cur.status === "DRAFT" && JSON.stringify(cur) !== savedJson.current && !(await persistRef.current("auto"))) throw new Error(`Could not save your latest changes first, so no ${what} was created.`);
   };
 
-  const generatePdf = useCallback(async () => {
-    if (!readiness(qRef.current).ready || overflow || busy.pdf) return;
-    setBusy((b) => ({ ...b, pdf: true }));
-    try {
-      await saveBeforeExport("PDF");
-      push("success", pdfActionMessage(await openQuotationPdf(qRef.current)));
-    } catch (error) { push("error", error instanceof Error && error.message.startsWith("Could not save") ? error.message : pdfFailureMessage(error)); }
-    finally { setBusy((b) => ({ ...b, pdf: false })); }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [overflow, busy.pdf, push]);
+  // The PDF button opens the share/save sheet (which needs a way in from the Ctrl+P shortcut). The studio registers it here.
+  const pdfShortcut = useRef<(() => void) | null>(null);
 
   const finalize = useCallback(async () => {
     const cur = qRef.current;
@@ -136,20 +127,20 @@ export function useQuotationSession(initial: QuotationState) {
       if (!(e.ctrlKey || e.metaKey)) return;
       const k = e.key.toLowerCase();
       if (k === "s") { e.preventDefault(); if (!isFinal) void persist("manual"); }
-      else if (k === "p") { e.preventDefault(); void generatePdf(); }
+      else if (k === "p") { e.preventDefault(); if (readiness(qRef.current).ready && !overflow) pdfShortcut.current?.(); }
       else if (k === "z" && !e.shiftKey) { e.preventDefault(); if (!isFinal) undo(); }
       else if (k === "y" || (k === "z" && e.shiftKey)) { e.preventDefault(); if (!isFinal) redo(); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [persist, generatePdf, undo, redo, isFinal]);
+  }, [persist, overflow, undo, redo, isFinal]);
 
   const saveLabel = saveState === "saving" ? "Saving…" : saveState === "error" ? "Not saved" : !q.id ? "Not saved yet" : dirty ? "Unsaved changes" : `Saved${savedAt ? ` · ${savedAt}` : ""}`;
 
   return {
     q, setQ, patch, undo, redo, canUndo: history.past.length > 0 && !isFinal, canRedo: history.future.length > 0 && !isFinal,
     dirty, isFinal, saveState: saveState === "saved" && dirty ? "unsaved" as SaveState : saveState, saveLabel, persist,
-    generatePdf, finalize, busy, overflow, setOverflow,
+    finalize, busy, overflow, setOverflow, pdfShortcut, saveBeforeExport, latest: () => qRef.current,
     status, totals, validItems, pageCount, toasts, push, dismiss,
   };
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Download, FileText, Search, SlidersHorizontal } from "lucide-react";
+import { FileText, Search, SlidersHorizontal } from "lucide-react";
 import { auth } from "@/auth";
 import { listQuotations, type QuotationSort } from "@/lib/quotation-management";
 import { duplicateAction } from "./actions";
@@ -11,6 +11,8 @@ import { formatINR } from "@/components/quotation/quotation-model";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { EmptyState, FloatingAction, Pill } from "@/components/admin/shell/ui";
 import { Button } from "@/components/ui/button";
+import { QuotationPdfActions } from "@/components/quotation/share/QuotationPdfActions";
+import { shareSubjectFrom } from "@/components/quotation/share/share-model";
 
 export const dynamic = "force-dynamic";
 
@@ -178,9 +180,7 @@ export default async function QuotationsPage({
                   {q.status === "DRAFT" && (
                     <Button asChild variant="secondary" size="sm"><Link href={`/admin/quotations/${q.id}/edit`}>Edit</Link></Button>
                   )}
-                  <Button asChild variant="secondary" size="sm">
-                    <a href={`/api/quotations/${q.id}/pdf`} download><Download className="size-4" />PDF</a>
-                  </Button>
+                  <QuotationPdfActions id={q.id} subject={shareSubjectFrom(q, q.grandTotal)} />
                   <form action={duplicateAction.bind(null, q.id)}>
                     <DuplicateQuotationButton />
                   </form>

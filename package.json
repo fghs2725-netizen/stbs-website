@@ -17,6 +17,8 @@
     "test:quotation-pagination": "npx tsx scripts/test-quotation-pagination.ts",
     "test:password-reset": "npx tsx scripts/test-password-reset.ts",
     "test:password-policy": "npx tsx scripts/test-password-policy.ts",
+    "test:quotation-share": "npx tsx scripts/test-quotation-share.ts",
+    "test:studio-css": "npx tsx scripts/test-studio-css.ts",
     "test:quotation-templates": "npx tsx scripts/test-quotation-templates.ts",
     "test:quotation-editor": "npx tsx scripts/test-quotation-editor-logic.ts",
     "test:quotation-studio": "npx tsx scripts/test-quotation-studio-logic.ts",
