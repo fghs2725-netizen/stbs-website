@@ -17,9 +17,15 @@
 
 .inv-document { display: grid; gap: 26px; }
 
+/*
+  On screen the sheet is as tall as the invoice needs and no taller, so a two-item invoice is not
+  followed by a hand's width of blank paper. `max-height` keeps A4 as the ceiling — pagination
+  already pushes rows forward so nothing reaches it — and print and the PDF restore the full A4
+  height below, because a sheet of paper does not shrink.
+*/
 .inv-page {
   width: 210mm;
-  height: 297mm;
+  max-height: 297mm;
   position: relative;
   overflow: hidden;
   background: #fff;
@@ -34,6 +40,9 @@
   break-after: page;
   page-break-after: always;
 }
+/* Only the last page is short. Every page before it is full of items, and must hold its A4 height
+   so the page break falls in the right place. */
+.inv-page:not(:last-child) { height: 297mm; }
 .inv-page:last-child { break-after: auto; page-break-after: auto; }
 
 /* ---------- masthead ---------- */
@@ -78,7 +87,6 @@
 .inv-table th:last-child, .inv-table td:last-child { padding-right: 0; }
 .inv-item-name { display: block; color: #2b333b; }
 .inv-item-details { display: block; margin-top: 2px; font-size: 9px; line-height: 1.45; color: #93a0aa; white-space: pre-line; }
-.inv-spacer { flex: 1 1 auto; min-height: 0; }
 .inv-continued { font-size: 9.5px; color: #93a0aa; margin: 4mm 0 0; }
 
 /* column widths: set per switch combination by the component */
@@ -130,9 +138,10 @@
 
 .inv-sign { width: 58mm; text-align: center; flex: none; }
 .inv-sign .inv-for { font-size: 9.5px; color: #5b6670; }
-.inv-signbox { height: 9mm; display: grid; place-items: center; }
-.inv-signbox img { max-height: 100%; max-width: 100%; object-fit: contain; }
-.inv-signbox small { font-size: 8.5px; color: #c2cad0; letter-spacing: .04em; }
+.inv-signbox { height: 12mm; display: grid; place-items: center; }
+/* `height`, not `max-height`: a percentage max-height does not resolve against a grid area, so the
+   signature was drawn at its natural size and ran over the name beneath it. */
+.inv-signbox img { height: 100%; max-width: 100%; object-fit: contain; }
 .inv-sign .inv-line { border-top: 1px solid #3d4852; padding-top: 6px; font-weight: 700; color: #3d4852; font-size: 10px; }
 
 .inv-page footer {
@@ -150,21 +159,50 @@
 .inv-stamp.inv-paid { color: #2f6b45; }
 .inv-stamp.inv-overdue, .inv-stamp.inv-cancelled { color: #b21f2d; }
 
+/*
+  ---------- the editor's preview overlay ----------
+  Admin chrome rather than document, so it is the one part of this file that is allowed a colour of
+  its own. It sits here because it exists only to frame `.inv-stage`, and the two must stay in step.
+*/
+.inv-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; flex-direction: column;
+  background: #2f3337;
+  font-family: Inter, Arial, sans-serif;
+}
+.inv-overlay-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 16px; border-bottom: 1px solid #ffffff1f;
+  color: #cdd3d8; font-size: 13px;
+}
+.inv-overlay-actions { display: flex; align-items: center; gap: 8px; }
+.inv-overlay-note { color: #97a1a9; font-size: 12.5px; }
+.inv-overlay-close {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 34px; padding: 0 12px;
+  border: 1px solid #ffffff2e; border-radius: 8px; background: #ffffff0d;
+  color: #e9edf0; font: 600 13px Inter, Arial, sans-serif; cursor: pointer;
+}
+.inv-overlay-close:hover { background: #ffffff1a; }
+.inv-overlay-scroll { flex: 1; overflow: auto; }
+/* The stage paints its own dark grey; inside the overlay the overlay already has. */
+.inv-overlay-scroll .inv-stage { background: none; min-height: 0; padding: 22px 0 40px; }
+
 /* ---------- screen fitting and print ---------- */
-@media (max-width: 900px) {
+/* `screen` matters: this is a fit-to-viewport hack, and paper has no viewport. Without it the rule
+   also fires while Chrome lays the PDF out at 794px and shrinks the printed page. */
+@media screen and (max-width: 900px) {
   .inv-stage { padding: 18px 0; }
-  .inv-page {
-    transform-origin: top center;
-    scale: calc((100vw - 28px) / 210mm);
-    margin-bottom: calc(-297mm + (100vw - 28px) / 210mm * 297mm);
-    box-shadow: 0 5px 20px #0008;
-  }
-  .inv-document { gap: 0; }
+  /* `zoom` rather than `scale`: it shrinks the box as well as the paint, so a page that is only as
+     tall as its items no longer needs a hand-computed negative margin to pull the next one up. */
+  .inv-page { zoom: calc((100vw - 28px) / 210mm); box-shadow: 0 5px 20px #0008; }
+  .inv-document { gap: 14px; }
 }
 
 @media print {
   .inv-stage { background: none; padding: 0; }
   .inv-document { display: block; }
-  .inv-page { box-shadow: none; margin: 0; }
+  /* Paper does not shrink: every sheet is A4, including a short last page. */
+  .inv-page { box-shadow: none; margin: 0; height: 297mm; max-height: 297mm; }
   body { background: #fff; }
 }

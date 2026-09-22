@@ -18,21 +18,26 @@ import { cleanDetails } from "../quotation/item-text";
 export const INVOICE_LAYOUT = {
   /** A4 height minus the page's top and bottom padding. */
   contentPx: 1043,
-  /** Masthead + title + parties + table heading, on the first page. */
-  headerFirstPx: 354,
+  /**
+   * Masthead + title + parties + table heading, on the first page. Measured at 365px against the
+   * fixture with the tallest party block (a ship-to address beside the bill-to); a one-line client
+   * costs about 335. The larger figure is the safe one: over-reserving moves a row to a second page,
+   * under-reserving prints it off the bottom of this one.
+   */
+  headerFirstPx: 366,
   /** Masthead + "continued" line + table heading, on later pages. */
-  headerContPx: 162,
+  headerContPx: 168,
   rowChromePx: 9.2,
   linePx: 15.75,
   detailLinePx: 13.1,
   detailGapPx: 2,
   /** One totals line; the grand-total line is taller. */
-  sumRowPx: 20.5,
+  sumRowPx: 21.8,
   sumTotalPx: 30,
   wordsPx: 26,
   /** Payment block, terms and the signature, which sit side by side. */
-  closingPx: 202,
-  footerPx: 31,
+  closingPx: 210,
+  footerPx: 32,
 } as const;
 
 /* Inter advance widths in em, calibrated against the rendered table so the estimate never falls short
@@ -138,7 +143,10 @@ export function paginateInvoiceItems(items: unknown, settings: InvoiceSettings, 
   starts.push(0);
 
   for (let i = 0; i < valid.length; i++) {
-    const capacity = L.contentPx - (pages.length === 0 ? L.headerFirstPx : L.headerContPx);
+    // The "Page N of M" footer sits on every page, not just the last, so the rows never get the
+    // whole content box. Leaving it out here let a continuation page run past the bottom of the
+    // paper, which only showed up once the page stopped being a fixed A4 box that hid the spill.
+    const capacity = L.contentPx - (pages.length === 0 ? L.headerFirstPx : L.headerContPx) - L.footerPx;
     if (page.length && used + heights[i] > capacity) {
       pages.push(page);
       starts.push(i);

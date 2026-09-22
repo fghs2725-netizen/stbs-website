@@ -24,7 +24,7 @@ export default async function EditInvoicePage({ params }: { params: Promise<{ id
   // A cancelled invoice is a closed record: it is read from the list, never edited.
   if (invoice.status === "CANCELLED") redirect(`/admin/invoices/${id}`);
 
-  const { settings } = await getInvoiceConfig();
+  const { settings, business } = await getInvoiceConfig();
 
   return (
     <div className="a-page">
@@ -37,6 +37,7 @@ export default async function EditInvoicePage({ params }: { params: Promise<{ id
       <InvoiceEditor
         initial={invoice}
         settings={settings}
+        business={business}
         save={saveInvoiceAction}
         gstModeFor={gstModeAction}
       />

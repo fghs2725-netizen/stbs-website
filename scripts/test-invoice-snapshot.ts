@@ -68,21 +68,29 @@ async function main() {
   try {
     for (const name of Object.keys(INVOICE_FIXTURES)) {
       const page = await browser.newPage();
-      await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 1 });
+      // Wider than the 900px fit-to-screen breakpoint, so the page is measured and photographed at
+      // its true A4 size rather than through the zoom a narrow viewport would apply.
+      await page.setViewport({ width: 1000, height: 1123, deviceScaleFactor: 1 });
       await page.goto(`${BASE}/internal/invoice-fixtures/${name}`, { waitUntil: "networkidle0", timeout: 120000 });
       await page.evaluate(() => document.fonts.ready);
       await page.addStyleTag({ content: "nextjs-portal{display:none!important}" });
 
       // Nothing may sit below the page's content box. Measuring the children's lowest edge is the
       // reliable test: scrollHeight on this flex column reports padding oddly.
-      const spill = await page.evaluate(() =>
-        Array.from(document.querySelectorAll<HTMLElement>(".inv-page")).map((pg, i) => {
+      //
+      // The last page is only as tall as its items, so its own height cannot be the limit — it would
+      // move with the content and never catch anything. A4 is the ceiling that actually matters, and
+      // `max-height` caps clientHeight there once a page reaches it.
+      const spill = await page.evaluate(() => {
+        const A4_PX = (297 / 25.4) * 96;
+        return Array.from(document.querySelectorAll<HTMLElement>(".inv-page")).map((pg, i) => {
           const top = pg.getBoundingClientRect().top;
-          const limit = pg.clientHeight - parseFloat(getComputedStyle(pg).paddingBottom);
+          const limit = Math.min(pg.clientHeight, A4_PX) - parseFloat(getComputedStyle(pg).paddingBottom);
           const bottom = Math.max(...Array.from(pg.children).map((el) => el.getBoundingClientRect().bottom - top));
-          return bottom > limit ? { page: i + 1, by: Math.round(bottom - limit) } : null;
-        }).filter(Boolean),
-      );
+          // A page that ends exactly on its own content box lands on the limit; allow for rounding.
+          return bottom > limit + 1 ? { page: i + 1, by: Math.round(bottom - limit) } : null;
+        }).filter(Boolean);
+      });
       for (const s of spill as Array<{ page: number; by: number }>) {
         overflows.push(`${name}: page ${s.page} overflows its A4 box by ${s.by}px`);
       }

@@ -246,8 +246,6 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
               </>
             )}
 
-            <div className="inv-spacer" />
-
             {isLast && (
               <div className="inv-foot">
                 <div className="inv-left">
@@ -287,9 +285,8 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
                   <div className="inv-sign">
                     <span className="inv-for">{t.signatureFor}</span>
                     <div className="inv-signbox">
-                      {business?.signatureUrl
-                        ? <img src={business.signatureUrl} alt="" />
-                        : <small>Signature &amp; stamp</small>}
+                      {/* Settings can override it with an upload; the owner's own signature is the default. */}
+                      <img src={business?.signatureUrl ?? "/invoice/signature.png"} alt="" />
                     </div>
                     <div className="inv-line">{settings.signatureName || t.signatureLine}</div>
                   </div>

@@ -18,7 +18,7 @@ export default async function NewInvoicePage() {
   const session = await auth();
   if (!session?.user) redirect("/admin/login");
 
-  const { settings } = await getInvoiceConfig();
+  const { settings, business } = await getInvoiceConfig();
   const draft = buildDraft(settings, new Date().toISOString().slice(0, 10));
 
   return (
@@ -29,7 +29,7 @@ export default async function NewInvoicePage() {
         description="A fresh invoice with no quotation behind it. It takes a number only when you issue it."
         action={<span className="hidden lg:block"><Link href="/admin/invoices" className="a-btn">All invoices</Link></span>}
       />
-      <InvoiceEditor initial={draft} settings={settings} save={saveInvoiceAction} gstModeFor={gstModeAction} />
+      <InvoiceEditor initial={draft} settings={settings} business={business} save={saveInvoiceAction} gstModeFor={gstModeAction} />
     </div>
   );
 }

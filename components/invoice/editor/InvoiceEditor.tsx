@@ -8,14 +8,18 @@
  * Which columns appear follows the settings switches, so an owner who has turned the HSN column off
  * is never asked for an HSN code.
  */
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, Eye, X } from "lucide-react";
 import {
   calcInvoiceTotals, dueDateFor, formatINR, lineAmount, validateItem, whatIsMissing,
   type InvoiceItem, type InvoiceState,
 } from "../invoice-model";
 import type { InvoiceSettings } from "../invoice-settings";
+import { InvoiceDocument, type InvoiceBusiness } from "../InvoiceDocument";
+import { invoicePageCount } from "../invoice-pagination";
+import { InvoicePdfActions } from "../share/InvoicePdfActions";
+import { shareSubjectFromInvoice } from "../share/invoice-share";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -25,6 +29,8 @@ type Props = {
   save: (inv: InvoiceState) => Promise<InvoiceState>;
   /** Offered for a client's state, so the CGST/SGST vs IGST choice is not typed by hand. */
   gstModeFor: (state: string, gstin?: string) => Promise<"CGST_SGST" | "IGST" | null>;
+  /** Bank details, signature and stamp, so the preview shows the invoice the client will receive. */
+  business?: InvoiceBusiness;
   /**
    * Where to go after a save. The admin pages leave this out and land on the saved invoice; the
    * dev-only harness passes its own so the editor can be exercised without a database behind it.
@@ -39,10 +45,11 @@ const newRow = (): InvoiceItem => ({
 
 const num = (v: string) => (v.trim() === "" ? 0 : Number(v));
 
-export function InvoiceEditor({ initial, settings, save, gstModeFor, onSaved }: Props) {
+export function InvoiceEditor({ initial, settings, save, gstModeFor, business, onSaved }: Props) {
   const [inv, setInv] = useState<InvoiceState>(initial);
   const [saving, startSaving] = useTransition();
   const [error, setError] = useState("");
+  const [preview, setPreview] = useState(false);
   const router = useRouter();
 
   const totals = useMemo(() => calcInvoiceTotals(inv, settings), [inv, settings]);
@@ -79,18 +86,52 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, onSaved }: 
       return { ...s, items: next };
     });
 
+  /** What was last written to the database, so the preview can say whether it is showing more. */
+  const persisted = useRef(JSON.stringify(initial));
+  const dirty = JSON.stringify(inv) !== persisted.current;
+
+  const persist = useCallback(async () => {
+    const saved = await save(inv);
+    setInv(saved);
+    persisted.current = JSON.stringify(saved);
+    return saved;
+  }, [inv, save]);
+
   const onSave = () =>
     startSaving(async () => {
       setError("");
       try {
-        const saved = await save(inv);
-        setInv(saved);
+        const saved = await persist();
         if (onSaved) onSaved(saved);
         else router.push(`/admin/invoices/${saved.id}`);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not save this invoice.");
       }
     });
+
+  /*
+   * The PDF route renders the stored invoice, so an export from the preview saves first. Without
+   * that, the file would quietly be the last save rather than the document on screen.
+   */
+  const beforePdf = useCallback(async () => { if (dirty) await persist(); }, [dirty, persist]);
+
+  const pageCount = useMemo(() => invoicePageCount(inv, settings), [inv, settings]);
+  // A draft has no number, and `GET /api/invoices/[id]/pdf` refuses one.
+  const canExport = Boolean(inv.id && inv.number);
+  const shareSubject = useMemo(
+    () => shareSubjectFromInvoice(inv, settings, { grandTotal: totals.grandTotal, balance: totals.balance }),
+    [inv, settings, totals.grandTotal, totals.balance],
+  );
+
+  // Escape closes the preview, and focus returns to the button that opened it.
+  const previewButton = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    if (!preview) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setPreview(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [preview]);
+  const closePreview = () => { setPreview(false); previewButton.current?.focus(); };
 
   return (
     <div className="flex flex-col gap-4">
@@ -295,9 +336,48 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, onSaved }: 
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button type="button" onClick={onSave} disabled={saving}>{saving ? "Saving…" : "Save invoice"}</Button>
+        <Button
+          type="button" variant="secondary" ref={previewButton}
+          onClick={() => setPreview(true)}
+          title="See the invoice exactly as it will print"
+        >
+          <Eye className="size-4" /> Preview
+        </Button>
       </div>
+
+      {preview && (
+        <div className="inv-overlay" role="dialog" aria-modal="true" aria-label="Invoice preview">
+          <div className="inv-overlay-bar">
+            <span>
+              Preview · {pageCount} A4 page{pageCount === 1 ? "" : "s"}
+              {dirty ? " · unsaved edits included" : ""}
+            </span>
+            <div className="inv-overlay-actions">
+              {!canExport && (
+                <span className="inv-overlay-note">Issue this invoice to export a PDF</span>
+              )}
+              <InvoicePdfActions
+                id={inv.id ?? ""}
+                subject={shareSubject}
+                beforePdf={beforePdf}
+                saveLabel="Save PDF"
+                disabled={!canExport}
+                disabledReason="Issue this invoice to export a PDF"
+              />
+              <button type="button" className="inv-overlay-close" onClick={closePreview} aria-label="Close preview">
+                <X size={16} aria-hidden /> Close
+              </button>
+            </div>
+          </div>
+          <div className="inv-overlay-scroll">
+            <div className="inv-stage">
+              <InvoiceDocument invoice={inv} settings={settings} business={business} isEditorPreview />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
