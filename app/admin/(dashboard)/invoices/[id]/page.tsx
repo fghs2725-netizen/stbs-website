@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { creditNotesFor, getInvoice, getInvoiceConfig, invoiceEditLog } from "@/lib/invoice-management";
+import { resolveInvoiceTemplateById } from "@/lib/invoice-templates";
 import { calcInvoiceTotals, formatINR, overdueBy, whatIsMissing, type InvoiceStatus } from "@/components/invoice/invoice-model";
 import { formatInvoiceNumber } from "@/lib/invoice-numbering";
 import { InvoiceDocument } from "@/components/invoice/InvoiceDocument";
@@ -42,6 +43,10 @@ export default async function InvoiceDetailPage({
   if (!invoice) notFound();
 
   const { settings, business } = await getInvoiceConfig();
+  // The wording the invoice actually prints with — a custom template, or its snapshot once issued.
+  // Left out here before, this page silently fell back to the built-in wording no matter what the
+  // owner had chosen or edited, and only the PDF route resolved it correctly.
+  const template = await resolveInvoiceTemplateById(id);
   // What this invoice is drawn with, so the page agrees with its own PDF.
   const effective = effectiveInvoiceSettings(settings, invoice.settingsOverride);
   const totals = calcInvoiceTotals(invoice, effective);
@@ -110,7 +115,7 @@ export default async function InvoiceDetailPage({
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="a-card overflow-hidden p-0">
           <div className="inv-stage" style={{ minHeight: 0, padding: "20px 0" }}>
-            <InvoiceDocument invoice={invoice} settings={effective} business={business} isEditorPreview />
+            <InvoiceDocument invoice={invoice} settings={effective} business={business} template={template} isEditorPreview />
           </div>
         </div>
 

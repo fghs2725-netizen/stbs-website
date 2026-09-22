@@ -17,6 +17,7 @@ import {
 } from "../invoice-model";
 import { effectiveInvoiceSettings, type InvoiceSettings, type InvoiceSettingsOverride } from "../invoice-settings";
 import { InvoiceDocument, type InvoiceBusiness } from "../InvoiceDocument";
+import type { InvoiceTemplateRef } from "../template/invoice-template-model";
 import { invoicePageCount } from "../invoice-pagination";
 import { InvoicePdfActions } from "../share/InvoicePdfActions";
 import { shareSubjectFromInvoice } from "../share/invoice-share";
@@ -35,6 +36,8 @@ type Props = {
   gstModeFor: (state: string, gstin?: string) => Promise<"CGST_SGST" | "IGST" | null>;
   /** Bank details, signature and stamp, so the preview shows the invoice the client will receive. */
   business?: InvoiceBusiness;
+  /** The wording the invoice prints with. Left out, the preview falls back to the built-in wording. */
+  template?: InvoiceTemplateRef | null;
   /** Every unit on offer: the built-in ones plus whatever the owner has added. */
   units: string[];
   /** Remembers a unit the owner typed, so it is offered on the next document too. */
@@ -53,7 +56,7 @@ const newRow = (): InvoiceItem => ({
 
 const num = (v: string) => (v.trim() === "" ? 0 : Number(v));
 
-export function InvoiceEditor({ initial, settings, save, gstModeFor, business, units, onCreateUnit, onSaved }: Props) {
+export function InvoiceEditor({ initial, settings, save, gstModeFor, business, template, units, onCreateUnit, onSaved }: Props) {
   const [inv, setInv] = useState<InvoiceState>(initial);
   const [saving, startSaving] = useTransition();
   const [error, setError] = useState("");
@@ -402,7 +405,7 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, u
           </div>
           <div className="inv-overlay-scroll">
             <div className="inv-stage">
-              <InvoiceDocument invoice={inv} settings={effective} business={business} isEditorPreview />
+              <InvoiceDocument invoice={inv} settings={effective} business={business} template={template} isEditorPreview />
             </div>
           </div>
 

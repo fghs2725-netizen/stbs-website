@@ -117,6 +117,12 @@ export async function resolveInvoiceTemplate(inv: {
   }
 }
 
+/** The same resolution, by invoice id: for pages that show an invoice but did not already fetch its templating fields. */
+export async function resolveInvoiceTemplateById(id: string): Promise<InvoiceTemplateRef> {
+  const head = await prisma.invoice.findUnique({ where: { id }, select: { status: true, templateId: true, templateSnapshot: true } });
+  return head ? resolveInvoiceTemplate(head) : BUILT_IN_TEMPLATE;
+}
+
 /* ---------- editing ---------- */
 
 export type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; errors: string[] };

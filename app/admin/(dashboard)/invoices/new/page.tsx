@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getInvoiceConfig, gstModeForClient, listCustomUnits, saveCustomUnit } from "@/lib/invoice-management";
+import { resolveInvoiceTemplate } from "@/lib/invoice-templates";
 import { buildDraft } from "@/components/invoice/invoice-model";
 import { InvoiceEditor } from "@/components/invoice/editor/InvoiceEditor";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -27,6 +28,9 @@ export default async function NewInvoicePage() {
   const { settings, business } = await getInvoiceConfig();
   const units = mergeUnits(await listCustomUnits());
   const draft = buildDraft(settings, new Date().toISOString().slice(0, 10));
+  // A brand-new draft has no id to resolve a template by, but it does carry the same
+  // templateId/status shape resolveInvoiceTemplate expects.
+  const template = await resolveInvoiceTemplate({ status: draft.status ?? "DRAFT", templateId: draft.templateId ?? null, templateSnapshot: null });
 
   return (
     <div className="a-page">
@@ -37,7 +41,7 @@ export default async function NewInvoicePage() {
         action={<span className="hidden lg:block"><Link href="/admin/invoices" className="a-btn">All invoices</Link></span>}
       />
       <InvoiceEditor
-        initial={draft} settings={settings} business={business}
+        initial={draft} settings={settings} business={business} template={template}
         units={units} onCreateUnit={createUnitAction}
         save={saveInvoiceAction} gstModeFor={gstModeAction}
       />

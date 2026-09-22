@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getInvoice, getInvoiceConfig, gstModeForClient, listCustomUnits, saveCustomUnit } from "@/lib/invoice-management";
+import { resolveInvoiceTemplateById } from "@/lib/invoice-templates";
 import { InvoiceEditor } from "@/components/invoice/editor/InvoiceEditor";
 import { formatInvoiceNumber } from "@/lib/invoice-numbering";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -32,6 +33,7 @@ export default async function EditInvoicePage({ params }: { params: Promise<{ id
 
   const { settings, business } = await getInvoiceConfig();
   const units = mergeUnits(await listCustomUnits());
+  const template = await resolveInvoiceTemplateById(id);
 
   return (
     <div className="a-page">
@@ -45,6 +47,7 @@ export default async function EditInvoicePage({ params }: { params: Promise<{ id
         initial={invoice}
         settings={settings}
         business={business}
+        template={template}
         units={units}
         onCreateUnit={createUnitAction}
         save={saveInvoiceAction}
