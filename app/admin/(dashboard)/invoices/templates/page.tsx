@@ -44,7 +44,7 @@ export default async function InvoiceTemplatesPage({
         eyebrow="Invoice settings"
         title="Invoice templates"
         description="The wording each invoice prints. The design stays the same; only the words change."
-        action={<span className="hidden lg:block"><Link href="/admin/invoices/settings" className="a-btn">Back to settings</Link></span>}
+        action={<Link href="/admin/invoices/settings" className="a-btn">Back to settings</Link>}
       />
 
       {error && <p role="alert" className="a-card p-4 text-[0.9375rem]" style={{ color: "var(--a-danger)" }}>{error}</p>}

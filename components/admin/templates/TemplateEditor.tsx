@@ -12,7 +12,7 @@ import {
   restoreTemplateAction,
   saveTemplateAction,
   setDefaultTemplateAction,
-} from "@/app/admin/(dashboard)/templates/actions";
+} from "@/app/admin/(dashboard)/quotations/templates/actions";
 import { TemplateMeasure, TemplatePreview, PREVIEW_PAGES } from "./TemplatePreview";
 
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
@@ -148,7 +148,7 @@ export function TemplateEditor({ template }: { template: TemplateRow }) {
     try {
       const r = await duplicateTemplateAction(template.id);
       if (!r.ok) { push("error", r.errors[0]); return; }
-      router.push(`/admin/templates/${r.data.id}`);
+      router.push(`/admin/quotations/templates/${r.data.id}`);
     } catch { push("error", "Could not duplicate the template."); }
     finally { setBusy(null); }
   };
@@ -161,7 +161,7 @@ export function TemplateEditor({ template }: { template: TemplateRow }) {
   return (
     <div className="a-page">
       <div>
-        <Link href="/admin/templates" onClick={leave} className="a-link inline-flex min-h-[36px] items-center gap-1 text-[0.875rem]"><ChevronLeft size={16} aria-hidden /> Templates</Link>
+        <Link href="/admin/quotations/templates" onClick={leave} className="a-link inline-flex min-h-[36px] items-center gap-1 text-[0.875rem]"><ChevronLeft size={16} aria-hidden /> Templates</Link>
       </div>
 
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -301,7 +301,7 @@ export function TemplateEditor({ template }: { template: TemplateRow }) {
           confirmLabel="Archive"
           destructive
           busy={busy === "archive"}
-          onConfirm={() => { void run("archive", () => archiveTemplateAction(template.id), "Template archived.").then((ok) => { setConfirmArchive(false); if (ok) router.push("/admin/templates"); }); }}
+          onConfirm={() => { void run("archive", () => archiveTemplateAction(template.id), "Template archived.").then((ok) => { setConfirmArchive(false); if (ok) router.push("/admin/quotations/templates"); }); }}
           onCancel={() => setConfirmArchive(false)}
         />
       )}

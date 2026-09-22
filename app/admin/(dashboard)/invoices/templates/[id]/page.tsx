@@ -60,7 +60,7 @@ export default async function EditInvoiceTemplatePage({
             ? `Used by ${template.invoiceCount} invoice${template.invoiceCount === 1 ? "" : "s"}. Invoices already issued keep the wording they went out with.`
             : "Not used by any invoice yet."
         }
-        action={<span className="hidden lg:block"><Link href="/admin/invoices/templates" className="a-btn">All templates</Link></span>}
+        action={<Link href="/admin/invoices/templates" className="a-btn">All templates</Link>}
       />
 
       {error && <p role="alert" className="a-card p-4 text-[0.9375rem]" style={{ color: "var(--a-danger)" }}>{error}</p>}

@@ -120,7 +120,7 @@ export function QuotationStudio({ initial, clients = [], templates = [], backHre
                   {templateOptions.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               )}
-              <Link href="/admin/templates" onClick={leave}>Manage templates</Link>
+              <Link href="/admin/quotations/templates" onClick={leave}>Manage templates</Link>
             </div>
           )}
           <fieldset className="qs-fieldset" disabled={isFinal}>

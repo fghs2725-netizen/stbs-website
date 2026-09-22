@@ -12,7 +12,7 @@ import {
 
 // Templates change what future quotations print, so every screen that shows one is refreshed.
 const refresh = () => {
-  revalidatePath("/admin/templates");
+  revalidatePath("/admin/quotations/templates");
   revalidatePath("/admin/quotations", "layout");
 };
 

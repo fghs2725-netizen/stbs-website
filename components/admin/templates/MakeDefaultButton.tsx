@@ -1,7 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { setDefaultTemplateAction } from "@/app/admin/(dashboard)/templates/actions";
+import { setDefaultTemplateAction } from "@/app/admin/(dashboard)/quotations/templates/actions";
 
 /** "Make default" from the list. Refreshes in place; a refusal (e.g. an archived template) is shown, not swallowed. */
 export function MakeDefaultButton({ id, name }: { id: string; name: string }) {

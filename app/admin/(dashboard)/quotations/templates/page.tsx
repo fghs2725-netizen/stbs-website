@@ -19,14 +19,14 @@ const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "2
 function Card({ t }: { t: TemplateRow }) {
   return (
     <li className="a-card flex flex-col gap-4 p-4 sm:flex-row sm:p-5">
-      <Link href={`/admin/templates/${t.id}`} className="tpl-thumb-link self-start" aria-label={`Open ${t.name}`}>
+      <Link href={`/admin/quotations/templates/${t.id}`} className="tpl-thumb-link self-start" aria-label={`Open ${t.name}`}>
         <div className="tpl-thumb" aria-hidden="true">
           <div className="tpl-thumb-inner"><QuotationDocument quotation={sampleQuotation(t.content, t.layout, false)} /></div>
         </div>
       </Link>
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="a-h2 truncate"><Link href={`/admin/templates/${t.id}`}>{t.name}</Link></h2>
+          <h2 className="a-h2 truncate"><Link href={`/admin/quotations/templates/${t.id}`}>{t.name}</Link></h2>
           {t.isDefault && <span className="a-pill a-pill-brand">Default</span>}
           {t.archived && <span className="a-pill a-pill-neutral">Archived</span>}
         </div>
@@ -35,7 +35,7 @@ function Card({ t }: { t: TemplateRow }) {
           {t.quotationCount === 0 ? "Not used by any quotation yet" : `Used by ${t.quotationCount} ${t.quotationCount === 1 ? "quotation" : "quotations"}`}
         </p>
         <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
-          <Link href={`/admin/templates/${t.id}`} className="a-btn a-btn-primary a-btn-sm">Edit and preview</Link>
+          <Link href={`/admin/quotations/templates/${t.id}`} className="a-btn a-btn-primary a-btn-sm">Edit and preview</Link>
           {!t.isDefault && !t.archived && <MakeDefaultButton id={t.id} name={t.name} />}
         </div>
       </div>

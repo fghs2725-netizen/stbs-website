@@ -8,6 +8,7 @@ import {
   LayoutTemplate,
   ReceiptText,
   RotateCcw,
+  SlidersHorizontal,
   Truck,
   Users,
 } from 'lucide-react';
@@ -35,10 +36,17 @@ export const ADMIN_WORK_NAV: NavItemDef[] = [
   { name: 'Clients', short: 'Clients', href: '/admin/clients', icon: Users },
 ];
 
-/** Setup, reached from the sidebar's second group or the phone More sheet. */
+/**
+ * Setup, reached from the sidebar's second group or the phone More sheet.
+ *
+ * Each document type's setup sits under that document type, both in the path and here: invoice
+ * settings were unreachable while they lived at a route nothing linked to, and quotation templates
+ * were easy to mistake for every kind of template while they sat at the top level.
+ */
 export const ADMIN_SETUP_NAV: NavItemDef[] = [
   { name: 'Company', href: '/admin/settings/company', icon: Building2 },
-  { name: 'Quotation templates', href: '/admin/templates', icon: LayoutTemplate },
+  { name: 'Quotation templates', href: '/admin/quotations/templates', icon: LayoutTemplate },
+  { name: 'Invoice settings', href: '/admin/invoices/settings', icon: SlidersHorizontal },
   { name: 'Website photos', href: '/admin/photos', icon: Images },
   { name: 'Data & files', href: '/admin/storage', icon: Database },
   { name: 'Account & password', href: '/admin/account', icon: KeyRound },

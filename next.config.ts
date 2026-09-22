@@ -33,6 +33,13 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    // Quotation templates moved under the document type they belong to; a bookmark still lands.
+    return [
+      { source: "/admin/templates", destination: "/admin/quotations/templates", permanent: false },
+      { source: "/admin/templates/:id", destination: "/admin/quotations/templates/:id", permanent: false },
+    ];
+  },
   webpack(config) {
     config.resolve.alias["@splinetool/react-spline/next"] = path.resolve(
       process.cwd(),

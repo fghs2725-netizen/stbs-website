@@ -55,7 +55,7 @@ export default async function ItemCodesPage({
         eyebrow="Invoice settings"
         title="HSN and SAC codes"
         description="The code for each thing you sell, typed once and then filled in automatically."
-        action={<span className="hidden lg:block"><Link href="/admin/invoices/settings" className="a-btn">Back to settings</Link></span>}
+        action={<Link href="/admin/invoices/settings" className="a-btn">Back to settings</Link>}
       />
 
       <p className="a-card p-4 text-[0.875rem]" style={{ color: "var(--a-body)" }}>
