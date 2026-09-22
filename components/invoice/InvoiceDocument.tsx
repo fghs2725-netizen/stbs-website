@@ -108,7 +108,7 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
                   a page nearly fifty points of height that the item table wanted. */}
               <div className="inv-head-right">
                 <div className="inv-logo">
-                  <img src={business?.logoUrl ?? "/stbs-logo-dark.png"} alt={company.name} />
+                  <img src={business?.logoUrl || "/stbs-logo-dark.png"} alt={company.name} />
                 </div>
                 {isFirst && (
                   <div className="inv-title">
@@ -293,8 +293,10 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
                   <div className="inv-sign">
                     <span className="inv-for">{t.signatureFor}</span>
                     <div className="inv-signbox">
-                      {/* Settings can override it with an upload; the owner's own signature is the default. */}
-                      <img src={business?.signatureUrl ?? "/invoice/signature.png"} alt="" />
+                      {/* Settings can override it with an upload; the owner's own signature is the
+                          default. `||`, not `??`: a settings row that holds an empty string is not
+                          an override, and `??` would have passed it through as `src=""`. */}
+                      <img src={business?.signatureUrl || "/invoice/signature.png"} alt="" />
                     </div>
                     <div className="inv-line">{settings.signatureName || t.signatureLine}</div>
                   </div>
