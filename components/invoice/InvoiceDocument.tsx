@@ -15,6 +15,7 @@ import { invoicePages } from "./invoice-pagination";
 import { resolveTemplate, type InvoiceTemplateRef } from "./template/invoice-template-model";
 import { placeOfSupply } from "@/lib/india-gst";
 import { formatInvoiceNumber } from "@/lib/invoice-numbering";
+import { DocumentImage } from "./DocumentImage";
 import { cleanDetails } from "../quotation/item-text";
 import { amountInWords } from "@/lib/amount-in-words";
 import { businessInfo, company } from "@/lib/company";
@@ -108,7 +109,7 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
                   a page nearly fifty points of height that the item table wanted. */}
               <div className="inv-head-right">
                 <div className="inv-logo">
-                  <img src={business?.logoUrl || "/stbs-logo-dark.png"} alt={company.name} />
+                  <DocumentImage src={business?.logoUrl} fallback="/stbs-logo-dark.png" alt={company.name} />
                 </div>
                 {isFirst && (
                   <div className="inv-title">
@@ -293,10 +294,9 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
                   <div className="inv-sign">
                     <span className="inv-for">{t.signatureFor}</span>
                     <div className="inv-signbox">
-                      {/* Settings can override it with an upload; the owner's own signature is the
-                          default. `||`, not `??`: a settings row that holds an empty string is not
-                          an override, and `??` would have passed it through as `src=""`. */}
-                      <img src={business?.signatureUrl || "/invoice/signature.png"} alt="" />
+                      {/* Settings can override it with a URL; the owner's own signature is the
+                          default, and is drawn too when that URL no longer resolves. */}
+                      <DocumentImage src={business?.signatureUrl} fallback="/invoice/signature.png" alt="" />
                     </div>
                     <div className="inv-line">{settings.signatureName || t.signatureLine}</div>
                   </div>

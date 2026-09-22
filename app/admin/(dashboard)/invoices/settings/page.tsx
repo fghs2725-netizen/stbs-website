@@ -61,8 +61,10 @@ async function saveAction(formData: FormData) {
         bank: text("bank"),
         upi: text("upi"),
       },
-      upiQrUrl: text("upiQrUrl") || undefined,
-      signatureUrl: text("signatureUrl") || undefined,
+      // Not `|| undefined`: the save path skips an undefined field, so emptying either box could
+      // never clear it, and a URL that had stopped resolving stayed on every invoice for good.
+      upiQrUrl: text("upiQrUrl"),
+      signatureUrl: text("signatureUrl"),
     },
   });
   revalidatePath("/admin/invoices/settings");
