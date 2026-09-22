@@ -86,14 +86,8 @@
 .inv-continued { font-size: 9.5px; color: #93a0aa; margin: 4mm 0 0; }
 
 /* column widths: set per switch combination by the component */
-.inv-c-sr { width: 7%; }
-.inv-c-qty { width: 10%; }
-.inv-c-hsn { width: 12%; }
-.inv-c-unit { width: 10%; }
-.inv-c-disc { width: 9%; }
-.inv-c-gst { width: 9%; }
-.inv-c-rate { width: 14%; }
-.inv-c-amt { width: 16%; }
+/* Widths are set on the `<col>` elements inline, from `columnWidthPercents` — the proportion each
+   one gets depends on which others are switched on, so it cannot be a fixed number here. */
 
 /* ---------- totals ---------- */
 .inv-sum { display: flex; justify-content: flex-end; }

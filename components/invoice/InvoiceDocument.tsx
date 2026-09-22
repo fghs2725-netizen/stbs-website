@@ -11,6 +11,7 @@ import {
   calcInvoiceTotals, formatINR, getValidItems, lineAmount, overdueBy,
   type InvoiceState, type InvoiceSettings,
 } from "./invoice-model";
+import { columnCount, columnWidthPercents } from "./invoice-settings";
 import { invoicePages } from "./invoice-pagination";
 import { resolveTemplate, type InvoiceTemplateRef } from "./template/invoice-template-model";
 import { placeOfSupply } from "@/lib/india-gst";
@@ -58,6 +59,16 @@ const addressLines = (p: {
 export function InvoiceDocument({ invoice, settings, template, templateSnapshot, business, isEditorPreview }: InvoiceDocumentProps) {
   const t = resolveTemplate(templateSnapshot, template).content;
   const { columns: col, blocks } = settings;
+  /*
+   * `table-layout: fixed` sizes every column from the cells of the table's first row. That is a
+   * one-time measurement: removing or adding a `<th>` in place — which is what a settings toggle
+   * does, live, in the segments panel — does not reliably make the browser redo it, so a column
+   * that was switched off leaves its width unclaimed as blank space instead of the rest growing
+   * into it. A `key` tied to which columns are shown forces React to tear the table down and mount
+   * a fresh one whenever that set changes, which is a first row the browser has never measured.
+   */
+  const colsKey = Object.values(col).join("");
+  const colWidth = columnWidthPercents(col);
   const totals = calcInvoiceTotals(invoice, settings);
   const items = getValidItems(invoice.items);
   const hasItems = items.length > 0;
@@ -170,7 +181,30 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
 
             {/* A last page carrying only the totals has no rows, and prints no heading above them. */}
             {(rows.length > 0 || isFirst) && (
-            <table className="inv-table">
+            <table className="inv-table" key={colsKey}>
+              {/*
+                `table-layout: fixed` is meant to size columns from whichever row it treats as the
+                first, independent of content — but an empty invoice's placeholder row is a single
+                `colSpan` cell, and against that row the browser fails to expand the unwidthed
+                Description column, leaving its share of the table unclaimed as blank space. A
+                `<colgroup>` states every column's width once, outside any row, so no row's content
+                can disturb it — empty, colspanned or otherwise.
+
+                Widths come from `columnWidthPercents`, not a fixed number per column: when one is
+                switched off, every remaining column grows by the same proportion, rather than the
+                whole of its share landing on Description alone and shoving Qty out toward the edge.
+              */}
+              <colgroup>
+                {col.srNo && <col style={{ width: `${colWidth.sr}%` }} />}
+                <col style={{ width: `${colWidth.desc}%` }} />
+                {col.hsn && <col style={{ width: `${colWidth.hsn}%` }} />}
+                <col style={{ width: `${colWidth.qty}%` }} />
+                {col.unit && <col style={{ width: `${colWidth.unit}%` }} />}
+                {col.lineDiscount && <col style={{ width: `${colWidth.disc}%` }} />}
+                {col.lineGst && <col style={{ width: `${colWidth.gst}%` }} />}
+                <col style={{ width: `${colWidth.rate}%` }} />
+                <col style={{ width: `${colWidth.amt}%` }} />
+              </colgroup>
               <thead>
                 <tr>
                   {col.srNo && <th className="inv-c-sr">#</th>}
@@ -206,7 +240,7 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
                   );
                 }) : (
                   isEditorPreview && isFirst ? (
-                    <tr><td colSpan={12} style={{ textAlign: "center", color: "#a6b0b8", fontStyle: "italic", padding: "20px 6px" }}>No items added</td></tr>
+                    <tr><td colSpan={columnCount(col)} style={{ textAlign: "center", color: "#a6b0b8", fontStyle: "italic", padding: "20px 6px" }}>No items added</td></tr>
                   ) : null
                 )}
               </tbody>

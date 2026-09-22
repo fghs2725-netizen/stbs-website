@@ -12,7 +12,7 @@
  * is caught rather than silently clipping a row off the bottom of an invoice.
  */
 import { calcInvoiceTotals, getValidItems, type InvoiceItem, type InvoiceState } from "./invoice-model";
-import type { InvoiceSettings } from "./invoice-settings";
+import { columnWidthPercents, type InvoiceSettings } from "./invoice-settings";
 import { cleanDetails } from "../quotation/item-text";
 
 export const INVOICE_LAYOUT = {
@@ -76,16 +76,15 @@ export function wrappedLines(text: string, widthPx: number, fontPx: number): num
   return lines;
 }
 
-/** The width the description column gets, which depends on which optional columns are switched on. */
+/**
+ * The width the description column gets, which depends on which optional columns are switched on.
+ * Reads the same proportional split the table itself renders with — `columnWidthPercents` — so an
+ * estimate here can never disagree with what the browser actually draws, which is what a row wraps
+ * against.
+ */
 export function descriptionWidthPx(c: InvoiceSettings["columns"]): number {
   const tableWidth = 680; // 210mm page minus 15mm padding each side
-  let others = 10 + 14 + 16; // qty, rate, amount are always shown
-  if (c.srNo) others += 7;
-  if (c.hsn) others += 12;
-  if (c.unit) others += 10;
-  if (c.lineDiscount) others += 9;
-  if (c.lineGst) others += 9;
-  const descPercent = Math.max(18, 100 - others);
+  const descPercent = columnWidthPercents(c).desc;
   return (tableWidth * descPercent) / 100 - 12; // less the cell's padding on both sides
 }
 

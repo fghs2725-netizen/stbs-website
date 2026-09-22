@@ -173,6 +173,38 @@ export const INVOICE_BLOCK_SEGMENTS: Array<{ key: keyof InvoiceBlocks; label: st
   { key: "statusStamp", label: "PAID / OVERDUE stamp across the page" },
 ];
 
+/**
+ * Each column's share of the table, before any are switched off — anchored to the owner's default
+ * switches (serial number, HSN and unit on; the two per-line columns off), where these sum to
+ * exactly 100 and the scale factor below works out to 1. That default is the one every earlier
+ * screenshot and pagination estimate was tuned against, so it renders identically to before; every
+ * other combination of switches scales from it.
+ */
+const COLUMN_WEIGHT = {
+  sr: 7, desc: 31, hsn: 12, qty: 10, unit: 10, disc: 9, gst: 9, rate: 14, amt: 16,
+} as const;
+
+/**
+ * What each visible column renders at, in percent, summing to 100 whichever columns are switched
+ * off. Turning a column off used to hand its whole share to Description alone — correct only in the
+ * sense that nothing was left unclaimed, but it read as Qty having drifted off toward the right edge
+ * of the page. Scaling every visible column up by the same factor keeps the row looking like one
+ * table that lost a column, not one column that ate another's space.
+ */
+export function columnWidthPercents(c: InvoiceColumns): Record<keyof typeof COLUMN_WEIGHT, number> {
+  const on: Partial<Record<keyof typeof COLUMN_WEIGHT, boolean>> = {
+    sr: c.srNo, desc: true, hsn: c.hsn, qty: true, unit: c.unit,
+    disc: c.lineDiscount, gst: c.lineGst, rate: true, amt: true,
+  };
+  const shown = (Object.keys(COLUMN_WEIGHT) as Array<keyof typeof COLUMN_WEIGHT>).filter((k) => on[k]);
+  const total = shown.reduce((sum, k) => sum + COLUMN_WEIGHT[k], 0);
+  const scale = 100 / total;
+  return shown.reduce((acc, k) => {
+    acc[k] = COLUMN_WEIGHT[k] * scale;
+    return acc;
+  }, {} as Record<keyof typeof COLUMN_WEIGHT, number>);
+}
+
 /** How many columns the item table prints, so a colspan is never hand-counted in two places. */
 export function columnCount(c: InvoiceColumns): number {
   // Description, rate and amount always print; the rest are switchable. QTY always prints.
