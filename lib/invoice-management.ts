@@ -12,6 +12,7 @@
  * Item wording reuses the quotation's encoding: the name is the first line of `description` and the
  * details follow after a line break, so one column holds both and the two features cannot drift apart.
  */
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/quotation-management";
 import { decodeItemText, encodeItemText } from "@/components/quotation/item-text";
@@ -21,9 +22,14 @@ import {
   calcInvoiceTotals, canIssue, dueDateFor, emptyParty, fromQuotation, getValidItems, whatIsMissing,
   type InvoiceItem, type InvoiceState, type InvoiceStatus,
 } from "@/components/invoice/invoice-model";
-import { DEFAULT_INVOICE_SETTINGS, resolveSettings, type InvoiceSettings } from "@/components/invoice/invoice-settings";
+import {
+  DEFAULT_INVOICE_SETTINGS, effectiveInvoiceSettings, resolveSettings,
+  type InvoiceBlocks, type InvoiceColumns, type InvoiceSettings, type InvoiceSettingsOverride,
+} from "@/components/invoice/invoice-settings";
 import type { InvoiceBusiness } from "@/components/invoice/InvoiceDocument";
 import { resolveInvoiceTemplate, storableTemplateId } from "@/lib/invoice-templates";
+import { BUILT_IN_UNITS } from "@/lib/units";
+import { usableAssetUrl } from "@/lib/asset-reachable";
 
 /**
  * Each round trip to the hosted database takes about a second, and these transactions make several,
@@ -47,13 +53,21 @@ export type InvoiceConfig = { settings: InvoiceSettings; business: InvoiceBusine
 /** The switch settings and the owner's business values. Falls back to the defaults before anything is saved. */
 export async function getInvoiceConfig(): Promise<InvoiceConfig> {
   const row = await prisma.invoiceSetting.findUnique({ where: { id: SETTINGS_ID } });
+  // A URL that no longer resolves is dropped here rather than drawn as an empty frame. It has to be
+  // settled on the server: the PDF renderer captures the page as it loads, so nothing the browser
+  // would do about a broken image afterwards ever reaches the file a client receives.
+  const [signatureUrl, stampUrl, upiQrUrl] = await Promise.all([
+    usableAssetUrl(row?.signatureUrl),
+    usableAssetUrl(row?.stampUrl),
+    usableAssetUrl(row?.upiQrUrl),
+  ]);
   return {
     settings: resolveSettings(row?.settings),
     business: {
       bank: (row?.bankDetails as InvoiceBusiness["bank"]) ?? undefined,
-      signatureUrl: row?.signatureUrl ?? undefined,
-      stampUrl: row?.stampUrl ?? undefined,
-      upiQrUrl: row?.upiQrUrl ?? undefined,
+      signatureUrl,
+      stampUrl,
+      upiQrUrl,
     },
   };
 }
@@ -93,6 +107,7 @@ function toState(x: Row): InvoiceState {
     shipToPinCode: string | null; shipToPhone: string | null;
     discountType: string | null; discountValue: unknown; gstEnabled: boolean; gstMode: string; gstRate: unknown;
     quotationId: string | null; quotationReference: string | null; templateId: string | null;
+    settingsOverride?: unknown;
     items?: Array<{ id: string; description: string; unit: string; quantity: unknown; rate: unknown; hsn: string | null; discountPercent: unknown; gstRate: unknown }>;
     payments?: Array<{ id: string; date: string; amount: unknown; method: string | null; note: string | null }>;
   };
@@ -146,11 +161,34 @@ function toState(x: Row): InvoiceState {
     quotationId: r.quotationId ?? undefined,
     quotationReference: r.quotationReference ?? undefined,
     templateId: r.templateId ?? undefined,
+    settingsOverride: sanitizeOverride(r.settingsOverride),
     payments: (r.payments ?? []).map((p) => ({
       id: p.id, date: p.date, amount: Number(p.amount),
       method: p.method ?? undefined, note: p.note ?? undefined,
     })),
   };
+}
+
+/**
+ * Keeps only the switches this invoice actually overrides, as booleans. A hand-edited row, or a key
+ * that no longer exists, must never be able to stop an invoice rendering — and an override that has
+ * been emptied is stored as nothing at all, so the invoice goes back to following the settings.
+ */
+function sanitizeOverride(raw: unknown): InvoiceSettingsOverride | undefined {
+  const o = (raw ?? {}) as InvoiceSettingsOverride;
+  const pick = <T extends object>(src: unknown, keys: Array<keyof T>) => {
+    const from = (src ?? {}) as Record<string, unknown>;
+    const out: Record<string, boolean> = {};
+    for (const k of keys) if (typeof from[k as string] === "boolean") out[k as string] = from[k as string] as boolean;
+    return out;
+  };
+  const D = DEFAULT_INVOICE_SETTINGS;
+  const columns = pick<InvoiceColumns>(o.columns, Object.keys(D.columns) as Array<keyof InvoiceColumns>);
+  const blocks = pick<InvoiceBlocks>(o.blocks, Object.keys(D.blocks) as Array<keyof InvoiceBlocks>);
+  const result: InvoiceSettingsOverride = {};
+  if (Object.keys(columns).length) result.columns = columns as Partial<InvoiceColumns>;
+  if (Object.keys(blocks).length) result.blocks = blocks as Partial<InvoiceBlocks>;
+  return result.columns || result.blocks ? result : undefined;
 }
 
 function toInput(inv: InvoiceState) {
@@ -187,6 +225,8 @@ function toInput(inv: InvoiceState) {
     quotationId: inv.quotationId || null,
     quotationReference: inv.quotationReference || null,
     templateId: storableTemplateId(inv.templateId),
+    // `DbNull`, not `null`: on a nullable Json column Prisma reserves plain null for "leave it".
+    settingsOverride: (sanitizeOverride(inv.settingsOverride) ?? Prisma.DbNull) as Prisma.InputJsonValue,
   };
 }
 
@@ -311,6 +351,20 @@ async function logEdits(tx: typeof prisma, invoiceId: string, before: Record<str
  * tracked field that changed is written to the edit log first, inside the same transaction, so the
  * record cannot be updated without the log being updated with it.
  */
+/**
+ * Changes the segments one invoice adds or removes, from its own page.
+ *
+ * It goes back through `saveInvoice` rather than writing the column directly, so an issued invoice
+ * records the change in its edit history like any other: taking a block off a document a client is
+ * holding is exactly the kind of edit that has to be explainable later.
+ */
+export async function saveInvoiceSegments(id: string, override: InvoiceSettingsOverride): Promise<InvoiceState> {
+  await requireAdmin();
+  const current = await getInvoice(id);
+  if (!current) throw new Error("NOT_FOUND");
+  return saveInvoice({ ...current, settingsOverride: override });
+}
+
 export async function saveInvoice(inv: InvoiceState, editedBy?: string): Promise<InvoiceState> {
   await requireAdmin();
   // Fill in any HSN code the owner has already chosen for an item name. Done before the transaction
@@ -357,7 +411,10 @@ export async function issueInvoice(id: string): Promise<InvoiceState> {
     if (!row) throw new Error("NOT_FOUND");
     if (row.status !== "DRAFT") throw new Error("ALREADY_ISSUED");
     const inv = toState(row as never);
-    const missing = whatIsMissing(inv, settings);
+    // The freeze has to record what this invoice is actually drawn with, segments it removed for
+    // itself included, or issuing would quietly hand them back to the global settings.
+    const frozen = effectiveInvoiceSettings(settings, inv.settingsOverride);
+    const missing = whatIsMissing(inv, frozen);
     if (missing.length) throw new Error(`INCOMPLETE: ${missing.join(", ")}`);
 
     const counter = await tx.invoiceNumberCounter.upsert({
@@ -372,7 +429,7 @@ export async function issueInvoice(id: string): Promise<InvoiceState> {
       where: { id },
       data: {
         number, status: "ISSUED", issuedAt: new Date(),
-        settingsSnapshot: settings as object,
+        settingsSnapshot: frozen as object,
         // The wording is frozen alongside the switches: editing a template later must not rewrite
         // an invoice a client already holds.
         templateSnapshot: wording.content as object,
@@ -568,6 +625,29 @@ export async function saveItemCode(description: string, hsn: string, unit?: stri
 export async function deleteItemCode(id: string) {
   await requireAdmin();
   await prisma.invoiceItemCode.delete({ where: { id } });
+}
+
+/* ────────────────────────── the unit library ────────────────────────── */
+
+/** The units the owner has typed that were not built in, oldest first is no use: alphabetical. */
+export async function listCustomUnits(): Promise<string[]> {
+  const rows = await prisma.customUnit.findMany({ orderBy: { name: "asc" }, select: { name: true } });
+  return rows.map((r) => r.name);
+}
+
+/** Remembers a unit so it is offered on every later quotation and invoice. Quietly idempotent. */
+export async function saveCustomUnit(name: string): Promise<void> {
+  await requireAdmin();
+  const value = name.trim().slice(0, 24);
+  if (!value) throw new Error("UNIT_REQUIRED");
+  // A unit already built in is not worth storing, and storing it would list it twice.
+  if (BUILT_IN_UNITS.some((u) => u.toLowerCase() === value.toLowerCase())) return;
+  await prisma.customUnit.upsert({ where: { name: value }, create: { name: value }, update: {} });
+}
+
+export async function deleteCustomUnit(id: string): Promise<void> {
+  await requireAdmin();
+  await prisma.customUnit.delete({ where: { id } });
 }
 
 /* ────────────────────────── credit notes and the edit log ────────────────────────── */

@@ -18,7 +18,10 @@ const blankItem = (preset?: { description: string; unit: string }): QuotationIte
  * The editable quotation page. Fields sit where they print, with no borders until you touch them,
  * so filling it in feels like typing on the document. Pages 2-3 (profile, terms) are fixed and only previewed.
  */
-export function Sheet({ s, clients, onPreview }: { s: Session; clients: ReusableClient[]; onPreview: () => void }) {
+export function Sheet({ s, clients, units, onCreateUnit, onPreview }: {
+  s: Session; clients: ReusableClient[]; units: string[];
+  onCreateUnit?: (unit: string) => void | Promise<void>; onPreview: () => void;
+}) {
   const { q, setQ, patch, totals } = s;
   const [focusId, setFocusId] = useState<string | null>(null);
   const [confirmRow, setConfirmRow] = useState<string | null>(null);
@@ -99,7 +102,7 @@ export function Sheet({ s, clients, onPreview }: { s: Session; clients: Reusable
           <h2>Price offer</h2>
           <span className="qs-tag">{s.validItems.length} of {q.items.length} on quotation</span>
         </div>
-        <LineItems items={q.items} focusId={focusId} onEdit={editItem} onAdd={addItem} onRemove={requestRemove} onDuplicate={dupItem} onMove={moveRow} />
+        <LineItems items={q.items} focusId={focusId} units={units} onCreateUnit={onCreateUnit} onEdit={editItem} onAdd={addItem} onRemove={requestRemove} onDuplicate={dupItem} onMove={moveRow} />
         {q.items.length > 0 && <Totals q={q} totals={totals} patch={patch} hasItems={s.validItems.length > 0} />}
       </section>
 

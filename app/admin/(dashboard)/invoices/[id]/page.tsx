@@ -5,6 +5,8 @@ import { creditNotesFor, getInvoice, getInvoiceConfig, invoiceEditLog } from "@/
 import { calcInvoiceTotals, formatINR, overdueBy, whatIsMissing, type InvoiceStatus } from "@/components/invoice/invoice-model";
 import { formatInvoiceNumber } from "@/lib/invoice-numbering";
 import { InvoiceDocument } from "@/components/invoice/InvoiceDocument";
+import { effectiveInvoiceSettings, type InvoiceSettingsOverride } from "@/components/invoice/invoice-settings";
+import { InvoiceSegmentsButton } from "@/components/invoice/segments/InvoiceSegmentsButton";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Pill } from "@/components/admin/shell/ui";
 import { Button } from "@/components/ui/button";
@@ -12,6 +14,7 @@ import { InvoicePdfActions } from "@/components/invoice/share/InvoicePdfActions"
 import { shareSubjectFromInvoice } from "@/components/invoice/share/invoice-share";
 import {
   cancelInvoiceAction, createCreditNoteAction, deletePaymentAction, duplicateInvoiceAction, issueInvoiceAction, recordPaymentAction,
+  saveSegmentsAction,
 } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -39,8 +42,10 @@ export default async function InvoiceDetailPage({
   if (!invoice) notFound();
 
   const { settings, business } = await getInvoiceConfig();
-  const totals = calcInvoiceTotals(invoice, settings);
-  const missing = whatIsMissing(invoice, settings);
+  // What this invoice is drawn with, so the page agrees with its own PDF.
+  const effective = effectiveInvoiceSettings(settings, invoice.settingsOverride);
+  const totals = calcInvoiceTotals(invoice, effective);
+  const missing = whatIsMissing(invoice, effective);
   const late = overdueBy(invoice);
   const edits = invoice.status === "DRAFT" ? [] : await invoiceEditLog(id);
   const canTakePayment = invoice.status !== "DRAFT" && invoice.status !== "CANCELLED" && totals.balance > 0;
@@ -94,8 +99,9 @@ export default async function InvoiceDetailPage({
           </form>
         )}
         {invoice.number && (
-          <InvoicePdfActions id={id} subject={shareSubjectFromInvoice(invoice, settings, { grandTotal: totals.grandTotal, balance: totals.balance })} />
+          <InvoicePdfActions id={id} subject={shareSubjectFromInvoice(invoice, effective, { grandTotal: totals.grandTotal, balance: totals.balance })} />
         )}
+        <InvoiceSegmentsButton base={settings} initial={invoice.settingsOverride ?? {}} save={saveSegmentsAction.bind(null, id)} />
         <form action={duplicateInvoiceAction.bind(null, id)}>
           <Button type="submit" variant="secondary">Duplicate</Button>
         </form>
@@ -104,7 +110,7 @@ export default async function InvoiceDetailPage({
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="a-card overflow-hidden p-0">
           <div className="inv-stage" style={{ minHeight: 0, padding: "20px 0" }}>
-            <InvoiceDocument invoice={invoice} settings={settings} business={business} isEditorPreview />
+            <InvoiceDocument invoice={invoice} settings={effective} business={business} isEditorPreview />
           </div>
         </div>
 

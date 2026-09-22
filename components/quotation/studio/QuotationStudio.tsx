@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowLeft, Check, FileDown, FileText, Lock, Printer, Redo2, Undo2, X } from "lucide-react";
 import type { QuotationState } from "../quotation-model";
+import { BUILT_IN_UNITS } from "@/lib/units";
 import { formatINR } from "../quotation-model";
 import type { ReusableClient } from "@/lib/quotation-management";
 import type { QuotationTemplateRef } from "../template/template-model";
@@ -23,8 +24,11 @@ const PREVIEW_DEBOUNCE_MS = 250;
  * Quotation editor. One editable A4 sheet you type directly on, a review rail that tracks what is
  * still missing, and a full preview over the top when you want to see all pages as printed.
  */
-export function QuotationStudio({ initial, clients = [], templates = [], backHref = "/admin/quotations", backLabel = "Quotations" }: {
-  initial: QuotationState; clients?: ReusableClient[]; templates?: QuotationTemplateRef[]; backHref?: string; backLabel?: string;
+export function QuotationStudio({ initial, clients = [], templates = [], units = BUILT_IN_UNITS as unknown as string[], onCreateUnit, backHref = "/admin/quotations", backLabel = "Quotations" }: {
+  initial: QuotationState; clients?: ReusableClient[]; templates?: QuotationTemplateRef[];
+  /** Every unit on offer; falls back to the built-ins where nothing has been stored yet. */
+  units?: string[]; onCreateUnit?: (unit: string) => void | Promise<void>;
+  backHref?: string; backLabel?: string;
 }) {
   const s = useQuotationSession(initial);
   const { q, dirty, isFinal, status, totals, busy } = s;
@@ -124,7 +128,7 @@ export function QuotationStudio({ initial, clients = [], templates = [], backHre
             </div>
           )}
           <fieldset className="qs-fieldset" disabled={isFinal}>
-            <Sheet s={s} clients={clients} onPreview={openPreview} />
+            <Sheet s={s} clients={clients} units={units} onCreateUnit={onCreateUnit} onPreview={openPreview} />
           </fieldset>
         </main>
 

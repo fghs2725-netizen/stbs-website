@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { InvoiceEditor } from "@/components/invoice/editor/InvoiceEditor";
 import { buildDraft, type InvoiceState } from "@/components/invoice/invoice-model";
+import { BUILT_IN_UNITS } from "@/lib/units";
 import { DEFAULT_INVOICE_SETTINGS } from "@/components/invoice/invoice-settings";
 import { inferGstMode } from "@/lib/india-gst";
 
@@ -39,6 +40,7 @@ export function Harness() {
       <InvoiceEditor
         initial={buildDraft(settings, "2026-09-21")}
         settings={settings}
+        units={BUILT_IN_UNITS as unknown as string[]}
         save={save}
         gstModeFor={gstModeFor}
         onSaved={() => { /* stay on the page so the test can read what was saved */ }}

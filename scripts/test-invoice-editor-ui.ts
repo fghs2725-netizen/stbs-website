@@ -62,6 +62,31 @@ const rowInput = (n: number, label: string) => `ul.a-divide > li:nth-child(${n})
 const text = (page: Page, selector: string) => page.$eval(selector, (el) => (el as HTMLElement).innerText.trim());
 const totalsText = (page: Page) => page.$$eval("dl.a-num dd", (els) => els.map((e) => (e as HTMLElement).innerText.trim()));
 
+/**
+ * Drives the unit picker: open the row's button, type to filter, take the match. Falls back to the
+ * custom box when the unit is not on the list, which is the path an owner takes for their own unit.
+ */
+async function pickUnit(page: Page, index: number, unit: string) {
+  const row = `ul.a-divide > li:nth-child(${index})`;
+  await page.waitForSelector(`${row} .unit-picker-button`);
+  await page.click(`${row} .unit-picker-button`);
+  await page.waitForSelector(`${row} .unit-picker-search input`);
+  await page.type(`${row} .unit-picker-search input`, unit);
+  const listed = await page.$$(`${row} .unit-picker-list button`);
+  if (listed.length) {
+    await listed[0].click();
+  } else {
+    await page.click(`${row} .unit-picker-open-custom`);
+    // The box opens carrying whatever was searched for, so it is replaced rather than appended to.
+    await fill(page, `${row} .unit-picker-custom input`, unit);
+    await page.click(`${row} .unit-picker-add`);
+  }
+  await page.waitForFunction(
+    (sel: string, want: string) => document.querySelector(sel)?.textContent?.trim() === want,
+    {}, `${row} .unit-picker-button span`, unit,
+  );
+}
+
 async function addItem(page: Page, description: string, unit: string, qty: string, rate: string, index: number) {
   await page.evaluate(() => {
     const button = Array.from(document.querySelectorAll("button")).find((b) => b.innerText.includes("Add item"));
@@ -69,7 +94,7 @@ async function addItem(page: Page, description: string, unit: string, qty: strin
   });
   await page.waitForSelector(rowInput(index, "Item name"));
   await fill(page, rowInput(index, "Item name"), description);
-  await fill(page, `ul.a-divide > li:nth-child(${index}) input[placeholder="Nos"]`, unit);
+  await pickUnit(page, index, unit);
   const numbers = await page.$$(`ul.a-divide > li:nth-child(${index}) input[type="number"]`);
   await fillHandle(numbers[0], page, qty);
   await fillHandle(numbers[1], page, rate);

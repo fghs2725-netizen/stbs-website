@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { InvoiceDocument } from "@/components/invoice/InvoiceDocument";
 import { getInvoiceConfig, getInvoiceForPdfRender } from "@/lib/invoice-management";
 import { verifyQuotationRenderToken } from "@/lib/quotation-render-auth";
-import { resolveSettings } from "@/components/invoice/invoice-settings";
+import { effectiveInvoiceSettings, resolveSettings } from "@/components/invoice/invoice-settings";
 import { resolveInvoiceTemplate } from "@/lib/invoice-templates";
 import { prisma } from "@/lib/prisma";
 import "@/components/invoice/invoice.css";
@@ -22,8 +22,12 @@ export default async function InvoicePdfRenderPage({
   const config = await getInvoiceConfig();
   const head = await prisma.invoice.findUnique({ where: { id }, select: { status: true, templateId: true, templateSnapshot: true } });
   const template = head ? await resolveInvoiceTemplate(head) : null;
-  // An issued invoice prints with the switches it was issued under, not today's.
-  const settings = resolveSettings((invoice as { settingsSnapshot?: unknown }).settingsSnapshot ?? config.settings);
+  // An issued invoice prints with the switches it was issued under, not today's — and with whatever
+  // segments it adds or removes for itself laid over them.
+  const settings = effectiveInvoiceSettings(
+    resolveSettings((invoice as { settingsSnapshot?: unknown }).settingsSnapshot ?? config.settings),
+    invoice.settingsOverride,
+  );
 
   // data-pdf-ready is rendered directly so the renderer can observe it without any client script.
   return (

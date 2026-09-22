@@ -113,6 +113,66 @@ export function resolveSettings(stored: unknown): InvoiceSettings {
   };
 }
 
+/**
+ * What one invoice adds or removes for itself. Only the switches the owner touched here are
+ * present: a segment left alone keeps following the global setting, including when that changes.
+ */
+export type InvoiceSettingsOverride = {
+  columns?: Partial<InvoiceColumns>;
+  blocks?: Partial<InvoiceBlocks>;
+};
+
+/**
+ * The settings an invoice is actually drawn with. Every path that renders one — the editor preview,
+ * the invoice page and the PDF — resolves through here, or they would paginate against one set of
+ * switches and print with another, which shows up as a row clipped off the bottom of a page.
+ */
+export function effectiveInvoiceSettings(base: InvoiceSettings, override: unknown): InvoiceSettings {
+  const o = (override ?? {}) as InvoiceSettingsOverride;
+  const c = (o.columns ?? {}) as Partial<InvoiceColumns>;
+  const b = (o.blocks ?? {}) as Partial<InvoiceBlocks>;
+  return {
+    ...base,
+    columns: (Object.keys(base.columns) as Array<keyof InvoiceColumns>).reduce((acc, k) => {
+      acc[k] = bool(c[k], base.columns[k]);
+      return acc;
+    }, {} as InvoiceColumns),
+    blocks: (Object.keys(base.blocks) as Array<keyof InvoiceBlocks>).reduce((acc, k) => {
+      acc[k] = bool(b[k], base.blocks[k]);
+      return acc;
+    }, {} as InvoiceBlocks),
+  };
+}
+
+/** The switches the owner can turn on or off, with the wording the settings page and the
+ *  per-invoice panel both print. One list, so the two cannot drift apart. */
+export const INVOICE_COLUMN_SEGMENTS: Array<{ key: keyof InvoiceColumns; label: string; help?: string }> = [
+  { key: "srNo", label: "Serial number" },
+  { key: "hsn", label: "HSN / SAC code" },
+  { key: "unit", label: "Unit" },
+  { key: "details", label: "Item details line" },
+  { key: "lineDiscount", label: "Discount per line" },
+  { key: "lineGst", label: "GST rate per line" },
+];
+
+export const INVOICE_BLOCK_SEGMENTS: Array<{ key: keyof InvoiceBlocks; label: string; help?: string }> = [
+  { key: "shipTo", label: "Ship To / site address", help: "Hidden automatically when it matches the billing address" },
+  { key: "placeOfSupply", label: "Place of supply", help: "Required on a GST invoice" },
+  { key: "reverseCharge", label: "Reverse charge line" },
+  { key: "dueDate", label: "Due date" },
+  { key: "originalMarker", label: "“Original for recipient”" },
+  { key: "quotationRef", label: "Quotation it came from" },
+  { key: "amountWords", label: "Amount in words" },
+  { key: "advanceBalance", label: "Advance received and balance due" },
+  { key: "roundOff", label: "Round off to the rupee" },
+  { key: "bankDetails", label: "Payment and bank details" },
+  { key: "upiQr", label: "UPI QR code" },
+  { key: "signature", label: "Signature and stamp" },
+  { key: "terms", label: "Terms and conditions" },
+  { key: "declaration", label: "Declaration" },
+  { key: "statusStamp", label: "PAID / OVERDUE stamp across the page" },
+];
+
 /** How many columns the item table prints, so a colspan is never hand-counted in two places. */
 export function columnCount(c: InvoiceColumns): number {
   // Description, rate and amount always print; the rest are switchable. QTY always prints.

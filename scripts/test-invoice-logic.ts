@@ -11,7 +11,8 @@ import {
   lineAmount, overdueBy, statusFromPayments, validateItem, whatIsMissing,
   type InvoiceItem, type InvoiceState,
 } from "../components/invoice/invoice-model";
-import { DEFAULT_INVOICE_SETTINGS, columnCount, resolveSettings } from "../components/invoice/invoice-settings";
+import { DEFAULT_INVOICE_SETTINGS, columnCount, effectiveInvoiceSettings, resolveSettings } from "../components/invoice/invoice-settings";
+import { BUILT_IN_UNITS, mergeUnits } from "../lib/units";
 import { CONTINUES_FROM, formatInvoiceNumber, nextNumber, parseInvoiceNumber } from "../lib/invoice-numbering";
 import { canonicalState, inferGstMode, placeOfSupply, stateCode, stateFromGstin } from "../lib/india-gst";
 
@@ -242,6 +243,40 @@ check("a stored settings row merges over the defaults and survives nonsense", ()
   assert.equal(resolveSettings({ columns: { hsn: false } }).columns.unit, true, "the other switches keep their defaults");
   assert.equal(resolveSettings({ blocks: { terms: "yes" } }).blocks.terms, true, "a bad type falls back");
 });
+check("a segment removed for one invoice does not touch the rest", () => {
+  const base = DEFAULT_INVOICE_SETTINGS;
+
+  assert.deepEqual(effectiveInvoiceSettings(base, {}), base, "an empty override changes nothing");
+  assert.deepEqual(effectiveInvoiceSettings(base, undefined), base, "so does no override at all");
+
+  const noHsn = effectiveInvoiceSettings(base, { columns: { hsn: false } });
+  assert.equal(noHsn.columns.hsn, false, "the override wins over the default");
+  assert.equal(noHsn.columns.unit, base.columns.unit, "its siblings are left alone");
+  assert.equal(noHsn.blocks.terms, base.blocks.terms, "and so is every block");
+
+  // Turning something ON for one invoice matters as much as turning it off: the declaration is off
+  // by default, and an invoice that needs it must be able to ask for it.
+  const withDeclaration = effectiveInvoiceSettings(base, { blocks: { declaration: true } });
+  assert.equal(withDeclaration.blocks.declaration, true, "an override can add a segment back");
+
+  assert.equal(
+    effectiveInvoiceSettings(base, { blocks: { nonsense: true } } as never).blocks.terms,
+    base.blocks.terms,
+    "a key that is not a block cannot disturb one that is",
+  );
+});
+
+check("the unit list offers the owner's own without repeating the built-ins", () => {
+  assert.ok(BUILT_IN_UNITS.includes("Rft"), "the units already in use are still on offer");
+  assert.deepEqual(mergeUnits([]), [...BUILT_IN_UNITS], "nothing custom leaves the list as it was");
+  assert.deepEqual(
+    mergeUnits(["Rmt"]).slice(-1), ["Rmt"],
+    "a custom unit joins the end of the list",
+  );
+  assert.deepEqual(mergeUnits(["rft", "RFT"]), [...BUILT_IN_UNITS], "a built-in is not listed twice, whatever the case");
+  assert.deepEqual(mergeUnits(["Rmt", "rmt", " Rmt "]).filter((u) => u.toLowerCase() === "rmt").length, 1, "nor is a custom one");
+});
+
 check("the owner's answers are the defaults", () => {
   assert.equal(S.columns.srNo, true);
   assert.equal(S.blocks.declaration, false);

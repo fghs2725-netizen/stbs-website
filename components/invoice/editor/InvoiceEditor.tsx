@@ -10,17 +10,21 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, ChevronUp, ChevronDown, Eye, X } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, Eye, SlidersHorizontal, X } from "lucide-react";
 import {
   calcInvoiceTotals, dueDateFor, formatINR, lineAmount, validateItem, whatIsMissing,
   type InvoiceItem, type InvoiceState,
 } from "../invoice-model";
-import type { InvoiceSettings } from "../invoice-settings";
+import { effectiveInvoiceSettings, type InvoiceSettings, type InvoiceSettingsOverride } from "../invoice-settings";
 import { InvoiceDocument, type InvoiceBusiness } from "../InvoiceDocument";
 import { invoicePageCount } from "../invoice-pagination";
 import { InvoicePdfActions } from "../share/InvoicePdfActions";
 import { shareSubjectFromInvoice } from "../share/invoice-share";
+import { SegmentsPanel } from "../segments/SegmentsPanel";
+import { UnitPicker } from "@/components/shared/UnitPicker";
 import { Button } from "@/components/ui/button";
+import "@/components/shared/unit-picker.css";
+import "../segments/segments.css";
 
 type Props = {
   initial: InvoiceState;
@@ -31,6 +35,10 @@ type Props = {
   gstModeFor: (state: string, gstin?: string) => Promise<"CGST_SGST" | "IGST" | null>;
   /** Bank details, signature and stamp, so the preview shows the invoice the client will receive. */
   business?: InvoiceBusiness;
+  /** Every unit on offer: the built-in ones plus whatever the owner has added. */
+  units: string[];
+  /** Remembers a unit the owner typed, so it is offered on the next document too. */
+  onCreateUnit?: (unit: string) => void | Promise<void>;
   /**
    * Where to go after a save. The admin pages leave this out and land on the saved invoice; the
    * dev-only harness passes its own so the editor can be exercised without a database behind it.
@@ -45,16 +53,26 @@ const newRow = (): InvoiceItem => ({
 
 const num = (v: string) => (v.trim() === "" ? 0 : Number(v));
 
-export function InvoiceEditor({ initial, settings, save, gstModeFor, business, onSaved }: Props) {
+export function InvoiceEditor({ initial, settings, save, gstModeFor, business, units, onCreateUnit, onSaved }: Props) {
   const [inv, setInv] = useState<InvoiceState>(initial);
   const [saving, startSaving] = useTransition();
   const [error, setError] = useState("");
   const [preview, setPreview] = useState(false);
+  const [segments, setSegments] = useState(false);
   const router = useRouter();
 
-  const totals = useMemo(() => calcInvoiceTotals(inv, settings), [inv, settings]);
-  const missing = useMemo(() => whatIsMissing(inv, settings), [inv, settings]);
-  const col = settings.columns;
+  /*
+   * What this invoice is actually drawn with: the global switches, with whatever it adds or removes
+   * for itself laid over them. Everything below reads this rather than `settings`, or the editor
+   * would total and paginate against one set of switches and print with another.
+   */
+  const effective = useMemo(
+    () => effectiveInvoiceSettings(settings, inv.settingsOverride),
+    [settings, inv.settingsOverride],
+  );
+  const totals = useMemo(() => calcInvoiceTotals(inv, effective), [inv, effective]);
+  const missing = useMemo(() => whatIsMissing(inv, effective), [inv, effective]);
+  const col = effective.columns;
   const issued = inv.status !== "DRAFT";
 
   const patch = (p: Partial<InvoiceState>) => setInv((s) => ({ ...s, ...p }));
@@ -68,7 +86,7 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, o
    */
   const onStateChange = (value: string) => {
     setInv((s) => ({ ...s, client: { ...s.client, state: value } }));
-    if (!settings.gstModeAuto) return;
+    if (!effective.gstModeAuto) return;
     void gstModeFor(value, inv.client.gstin).then((mode) => {
       if (mode) setInv((s) => (s.client.state === value ? { ...s, gstMode: mode } : s));
     });
@@ -115,12 +133,12 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, o
    */
   const beforePdf = useCallback(async () => { if (dirty) await persist(); }, [dirty, persist]);
 
-  const pageCount = useMemo(() => invoicePageCount(inv, settings), [inv, settings]);
+  const pageCount = useMemo(() => invoicePageCount(inv, effective), [inv, effective]);
   // A draft has no number, and `GET /api/invoices/[id]/pdf` refuses one.
   const canExport = Boolean(inv.id && inv.number);
   const shareSubject = useMemo(
-    () => shareSubjectFromInvoice(inv, settings, { grandTotal: totals.grandTotal, balance: totals.balance }),
-    [inv, settings, totals.grandTotal, totals.balance],
+    () => shareSubjectFromInvoice(inv, effective, { grandTotal: totals.grandTotal, balance: totals.balance }),
+    [inv, effective, totals.grandTotal, totals.balance],
   );
 
   // Escape closes the preview, and focus returns to the button that opened it.
@@ -214,9 +232,15 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, o
                       </label>
                     )}
                     {col.unit && (
-                      <label className="a-label w-24">Unit
-                        <input className="a-input mt-1" value={item.unit} onChange={(e) => setItem(item.id, { unit: e.target.value })} placeholder="Nos" />
-                      </label>
+                      <div className="a-label w-24">Unit
+                        <UnitPicker
+                          className="mt-1"
+                          value={item.unit}
+                          units={units}
+                          onCreate={onCreateUnit}
+                          onChange={(unit) => setItem(item.id, { unit })}
+                        />
+                      </div>
                     )}
                     <label className="a-label w-20">Qty
                       <input type="number" step="0.01" className="a-input mt-1" value={item.quantity} onChange={(e) => setItem(item.id, { quantity: num(e.target.value) })} />
@@ -271,7 +295,7 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, o
           <label className="a-label">Invoice date
             <input
               type="date" className="a-input mt-1 w-auto" value={inv.date}
-              onChange={(e) => patch({ date: e.target.value, dueDate: dueDateFor(e.target.value, settings.creditDays) })}
+              onChange={(e) => patch({ date: e.target.value, dueDate: dueDateFor(e.target.value, effective.creditDays) })}
             />
           </label>
           <label className="a-label">Due date
@@ -322,7 +346,7 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, o
             <><dt style={{ color: "var(--a-faint)" }}>CGST</dt><dd className="text-right">{formatINR(totals.cgst)}</dd>
               <dt style={{ color: "var(--a-faint)" }}>SGST</dt><dd className="text-right">{formatINR(totals.sgst)}</dd></>
           )}
-          {totals.roundOff !== 0 && settings.blocks.roundOff && (<><dt style={{ color: "var(--a-faint)" }}>Round off</dt><dd className="text-right">{formatINR(totals.roundOff)}</dd></>)}
+          {totals.roundOff !== 0 && effective.blocks.roundOff && (<><dt style={{ color: "var(--a-faint)" }}>Round off</dt><dd className="text-right">{formatINR(totals.roundOff)}</dd></>)}
           <dt className="font-semibold" style={{ color: "var(--a-ink)" }}>Total</dt>
           <dd className="text-right font-semibold" style={{ color: "var(--a-ink)" }}>{formatINR(totals.grandTotal)}</dd>
         </dl>
@@ -368,6 +392,9 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, o
                 disabled={!canExport}
                 disabledReason="Issue this invoice to export a PDF"
               />
+              <button type="button" className="inv-overlay-close" onClick={() => setSegments(true)}>
+                <SlidersHorizontal size={15} aria-hidden /> Segments
+              </button>
               <button type="button" className="inv-overlay-close" onClick={closePreview} aria-label="Close preview">
                 <X size={16} aria-hidden /> Close
               </button>
@@ -375,9 +402,21 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, o
           </div>
           <div className="inv-overlay-scroll">
             <div className="inv-stage">
-              <InvoiceDocument invoice={inv} settings={settings} business={business} isEditorPreview />
+              <InvoiceDocument invoice={inv} settings={effective} business={business} isEditorPreview />
             </div>
           </div>
+
+          {segments && (
+            <>
+              <button type="button" className="seg-scrim" aria-label="Close segments" onClick={() => setSegments(false)} />
+              <SegmentsPanel
+                base={settings}
+                value={inv.settingsOverride ?? {}}
+                onChange={(settingsOverride) => patch({ settingsOverride })}
+                onClose={() => setSegments(false)}
+              />
+            </>
+          )}
         </div>
       )}
     </div>

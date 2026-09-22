@@ -10,7 +10,10 @@
 import { calcAmount, formatINR, type DiscountType } from "../quotation/quotation-model";
 import { cleanDetails } from "../quotation/item-text";
 import { inferGstMode, type GstMode } from "@/lib/india-gst";
-import { columnCount, resolveSettings, type InvoiceSettings } from "./invoice-settings";
+import {
+  columnCount, resolveSettings,
+  type InvoiceSettings, type InvoiceSettingsOverride,
+} from "./invoice-settings";
 
 export { formatINR, columnCount, resolveSettings };
 export type { DiscountType, GstMode, InvoiceSettings };
@@ -78,6 +81,8 @@ export type InvoiceState = {
   payments?: InvoicePayment[];
   notes?: string;
   templateId?: string;
+  /** Segments added or removed for this invoice alone; anything absent follows the global settings. */
+  settingsOverride?: InvoiceSettingsOverride;
 };
 
 export const emptyParty = (): InvoiceParty => ({

@@ -1,0 +1,79 @@
+/*
+  The per-invoice segments panel. It opens over the preview overlay, which paints its own dark grey,
+  so the panel is a sheet of admin surface standing on top of it rather than more document.
+*/
+
+.seg-panel {
+  position: fixed; z-index: 70; inset: auto 0 0 0;
+  max-height: min(78vh, 640px);
+  display: flex; flex-direction: column;
+  border-radius: 14px 14px 0 0;
+  background: var(--a-bg, #fff); color: var(--a-body, #41525c);
+  box-shadow: 0 -12px 40px #00000059;
+  font-family: Inter, Arial, sans-serif;
+}
+@media (min-width: 720px) {
+  .seg-panel {
+    inset: 50% auto auto 50%; transform: translate(-50%, -50%);
+    width: 620px; border-radius: 14px;
+  }
+}
+
+.seg-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 14px 16px; border-bottom: 1px solid var(--a-hairline, #e3e8ec);
+}
+.seg-head h2 { margin: 0; font-size: 1rem; font-weight: 600; color: var(--a-ink, #1d2529); }
+.seg-head p { margin: 4px 0 0; font-size: 0.8125rem; color: var(--a-muted, #6b7b85); }
+.seg-close {
+  flex: none; display: grid; place-items: center;
+  width: 32px; height: 32px; border: 0; border-radius: 8px;
+  background: none; color: var(--a-muted, #6b7b85); cursor: pointer;
+}
+.seg-close:hover { background: var(--a-hairline, #e3e8ec); }
+
+.seg-body { flex: 1; overflow-y: auto; padding: 8px 16px 16px; }
+.seg-body ul { margin: 0 0 4px; padding: 0; list-style: none; }
+.seg-group {
+  margin: 14px 0 6px; font-size: 0.75rem; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--a-faint, #9aa7b0);
+}
+
+.seg-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 42px; padding: 4px 0; border-bottom: 1px solid var(--a-hairline, #e3e8ec);
+}
+.seg-row:last-child { border-bottom: 0; }
+.seg-label { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.seg-label input { margin-top: 3px; flex: none; }
+.seg-label span { font-size: 0.875rem; color: var(--a-ink, #1d2529); }
+.seg-label small { display: block; margin-top: 1px; font-size: 0.75rem; color: var(--a-faint, #9aa7b0); }
+
+/* Which of the two this row is obeying: the settings, or a choice made for this invoice. */
+.seg-following { flex: none; font-size: 0.75rem; color: var(--a-faint, #9aa7b0); }
+.seg-reset {
+  flex: none; display: inline-flex; align-items: center; gap: 5px;
+  min-height: 28px; padding: 0 8px;
+  border: 1px solid var(--a-brand, #1f6feb); border-radius: 999px; background: var(--a-brand-soft, #eaf1fd);
+  color: var(--a-brand, #1f6feb); font-size: 0.75rem; font-weight: 600; cursor: pointer;
+}
+
+.seg-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 16px; border-top: 1px solid var(--a-hairline, #e3e8ec);
+}
+.seg-reset-all {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 36px; padding: 0 10px;
+  border: 0; border-radius: 8px; background: none;
+  color: var(--a-muted, #6b7b85); font-size: 0.8125rem; font-weight: 600; cursor: pointer;
+}
+.seg-reset-all:disabled { opacity: .45; cursor: default; }
+.seg-done {
+  min-height: 36px; padding: 0 16px;
+  border: 0; border-radius: 8px; background: var(--a-brand, #1f6feb);
+  color: #fff; font-size: 0.875rem; font-weight: 600; cursor: pointer;
+}
+
+/* Behind the panel, so a tap outside reads as "close" rather than reaching the document. */
+.seg-scrim { position: fixed; inset: 0; z-index: 69; background: #0006; border: 0; }

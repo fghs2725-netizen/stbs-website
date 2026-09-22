@@ -43,8 +43,6 @@ export function readiness(q: QuotationState) {
 
 /* ---------- Convenience lists (suggestions only; rates are always entered by the user) ---------- */
 
-export const UNIT_OPTIONS = ["Rft", "Mtr", "Set", "No.", "LS", "Bag", "CFt", "Kg", "Day", "Month"];
-
 export const ITEM_PRESETS: { description: string; unit: string }[] = [
   { description: "Borewell drilling", unit: "Rft" },
   { description: "Supply of casing pipe", unit: "Rft" },

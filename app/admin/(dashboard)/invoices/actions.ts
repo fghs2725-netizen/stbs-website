@@ -3,15 +3,22 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
   cancelInvoice, convertQuotationToInvoice, createCreditNote, deleteInvoice, deletePayment,
-  duplicateInvoice, issueInvoice, recordPayment, saveInvoice, saveInvoiceConfig,
+  duplicateInvoice, issueInvoice, recordPayment, saveInvoice, saveInvoiceConfig, saveInvoiceSegments,
   type InvoiceConfig,
 } from "@/lib/invoice-management";
 import type { InvoiceState } from "@/components/invoice/invoice-model";
+import type { InvoiceSettingsOverride } from "@/components/invoice/invoice-settings";
 
 const refresh = (id?: string) => {
   revalidatePath("/admin/invoices");
   if (id) revalidatePath(`/admin/invoices/${id}`);
 };
+
+/** The segments one invoice adds or removes, changed from its own page rather than the editor. */
+export async function saveSegmentsAction(id: string, override: InvoiceSettingsOverride) {
+  await saveInvoiceSegments(id, override);
+  refresh(id);
+}
 
 export async function saveInvoiceAction(inv: InvoiceState) {
   const saved = await saveInvoice(inv);

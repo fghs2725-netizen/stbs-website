@@ -1,0 +1,70 @@
+/*
+  The unit picker, used inside both the invoice editor's form rows and the quotation studio's table
+  cells. It borrows the admin's own tokens rather than bringing colours of its own, so it looks like
+  whichever of the two it is standing in.
+*/
+
+.unit-picker { position: relative; }
+
+.unit-picker-button {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  width: 100%; min-height: 38px; padding: 0 10px;
+  border: 1px solid var(--a-hairline, #e3e8ec); border-radius: 8px; background: var(--a-surface, #fff);
+  color: var(--a-ink, #1d2529); font-size: 0.875rem; text-align: left; cursor: pointer;
+}
+.unit-picker-button:hover { border-color: var(--a-muted, #6b7b85); }
+.unit-picker-placeholder { color: var(--a-faint, #9aa7b0); }
+
+.unit-picker-panel {
+  position: absolute; z-index: 40; top: calc(100% + 4px); left: 0;
+  width: max(190px, 100%);
+  display: flex; flex-direction: column;
+  border: 1px solid var(--a-hairline, #e3e8ec); border-radius: 10px; background: var(--a-surface, #fff);
+  box-shadow: 0 12px 28px #0000002e;
+  overflow: hidden;
+}
+
+.unit-picker-search {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 10px; border-bottom: 1px solid var(--a-hairline, #e3e8ec);
+  color: var(--a-faint, #9aa7b0);
+}
+.unit-picker-search input {
+  flex: 1; min-width: 0; border: 0; background: none; outline: none;
+  color: var(--a-ink, #1d2529); font-size: 0.875rem;
+}
+
+/* Capped so a long list of remembered units cannot push the panel off the screen on a phone. */
+.unit-picker-list { max-height: 216px; overflow-y: auto; margin: 0; padding: 4px; list-style: none; }
+.unit-picker-list button {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  width: 100%; min-height: 34px; padding: 0 8px;
+  border: 0; border-radius: 6px; background: none;
+  color: var(--a-body, #41525c); font-size: 0.875rem; text-align: left; cursor: pointer;
+}
+.unit-picker-list button:hover { background: var(--a-brand-soft, #eaf1fd); color: var(--a-brand, #1f6feb); }
+.unit-picker-list button[aria-selected='true'] { color: var(--a-brand, #1f6feb); font-weight: 600; }
+.unit-picker-empty { padding: 10px 8px; color: var(--a-faint, #9aa7b0); font-size: 0.8125rem; }
+
+.unit-picker-custom {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px; border-top: 1px solid var(--a-hairline, #e3e8ec);
+}
+.unit-picker-custom input {
+  flex: 1; min-width: 0; min-height: 32px; padding: 0 8px;
+  border: 1px solid var(--a-hairline, #e3e8ec); border-radius: 6px; background: var(--a-surface, #fff);
+  color: var(--a-ink, #1d2529); font-size: 0.875rem; outline: none;
+}
+.unit-picker-custom input:focus { border-color: var(--a-brand, #1f6feb); }
+.unit-picker-open-custom {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 32px; padding: 0 8px;
+  border: 0; border-radius: 6px; background: none;
+  color: var(--a-brand, #1f6feb); font-size: 0.8125rem; font-weight: 600; cursor: pointer;
+}
+.unit-picker-add {
+  min-height: 32px; padding: 0 10px;
+  border: 0; border-radius: 6px; background: var(--a-brand, #1f6feb);
+  color: #fff; font-size: 0.8125rem; font-weight: 600; cursor: pointer;
+}
+.unit-picker-add:disabled { opacity: .5; cursor: default; }

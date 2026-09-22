@@ -119,6 +119,27 @@ export const INVOICE_FIXTURES: Record<string, { invoice: InvoiceState; settings:
     business: FIXTURE_BUSINESS,
   },
 
+  /**
+   * Segments changed for this invoice alone: two taken off, one put back. It guards the thing that
+   * would otherwise fail silently — dropping a column widens the description and changes row heights,
+   * and dropping a block changes the closing height, both of which the paginator reserves against.
+   */
+  segments: {
+    invoice: base({
+      number: 770,
+      items: SIX.slice(0, 5),
+      gstEnabled: true,
+      gstMode: "CGST_SGST",
+      gstRate: 18,
+      settingsOverride: {
+        columns: { hsn: false, unit: false },
+        blocks: { bankDetails: false, declaration: true },
+      },
+    }),
+    settings: S,
+    business: FIXTURE_BUSINESS,
+  },
+
   /** Long enough to paginate: the totals and the signature must land together on the last page. */
   "many-items": {
     invoice: base({

@@ -3,7 +3,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronDown, Copy, Plus, Trash2 } from "lucide-react";
 import { calcAmount, formatINR, isItemValid, validateItem, type QuotationItem } from "../quotation-model";
 import { formatCell, MAX_QUANTITY, MAX_RATE, parseNumeric, sanitizeNumericText } from "../editor-logic";
-import { ITEM_PRESETS, UNIT_OPTIONS } from "./studio-logic";
+import { ITEM_PRESETS } from "./studio-logic";
+import { UnitPicker } from "@/components/shared/UnitPicker";
 import { limitDetailsInput } from "../item-text";
 
 type Field = "description" | "unit" | "quantity" | "rate";
@@ -48,9 +49,12 @@ function GrowingText({ value, ...rest }: { value: string } & React.TextareaHTMLA
   return <textarea ref={ref} rows={1} value={value} {...rest} />;
 }
 
-export function LineItems({ items, focusId, onEdit, onAdd, onRemove, onDuplicate, onMove }: {
+export function LineItems({ items, focusId, units, onCreateUnit, onEdit, onAdd, onRemove, onDuplicate, onMove }: {
   items: QuotationItem[];
   focusId: string | null;
+  /** Every unit on offer: the built-in ones plus whatever the owner has added. */
+  units: string[];
+  onCreateUnit?: (unit: string) => void | Promise<void>;
   onEdit: (id: string, patch: Partial<QuotationItem>, key: string) => void;
   onAdd: (preset?: { description: string; unit: string }) => void;
   onRemove: (id: string) => void;
@@ -113,7 +117,6 @@ export function LineItems({ items, focusId, onEdit, onAdd, onRemove, onDuplicate
 
   return (
     <div data-qs-target="items">
-      <datalist id="qs-units">{UNIT_OPTIONS.map((u) => <option key={u} value={u} />)}</datalist>
       <div className="qs-items" role="table" aria-label="Price items" ref={root}>
         <div className="qs-items-head" role="row">
           <span role="columnheader">Sr.</span>
@@ -164,21 +167,14 @@ export function LineItems({ items, focusId, onEdit, onAdd, onRemove, onDuplicate
                 />
               </span>
               <span role="cell" className="it-unit">
-                <input
-                  data-cell={`${item.id}:unit`}
-                  list="qs-units"
-                  aria-label={`Item ${n} unit`}
-                  aria-invalid={bad("unit") || undefined}
-                  className="qs-cell"
-                  placeholder="Unit"
+                <UnitPicker
+                  dataCell={`${item.id}:unit`}
+                  ariaLabel={`Item ${n} unit`}
+                  invalid={bad("unit")}
                   value={item.unit}
-                  onFocus={() => { original.current = item.unit; }}
-                  onBlur={() => touch(item.id, "unit")}
-                  onChange={(e) => onEdit(item.id, { unit: e.target.value }, `${item.id}:unit`)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") { e.stopPropagation(); onEdit(item.id, { unit: original.current }, `${item.id}:unit:esc`); (e.target as HTMLElement).blur(); return; }
-                    onCellKey(row, "unit")(e);
-                  }}
+                  units={units}
+                  onCreate={onCreateUnit}
+                  onChange={(unit) => { onEdit(item.id, { unit }, `${item.id}:unit`); touch(item.id, "unit"); }}
                 />
               </span>
               <span role="cell" className="it-qty">

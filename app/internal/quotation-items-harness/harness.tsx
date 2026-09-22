@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LineItems } from "@/components/quotation/studio/line-items";
+import { BUILT_IN_UNITS } from "@/lib/units";
 import { ConfirmDialog } from "@/components/quotation/feedback";
 import { createHistory, duplicateItem, isPopulatedItem, moveItem, pushHistory, redoHistory, undoHistory, type History } from "@/components/quotation/editor-logic";
 import { type QuotationItem } from "@/components/quotation/quotation-model";
@@ -33,6 +34,7 @@ export function Harness() {
       <LineItems
         items={items}
         focusId={focusId}
+        units={BUILT_IN_UNITS as unknown as string[]}
         onEdit={(id, patch, key) => set((x) => x.map((i) => (i.id === id ? { ...i, ...patch } : i)), key)}
         onAdd={(preset) => { const id = crypto.randomUUID(); set((x) => [...x, { id, description: preset?.description ?? "", unit: preset?.unit ?? "", quantity: 1, rate: 0 }]); setFocusId(id); }}
         onRemove={(id) => { const it = items.find((i) => i.id === id); if (it && isPopulatedItem(it)) setConfirm(id); else remove(id); }}
