@@ -1,7 +1,9 @@
 import type { QuotationTemplateRef } from "./template/template-model";
 import { detailsProblem } from "./item-text";
 /** `description` is the item name. `details` is optional (brand or company, model, size...) and prints under it. */
-export type QuotationItem = { id: string; description: string; unit: string; quantity: number; rate: number; details?: string };
+export type QuotationItem = { id: string; description: string; unit: string; quantity: number; rate: number; details?: string;
+  /** Set when the line was written by a preset, so its rate can find its way back on finalise. */
+  presetItemId?: string };
 export type ClientDetails = { gstin: string; companyName: string; contactPerson: string; addressLine1: string; addressLine2: string; city: string; state: string; pinCode: string; phone: string; email: string };
 export type QuotationState = { id?: string; clientId?: string; saveClientForFuture?: boolean; quotationReference: string; quotationDate: string; validity: string; client: ClientDetails; serviceType: string; customServiceType: string; subject: string; items: QuotationItem[]; status?: "DRAFT" | "FINAL"; discountType?: DiscountType | null; discountValue?: number; gstEnabled?: boolean; gstMode?: GstMode; gstRate?: number; templateId?: string; template?: QuotationTemplateRef };
 export type DiscountType = "PERCENT" | "FLAT";

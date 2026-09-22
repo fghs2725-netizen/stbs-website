@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { randomBytes } from "node:crypto";
+import { seedPresets } from "../lib/quotation-preset-store";
 
 const prisma = new PrismaClient();
 
@@ -50,6 +51,11 @@ async function main() {
   console.log(`  role:     SUPER_ADMIN`);
   console.log(`  password: ${ADMIN_PASSWORD}${GENERATED ? " (generated: shown only now, so save it)" : ""}`);
   console.log("  Change it any time from Admin > Account & password.");
+
+  // The two jobs the owner quotes over and over. Only ever added, never written back over, so a
+  // preset he has since reworded survives a re-seed.
+  const presets = await seedPresets();
+  console.log(presets ? `Quotation presets created: ${presets}` : "Quotation presets already present.");
 }
 
 main()

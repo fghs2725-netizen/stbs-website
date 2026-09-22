@@ -36,7 +36,9 @@
     "test:storage": "npx tsx scripts/test-storage-e2e.ts",
     "test:storage-blob": "npx tsx scripts/test-storage-blob-e2e.ts",
     "test:publish": "npx tsx scripts/test-publish-e2e.ts",
-    "validate-env": "npx tsx scripts/validate-env.ts"
+    "validate-env": "npx tsx scripts/validate-env.ts",
+    "test:quotation-presets": "npx tsx scripts/test-quotation-presets.ts",
+    "test:quotation-wizard-ui": "npx tsx scripts/test-quotation-wizard-ui.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",

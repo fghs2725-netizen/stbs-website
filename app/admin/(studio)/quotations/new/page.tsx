@@ -1,8 +1,9 @@
-import { QuotationStudio } from "@/components/quotation/studio/QuotationStudio";
+import { NewQuotationFlow } from "@/components/quotation/presets/NewQuotationFlow";
 import { listClients } from "@/lib/quotation-management";
 import { listCustomUnits, saveCustomUnit } from "@/lib/invoice-management";
 import { mergeUnits } from "@/lib/units";
 import { getDefaultRef, listPickerTemplates } from "@/lib/quotation-templates";
+import { listPresets } from "@/lib/quotation-preset-store";
 import { initialQuotation, type QuotationState } from "@/components/quotation/quotation-model";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
@@ -20,7 +21,7 @@ export default async function NewQuotationPage({ searchParams }: { searchParams:
   const session = await auth();
   if (!session?.user) redirect("/admin/login");
 
-  const [clients, templates, template] = await Promise.all([listClients(), listPickerTemplates(), getDefaultRef()]);
+  const [clients, templates, template, presets] = await Promise.all([listClients(), listPickerTemplates(), getDefaultRef(), listPresets()]);
   const id = (await searchParams).clientId;
   const client = clients.find((x) => x.id === id);
 
@@ -31,5 +32,14 @@ export default async function NewQuotationPage({ searchParams }: { searchParams:
     : base;
 
   const units = mergeUnits(await listCustomUnits());
-  return <QuotationStudio initial={initial} units={units} onCreateUnit={createUnitAction} clients={clients} templates={templates} backHref="/admin/quotations" backLabel="Quotations" />;
+  return (
+    <NewQuotationFlow
+      initial={initial}
+      presets={presets}
+      clients={clients}
+      templates={templates}
+      units={units}
+      onCreateUnit={createUnitAction}
+    />
+  );
 }

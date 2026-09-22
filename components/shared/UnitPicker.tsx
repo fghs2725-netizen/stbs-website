@@ -25,9 +25,15 @@ type Props = {
   dataCell?: string;
   ariaLabel?: string;
   invalid?: boolean;
+  /**
+   * Overrides Enter on the closed button, for a grid where Enter already means "next cell" on every
+   * other column. Space still opens the picker either way, since a button activates on both by
+   * default and only Enter is intercepted.
+   */
+  onEnter?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
 };
 
-export function UnitPicker({ value, onChange, units, onCreate, id, className, placeholder = "Unit", dataCell, ariaLabel, invalid }: Props) {
+export function UnitPicker({ value, onChange, units, onCreate, id, className, placeholder = "Unit", dataCell, ariaLabel, invalid, onEnter }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
@@ -102,6 +108,9 @@ export function UnitPicker({ value, onChange, units, onCreate, id, className, pl
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => (open ? close() : setOpen(true))}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !open && onEnter) { e.preventDefault(); onEnter(e); }
+        }}
       >
         <span className={value ? "" : "unit-picker-placeholder"}>{value || placeholder}</span>
         <ChevronDown size={14} aria-hidden />

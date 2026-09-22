@@ -175,6 +175,7 @@ export function LineItems({ items, focusId, units, onCreateUnit, onEdit, onAdd, 
                   units={units}
                   onCreate={onCreateUnit}
                   onChange={(unit) => { onEdit(item.id, { unit }, `${item.id}:unit`); touch(item.id, "unit"); }}
+                  onEnter={onCellKey(row, "unit")}
                 />
               </span>
               <span role="cell" className="it-qty">

@@ -6,6 +6,7 @@ import {
   Images,
   KeyRound,
   LayoutTemplate,
+  ListChecks,
   ReceiptText,
   RotateCcw,
   SlidersHorizontal,
@@ -46,6 +47,7 @@ export const ADMIN_WORK_NAV: NavItemDef[] = [
 export const ADMIN_SETUP_NAV: NavItemDef[] = [
   { name: 'Company', href: '/admin/settings/company', icon: Building2 },
   { name: 'Quotation templates', href: '/admin/quotations/templates', icon: LayoutTemplate },
+  { name: 'Quotation presets', href: '/admin/quotations/presets', icon: ListChecks },
   { name: 'Invoice settings', href: '/admin/invoices/settings', icon: SlidersHorizontal },
   { name: 'Website photos', href: '/admin/photos', icon: Images },
   { name: 'Data & files', href: '/admin/storage', icon: Database },
