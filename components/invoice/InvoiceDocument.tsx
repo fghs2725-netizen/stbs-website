@@ -104,18 +104,23 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
                 </p>
                 {businessInfo.gstin && <span className="inv-gstin">GSTIN {businessInfo.gstin}</span>}
               </div>
-              <div className="inv-logo">
-                <img src={business?.logoUrl ?? "/stbs-logo-dark.png"} alt={company.name} />
+              {/* The title rides beside the masthead rather than on a band of its own: that band cost
+                  a page nearly fifty points of height that the item table wanted. */}
+              <div className="inv-head-right">
+                <div className="inv-logo">
+                  <img src={business?.logoUrl ?? "/stbs-logo-dark.png"} alt={company.name} />
+                </div>
+                {isFirst && (
+                  <div className="inv-title">
+                    <h1>{t.title}</h1>
+                    {blocks.originalMarker && t.copyMarker && <span className="inv-sub">{t.copyMarker}</span>}
+                  </div>
+                )}
               </div>
             </div>
 
             {isFirst ? (
               <>
-                <div className="inv-title">
-                  <h1>{t.title}</h1>
-                  {blocks.originalMarker && t.copyMarker && <span className="inv-sub">{t.copyMarker}</span>}
-                </div>
-
                 <div className="inv-parties">
                   <div className="inv-who">
                     <div className="inv-party">
@@ -162,13 +167,15 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
               </p>
             )}
 
+            {/* A last page carrying only the totals has no rows, and prints no heading above them. */}
+            {(rows.length > 0 || isFirst) && (
             <table className="inv-table">
               <thead>
                 <tr>
                   {col.srNo && <th className="inv-c-sr">#</th>}
-                  <th className="inv-num inv-c-qty">Qty</th>
                   <th>Description</th>
                   {col.hsn && <th className="inv-c-hsn">HSN/SAC</th>}
+                  <th className="inv-num inv-c-qty">Qty</th>
                   {col.unit && <th className="inv-c-unit">Unit</th>}
                   {col.lineDiscount && <th className="inv-num inv-c-disc">Disc.</th>}
                   {col.lineGst && <th className="inv-num inv-c-gst">GST</th>}
@@ -182,13 +189,13 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
                   return (
                     <tr key={item.id}>
                       {col.srNo && <td>{paged.starts[pageIndex] + n + 1}</td>}
-                      <td className="inv-num">{item.quantity}</td>
                       <td>
                         {details
                           ? <><span className="inv-item-name">{item.description}</span><span className="inv-item-details">{details}</span></>
                           : item.description}
                       </td>
                       {col.hsn && <td>{item.hsn || ""}</td>}
+                      <td className="inv-num">{item.quantity}</td>
                       {col.unit && <td>{item.unit}</td>}
                       {col.lineDiscount && <td className="inv-num">{item.discountPercent ? `${item.discountPercent}%` : ""}</td>}
                       {col.lineGst && <td className="inv-num">{gstLabel(item.gstRate ?? invoice.gstRate)}</td>}
@@ -203,6 +210,7 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
                 )}
               </tbody>
             </table>
+            )}
 
             {isLast && hasItems && (
               <>

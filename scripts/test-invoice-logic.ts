@@ -244,7 +244,7 @@ check("a stored settings row merges over the defaults and survives nonsense", ()
 });
 check("the owner's answers are the defaults", () => {
   assert.equal(S.columns.srNo, true);
-  assert.equal(S.blocks.declaration, true);
+  assert.equal(S.blocks.declaration, false);
   assert.equal(S.columns.lineGst, false);
   assert.equal(S.gstEnabled, true);
   assert.equal(S.gstRate, 18);

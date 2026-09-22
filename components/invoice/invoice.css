@@ -18,14 +18,12 @@
 .inv-document { display: grid; gap: 26px; }
 
 /*
-  On screen the sheet is as tall as the invoice needs and no taller, so a two-item invoice is not
-  followed by a hand's width of blank paper. `max-height` keeps A4 as the ceiling — pagination
-  already pushes rows forward so nothing reaches it — and print and the PDF restore the full A4
-  height below, because a sheet of paper does not shrink.
+  Every sheet is a full A4, however little is on it, because the footer is ruled off at the bottom
+  of the paper and a page that shrank to its contents would carry that rule up under the signature.
 */
 .inv-page {
   width: 210mm;
-  max-height: 297mm;
+  height: 297mm;
   position: relative;
   overflow: hidden;
   background: #fff;
@@ -40,53 +38,51 @@
   break-after: page;
   page-break-after: always;
 }
-/* Only the last page is short. Every page before it is full of items, and must hold its A4 height
-   so the page break falls in the right place. */
-.inv-page:not(:last-child) { height: 297mm; }
 .inv-page:last-child { break-after: auto; page-break-after: auto; }
 
 /* ---------- masthead ---------- */
 .inv-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 20mm; }
-.inv-from h2 { margin: 0 0 5px; font: 600 16px Inter; color: #3d4852; letter-spacing: -.01em; }
-.inv-from p { margin: 0; font-size: 10.5px; line-height: 1.5; color: #5b6670; }
-.inv-from .inv-gstin { display: block; margin-top: 7px; font-weight: 600; color: #2b333b; letter-spacing: .02em; }
-.inv-logo { width: 46mm; height: 20mm; display: flex; align-items: flex-start; justify-content: flex-end; flex: none; }
+.inv-from h2 { margin: 0 0 4px; font: 600 15px Inter; color: #3d4852; letter-spacing: -.01em; }
+.inv-from p { margin: 0; font-size: 10.5px; line-height: 1.4; color: #5b6670; }
+.inv-from .inv-gstin { display: block; margin-top: 5px; font-weight: 600; color: #2b333b; letter-spacing: .02em; }
+.inv-head-right { display: flex; flex-direction: column; align-items: flex-end; flex: none; }
+.inv-logo { width: 46mm; height: 15mm; display: flex; align-items: flex-start; justify-content: flex-end; flex: none; }
 .inv-logo img { max-width: 100%; max-height: 100%; object-fit: contain; object-position: right top; }
 
 /* ---------- title ---------- */
-.inv-title { margin-top: 3mm; text-align: right; }
-.inv-title h1 { margin: 0; font: 700 25px Inter; letter-spacing: .14em; color: #3d4852; text-transform: uppercase; }
-.inv-title .inv-sub { display: block; margin-top: 4px; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: #93a0aa; font-weight: 600; }
+.inv-title { margin-top: 2mm; text-align: right; }
+.inv-title h1 { margin: 0; font: 700 21px Inter; letter-spacing: .12em; color: #3d4852; text-transform: uppercase; }
+.inv-title .inv-sub { display: block; margin-top: 2px; font-size: 8.5px; letter-spacing: .16em; text-transform: uppercase; color: #93a0aa; font-weight: 600; }
 
 /* ---------- parties ---------- */
-.inv-parties { display: flex; justify-content: space-between; gap: 12mm; margin-top: 4mm; }
+.inv-parties { display: flex; justify-content: space-between; gap: 12mm; margin-top: 2.5mm; }
 .inv-who { flex: 1; max-width: 104mm; display: flex; gap: 9mm; }
 .inv-who > div { flex: 1; min-width: 0; }
 .inv-party .inv-label { font-weight: 700; color: #3d4852; font-size: 10px; letter-spacing: .01em; }
-.inv-party b { display: block; margin: 4px 0 3px; font: 400 14px Inter; color: #2b333b; letter-spacing: -.01em; }
-.inv-party p { margin: 0; font-size: 10.5px; line-height: 1.45; }
-.inv-party .inv-gstin { display: block; margin-top: 5px; font-weight: 600; color: #2b333b; }
+.inv-party b { display: block; margin: 2px 0 2px; font: 400 13px Inter; color: #2b333b; letter-spacing: -.01em; }
+.inv-party p { margin: 0; font-size: 10px; line-height: 1.35; }
+.inv-party .inv-gstin { display: block; margin-top: 3px; font-weight: 600; color: #2b333b; }
 
 .inv-facts { min-width: 62mm; }
-.inv-facts > div { display: flex; justify-content: space-between; gap: 10mm; padding: 2.5px 0; }
-.inv-facts dt { font-weight: 700; color: #3d4852; font-size: 10.5px; }
+.inv-facts > div { display: flex; justify-content: space-between; gap: 10mm; padding: 1.5px 0; }
+.inv-facts dt { font-weight: 700; color: #3d4852; font-size: 10px; }
 .inv-facts dd { margin: 0; color: #2b333b; font-variant-numeric: tabular-nums; text-align: right; }
 .inv-facts .inv-note dt, .inv-facts .inv-note dd { color: #93a0aa; font-weight: 500; font-size: 9.5px; }
 
 /* ---------- items ---------- */
-.inv-table { width: 100%; border-collapse: collapse; margin-top: 5mm; font-size: 10.5px; table-layout: fixed; }
+.inv-table { width: 100%; border-collapse: collapse; margin-top: 3mm; font-size: 10.5px; table-layout: fixed; }
 .inv-table thead th {
-  font-weight: 700; color: #3d4852; text-align: left; padding: 0 6px 7px;
+  font-weight: 700; color: #3d4852; text-align: left; padding: 0 6px 5px;
   border-bottom: 1px solid #3d4852; white-space: nowrap;
 }
-.inv-table tbody td { padding: 5px 6px; color: #5b6670; vertical-align: top; overflow-wrap: anywhere; }
+.inv-table tbody td { padding: 3.5px 6px; color: #5b6670; vertical-align: top; overflow-wrap: anywhere; }
 .inv-table tbody tr:last-child td { padding-bottom: 8px; border-bottom: 1px solid #3d4852; }
 .inv-table th.inv-num, .inv-table td.inv-num { text-align: right; }
 .inv-table td.inv-num { color: #2b333b; font-variant-numeric: tabular-nums; }
 .inv-table th:first-child, .inv-table td:first-child { padding-left: 0; }
 .inv-table th:last-child, .inv-table td:last-child { padding-right: 0; }
 .inv-item-name { display: block; color: #2b333b; }
-.inv-item-details { display: block; margin-top: 2px; font-size: 9px; line-height: 1.45; color: #93a0aa; white-space: pre-line; }
+.inv-item-details { display: block; margin-top: 2px; font-size: 8.5px; line-height: 1.35; color: #93a0aa; white-space: pre-line; }
 .inv-continued { font-size: 9.5px; color: #93a0aa; margin: 4mm 0 0; }
 
 /* column widths: set per switch combination by the component */
@@ -104,49 +100,53 @@
 .inv-sum .inv-box { display: block; width: 62%; max-width: 95mm; }
 .inv-sum .inv-box > div {
   display: flex; justify-content: space-between; gap: 10mm;
-  padding: 2.5px 6px; border-bottom: 1px solid #d9dee2;
+  padding: 1px 6px; font-size: 10px; border-bottom: 1px solid #d9dee2;
 }
 .inv-sum .inv-box > div span:last-child { color: #2b333b; font-variant-numeric: tabular-nums; }
 .inv-sum .inv-total {
-  border-bottom: none; border-top: 1px solid #3d4852; margin-top: 2px; padding-top: 7px;
-  font-weight: 700; color: #3d4852; font-size: 12px;
+  border-bottom: none; border-top: 1px solid #3d4852; margin-top: 2px; padding-top: 4px;
+  font-weight: 700; color: #3d4852; font-size: 11.5px;
 }
 .inv-sum .inv-total span:last-child { font-weight: 700; color: #3d4852; }
 .inv-sum .inv-paid span:last-child { color: #2f6b45; }
 .inv-sum .inv-balance { border-bottom: none; font-weight: 700; color: #3d4852; }
 .inv-sum .inv-balance span:last-child { font-weight: 700; color: #3d4852; }
 
-.inv-words { margin-top: 3mm; font-size: 10px; color: #5b6670; }
+.inv-words { margin-top: 1.5mm; font-size: 9.5px; color: #5b6670; }
 .inv-words b { color: #3d4852; font-weight: 700; }
 
 /* ---------- closing blocks ---------- */
 .inv-foot {
-  padding-top: 3mm; display: flex; justify-content: space-between;
+  padding-top: 1.5mm; display: flex; justify-content: space-between;
   gap: 14mm; align-items: flex-end;
 }
-.inv-foot { font-size: 9px; }
-.inv-foot h3 { margin: 0 0 4px; font: 700 9.5px Inter; color: #3d4852; }
+.inv-foot { font-size: 8.5px; }
+.inv-foot h3 { margin: 0 0 3px; font: 700 9px Inter; color: #3d4852; }
 .inv-left { max-width: 108mm; display: flex; gap: 8mm; align-items: flex-start; }
 .inv-left > div { flex: 1; min-width: 0; }
-.inv-terms h3:not(:first-child) { margin-top: 4mm; }
-.inv-left p { margin: 0 0 3px; font-size: 9px; line-height: 1.45; }
+.inv-terms h3:not(:first-child) { margin-top: 2mm; }
+.inv-left p { margin: 0 0 2px; font-size: 8.5px; line-height: 1.32; }
 .inv-pay { flex: 0 1 46mm; }
-.inv-pay dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 9px; }
+.inv-pay dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 1px 10px; font-size: 8.5px; }
 .inv-pay dt { color: #93a0aa; }
 .inv-pay dd { margin: 0; color: #2b333b; font-weight: 500; font-variant-numeric: tabular-nums; }
 .inv-qr { width: 22mm; height: 22mm; object-fit: contain; margin-top: 2mm; }
 
 .inv-sign { width: 58mm; text-align: center; flex: none; }
-.inv-sign .inv-for { font-size: 9.5px; color: #5b6670; }
-.inv-signbox { height: 12mm; display: grid; place-items: center; }
-/* `height`, not `max-height`: a percentage max-height does not resolve against a grid area, so the
-   signature was drawn at its natural size and ran over the name beneath it. */
-.inv-signbox img { height: 100%; max-width: 100%; object-fit: contain; }
-.inv-sign .inv-line { border-top: 1px solid #3d4852; padding-top: 6px; font-weight: 700; color: #3d4852; font-size: 10px; }
+.inv-sign .inv-for { font-size: 9px; color: #5b6670; }
+.inv-signbox { height: 10mm; display: grid; place-items: center; }
+/* An absolute cap, not a percentage: a percentage height does not resolve against a grid area that
+   is sized by its own content, so the signature was drawn at its natural size and struck through the
+   name beneath it. A length in mm resolves whatever the parent does. */
+.inv-signbox img { max-height: 10mm; max-width: 100%; object-fit: contain; }
+.inv-sign .inv-line { border-top: 1px solid #3d4852; padding-top: 5px; font-weight: 700; color: #3d4852; font-size: 9.5px; }
 
+/* `auto` pins the rule to the foot of the paper rather than to the end of the writing, so a short
+   invoice and a full one carry it at the same height. Everything above it — table, totals, terms
+   and signature — stays put where the writing ends; only this rule moves to the bottom. */
 .inv-page footer {
-  margin-top: 3mm; padding-top: 6px; border-top: 1px solid #d9dee2;
-  display: flex; justify-content: space-between; font-size: 9px; color: #a6b0b8;
+  margin-top: auto; padding-top: 6px; border-top: 1px solid #d9dee2;
+  display: flex; justify-content: space-between; font-size: 8.5px; color: #a6b0b8;
 }
 
 /* A cancelled or paid invoice can be stamped across the page when that switch is on. */
@@ -193,16 +193,23 @@
    also fires while Chrome lays the PDF out at 794px and shrinks the printed page. */
 @media screen and (max-width: 900px) {
   .inv-stage { padding: 18px 0; }
-  /* `zoom` rather than `scale`: it shrinks the box as well as the paint, so a page that is only as
-     tall as its items no longer needs a hand-computed negative margin to pull the next one up. */
+  /* `zoom` rather than `scale`: it shrinks the box as well as the paint, so the sheet still centres
+     itself and the next one still follows it, with no hand-computed negative margin. */
   .inv-page { zoom: calc((100vw - 28px) / 210mm); box-shadow: 0 5px 20px #0008; }
   .inv-document { gap: 14px; }
+}
+
+/* A phone cannot hold the bar's caption and its buttons on one line, and squeezing them leaves the
+   buttons too narrow to hit. The caption gives up its line first: the buttons are what is used. */
+@media screen and (max-width: 560px) {
+  .inv-overlay-bar { flex-wrap: wrap; gap: 8px; padding: 8px 12px; font-size: 12.5px; }
+  .inv-overlay-actions { width: 100%; justify-content: flex-end; }
+  .inv-overlay-note { width: 100%; text-align: right; }
 }
 
 @media print {
   .inv-stage { background: none; padding: 0; }
   .inv-document { display: block; }
-  /* Paper does not shrink: every sheet is A4, including a short last page. */
-  .inv-page { box-shadow: none; margin: 0; height: 297mm; max-height: 297mm; }
+  .inv-page { box-shadow: none; margin: 0; }
   body { background: #fff; }
 }

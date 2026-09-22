@@ -181,12 +181,7 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, o
       </section>
 
       <section className="a-card p-4">
-        <div className="flex items-center justify-between">
-          <h2 className="a-h2">Items</h2>
-          <Button type="button" size="sm" variant="secondary" onClick={() => setInv((s) => ({ ...s, items: [...s.items, newRow()] }))}>
-            <Plus className="size-4" /> Add item
-          </Button>
-        </div>
+        <h2 className="a-h2">Items</h2>
 
         {inv.items.length === 0 ? (
           <p className="a-sub mt-3">No items yet. Add the first one.</p>
@@ -261,6 +256,13 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, o
             })}
           </ul>
         )}
+
+        <Button
+          type="button" size="sm" variant="secondary" className="mt-3"
+          onClick={() => setInv((s) => ({ ...s, items: [...s.items, newRow()] }))}
+        >
+          <Plus className="size-4" /> Add item
+        </Button>
       </section>
 
       <section className="a-card p-4">

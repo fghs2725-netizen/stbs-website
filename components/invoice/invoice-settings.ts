@@ -64,7 +64,10 @@ export const DEFAULT_INVOICE_SETTINGS: InvoiceSettings = {
   blocks: {
     shipTo: true, placeOfSupply: true, reverseCharge: true, dueDate: true, originalMarker: true,
     quotationRef: true, amountWords: true, advanceBalance: true, roundOff: true, bankDetails: true,
-    upiQr: true, signature: true, terms: true, declaration: true, statusStamp: false,
+    upiQr: true, signature: true, terms: true, statusStamp: false,
+    // Off, as the owner asked for: the terms already cover it, and it cost the closing block a
+    // sixth of the page. The switch stays for a CA who wants it back.
+    declaration: false,
   },
   gstEnabled: true,
   gstRate: 18,

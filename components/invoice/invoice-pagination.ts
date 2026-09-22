@@ -3,10 +3,10 @@
  *
  * Deterministic and pure so the server render, the editor preview and the PDF all agree. Heights are
  * estimated in CSS px at 96dpi against the real stylesheet (A4 = 1122.5px tall, 14mm/7mm padding):
- *   - a row costs 9.2px of padding plus 15.75px per wrapped line of the name, and 13.1px per detail line,
+ *   - a row costs 7.2px of padding plus 15.75px per wrapped line of the name, and 11.5px per detail line,
  *   - page 1 carries the masthead, title and party blocks; later pages carry a shorter header,
  *   - the totals, amount in words, payment, terms and signature blocks must all fit on the LAST page,
- *     so rows are pushed forward until they do.
+ *     and move there together when they do not fit beneath its rows.
  *
  * The snapshot test renders real fixtures and fails if any page overflows, so a constant that drifts
  * is caught rather than silently clipping a row off the bottom of an invoice.
@@ -19,25 +19,27 @@ export const INVOICE_LAYOUT = {
   /** A4 height minus the page's top and bottom padding. */
   contentPx: 1043,
   /**
-   * Masthead + title + parties + table heading, on the first page. Measured at 365px against the
-   * fixture with the tallest party block (a ship-to address beside the bill-to); a one-line client
-   * costs about 335. The larger figure is the safe one: over-reserving moves a row to a second page,
-   * under-reserving prints it off the bottom of this one.
+   * Masthead + title + parties + table heading, on the first page — everything above the first row.
+   * Measured at 270px against the fixture with the tallest party block (a ship-to address beside the
+   * bill-to); a one-line client costs about 257. The margin above the measured figure is deliberate,
+   * because a client with a longer address makes this block taller: over-reserving moves a row to a
+   * second page, under-reserving prints it off the bottom of this one.
    */
-  headerFirstPx: 366,
-  /** Masthead + "continued" line + table heading, on later pages. */
-  headerContPx: 168,
-  rowChromePx: 9.2,
+  headerFirstPx: 278,
+  /** Masthead + "continued" line + table heading, on later pages. Measured at 150. */
+  headerContPx: 155,
+  rowChromePx: 7.2,
   linePx: 15.75,
-  detailLinePx: 13.1,
+  detailLinePx: 11.5,
   detailGapPx: 2,
   /** One totals line; the grand-total line is taller. */
-  sumRowPx: 21.8,
-  sumTotalPx: 30,
-  wordsPx: 26,
-  /** Payment block, terms and the signature, which sit side by side. */
-  closingPx: 210,
-  footerPx: 32,
+  sumRowPx: 18.2,
+  sumTotalPx: 22,
+  wordsPx: 20,
+  /** Payment block, terms and the signature, which sit side by side. Measured at 93. */
+  closingPx: 96,
+  /** The footer rule is 20 tall; the rest is the gap it keeps from whatever ends above it. */
+  footerPx: 26,
 } as const;
 
 /* Inter advance widths in em, calibrated against the rendered table so the estimate never falls short
@@ -139,39 +141,41 @@ export function paginateInvoiceItems(items: unknown, settings: InvoiceSettings, 
 
   let page: InvoiceItem[] = [];
   let used = 0;
-  let index = 0;
   starts.push(0);
 
-  for (let i = 0; i < valid.length; i++) {
+  /** What a page leaves for rows once its own header and the footer are taken out. */
+  const rowCapacity = (isFirst: boolean) =>
     // The "Page N of M" footer sits on every page, not just the last, so the rows never get the
     // whole content box. Leaving it out here let a continuation page run past the bottom of the
     // paper, which only showed up once the page stopped being a fixed A4 box that hid the spill.
-    const capacity = L.contentPx - (pages.length === 0 ? L.headerFirstPx : L.headerContPx) - L.footerPx;
-    if (page.length && used + heights[i] > capacity) {
+    L.contentPx - (isFirst ? L.headerFirstPx : L.headerContPx) - L.footerPx;
+
+  for (let i = 0; i < valid.length; i++) {
+    if (page.length && used + heights[i] > rowCapacity(pages.length === 0)) {
       pages.push(page);
       starts.push(i);
       page = [];
       used = 0;
-      index = i;
     }
     page.push(valid[i]);
     used += heights[i];
   }
   pages.push(page);
 
-  // The closing blocks live on the last page. If they do not fit beside the rows that landed there,
-  // move rows forward one at a time until they do; an invoice whose closing blocks need a page of
-  // their own gets one rather than printing a total that runs off the paper.
-  for (let guard = 0; guard < valid.length + 2; guard++) {
-    const last = pages.length - 1;
-    const capacity = L.contentPx - (last === 0 ? L.headerFirstPx : L.headerContPx) - closingHeight;
-    const usedOnLast = pages[last].reduce((sum, it, n) => sum + heights[starts[last] + n], 0);
-    if (usedOnLast <= capacity) break;
-    if (pages[last].length === 0) break;
-    const moved = pages[last].pop() as InvoiceItem;
-    pages.push([moved]);
-    starts.push(starts[last] + pages[last].length);
-    if (pages[last].length === 0) { pages.splice(last, 1); starts.splice(last, 1); }
+  /*
+   * The closing blocks live on the last page. They are moved as one: if they do not fit beneath the
+   * rows that landed there, the whole block takes a page of its own. Walking rows forward instead —
+   * which is what this did before — filled the next page with a single orphaned line and left the
+   * page before it half empty, because a row is not what was too tall.
+   */
+  const last = pages.length - 1;
+  const usedOnLast = pages[last].reduce((sum, _it, n) => sum + heights[starts[last] + n], 0);
+  // `closingHeight` counts the footer itself, so the room it needs is measured against the whole
+  // content box less that page's header — subtracting the footer again would charge for it twice.
+  const roomBesideRows = L.contentPx - (last === 0 ? L.headerFirstPx : L.headerContPx);
+  if (usedOnLast + closingHeight > roomBesideRows && pages[last].length) {
+    pages.push([]);
+    starts.push(valid.length);
   }
 
   return { pages, starts, total: pages.length };
