@@ -520,7 +520,9 @@ export async function convertQuotationToInvoice(quotationId: string): Promise<In
     where: { id: quotationId },
     include: { items: { orderBy: { position: "asc" } } },
   });
-  if (!q) throw new Error("NOT_FOUND");
+  if (!q || q.deletedAt) throw new Error("NOT_FOUND");
+  // Only a finalized quotation is what the client agreed to; a draft can still change under the invoice.
+  if (q.status !== "FINAL") throw new Error("NOT_FINAL");
 
   const existing = await prisma.invoice.findFirst({ where: { quotationId, deletedAt: null }, select: { id: true } });
   if (existing) throw new Error("INVOICE_EXISTS");

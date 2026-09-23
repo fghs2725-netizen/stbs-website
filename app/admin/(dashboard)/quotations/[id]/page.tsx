@@ -6,6 +6,7 @@ import { getQuotation } from '@/lib/quotation-management';
 import { QuotationPreview } from '@/components/quotation/QuotationPreview';
 import { duplicateAction } from '../actions';
 import { DuplicateQuotationButton } from '@/components/quotation/DuplicateQuotationButton';
+import { FinalizeQuotationButton } from '@/components/quotation/FinalizeQuotationButton';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { QuotationPdfActions } from '@/components/quotation/share/QuotationPdfActions';
@@ -64,6 +65,8 @@ export default async function ViewPage({ params }: { params: Promise<{ id: strin
       <form action={duplicateAction.bind(null, quotation.id)}>
         <DuplicateQuotationButton />
       </form>
+      {/* A draft is finalized first; only a finalized quotation can become an invoice. */}
+      {!isFinal && <FinalizeQuotationButton id={quotation.id} ready={validForPdf} />}
       {/* Once an invoice exists, this quotation shows the way to it rather than offering a second one. */}
       {raisedInvoice ? (
         <Button asChild variant="secondary">
@@ -73,7 +76,7 @@ export default async function ViewPage({ params }: { params: Promise<{ id: strin
           </Link>
         </Button>
       ) : (
-        validForPdf && (
+        isFinal && (
           <form action={convertQuotationAction.bind(null, quotation.id)}>
             <Button type="submit" variant="secondary">
               <ReceiptText className="size-4" />
@@ -158,11 +161,17 @@ export default async function ViewPage({ params }: { params: Promise<{ id: strin
             )}
           </section>
 
-          {!validForPdf && (
+          {!validForPdf ? (
             <section className="a-card p-5 text-[0.875rem]" style={{ color: 'var(--a-warn)', background: 'var(--a-warn-soft)' }}>
               Add a client, a service and subject, and at least one price item, then generate the
               PDF from the Document Editor.
             </section>
+          ) : (
+            !isFinal && !raisedInvoice && (
+              <section className="a-card p-5 text-[0.875rem]" style={{ color: 'var(--a-muted)' }}>
+                Finalize this quotation to raise an invoice from it.
+              </section>
+            )
           )}
         </aside>
       </div>

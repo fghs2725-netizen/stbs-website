@@ -306,6 +306,8 @@
 .qs-mobile-bar button:disabled { opacity: .42; cursor: not-allowed; }
 .qs-mobile-primary { background: #d18b35 !important; border-color: #d18b35 !important; color: #17120a !important; }
 @media (min-width: 1180px) { .qs-mobile-bar { display: none; } }
+/* Finalize in the top bar only where the review rail (which has its own) is hidden. */
+@media (min-width: 1180px) { .qs-bar-finalize { display: none; } }
 
 /* ---------- Full preview overlay ---------- */
 .qs-overlay { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; background: #0d0d0f; }
