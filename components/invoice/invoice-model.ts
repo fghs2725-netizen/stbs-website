@@ -266,7 +266,17 @@ type QuotationLike = {
  */
 export function fromQuotation(q: QuotationLike, settings: InvoiceSettings, today: string, sellerState: string): InvoiceState {
   const client: InvoiceParty = { ...emptyParty(), ...q.client } as InvoiceParty;
-  const gstEnabled = q.gstEnabled ?? settings.gstEnabled;
+  /*
+   * A quotation starts with GST switched off, so most never turn it on even when the owner would
+   * always charge it on the actual invoice — `??` only falls back on null/undefined, never on that
+   * explicit `false`, so the quotation's untouched default was silently overriding the invoice's own
+   * GST setting on every conversion. `||` treats the quotation's GST as authoritative only when it
+   * actually turned GST on (with whatever rate and mode it chose); otherwise the invoice falls back
+   * to its own default. There is no way to tell "never touched" apart from "deliberately off" in a
+   * plain boolean, so a quotation that really was meant to carry no GST still needs it switched off
+   * again on the invoice — one toggle, against every other quotation silently losing its GST.
+   */
+  const gstEnabled = q.gstEnabled || settings.gstEnabled;
   const auto = settings.gstModeAuto ? inferGstMode(sellerState, client.state, client.gstin) : null;
   return {
     date: today,

@@ -13,7 +13,7 @@ import { invoicesForQuotation } from '@/lib/invoice-management';
 import { formatInvoiceNumber } from '@/lib/invoice-numbering';
 import { convertQuotationAction } from '../../invoices/actions';
 import { shareSubjectFrom } from '@/components/quotation/share/share-model';
-import { calcAmount, calcTotal, formatINR } from '@/components/quotation/quotation-model';
+import { calcAmount, calcTotal, formatINR, isQuotationPdfReady } from '@/components/quotation/quotation-model';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,7 +44,10 @@ export default async function ViewPage({ params }: { params: Promise<{ id: strin
   if (!quotation?.id) notFound();
   const total = calcTotal(quotation.items);
   const isFinal = quotation.status === 'FINAL';
-  const validForPdf = quotation.items.length > 0 && quotation.client.companyName;
+  // The canonical readiness check, not a hand-rolled one: this page used to require only items and a
+  // client name, so a quotation missing its subject or service type could show an unusable PDF button
+  // here while the editor's own checklist — reading the same field — correctly still called it not ready.
+  const validForPdf = isQuotationPdfReady(quotation);
   const [raisedInvoice] = await invoicesForQuotation(quotation.id);
 
   const actions = (
@@ -157,8 +160,8 @@ export default async function ViewPage({ params }: { params: Promise<{ id: strin
 
           {!validForPdf && (
             <section className="a-card p-5 text-[0.875rem]" style={{ color: 'var(--a-warn)', background: 'var(--a-warn-soft)' }}>
-              Add a client and at least one price item, then generate the PDF from the Document
-              Editor.
+              Add a client, a service and subject, and at least one price item, then generate the
+              PDF from the Document Editor.
             </section>
           )}
         </aside>

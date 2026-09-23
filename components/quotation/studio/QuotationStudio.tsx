@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ArrowLeft, Check, FileDown, FileText, Lock, Printer, Redo2, Undo2, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, FileDown, FileText, Lock, Printer, ReceiptText, Redo2, Undo2, X } from "lucide-react";
 import type { QuotationState } from "../quotation-model";
 import { BUILT_IN_UNITS } from "@/lib/units";
 import { formatINR } from "../quotation-model";
@@ -24,11 +24,19 @@ const PREVIEW_DEBOUNCE_MS = 250;
  * Quotation editor. One editable A4 sheet you type directly on, a review rail that tracks what is
  * still missing, and a full preview over the top when you want to see all pages as printed.
  */
-export function QuotationStudio({ initial, clients = [], templates = [], units = BUILT_IN_UNITS as unknown as string[], onCreateUnit, backHref = "/admin/quotations", backLabel = "Quotations" }: {
+export function QuotationStudio({
+  initial, clients = [], templates = [], units = BUILT_IN_UNITS as unknown as string[], onCreateUnit,
+  backHref = "/admin/quotations", backLabel = "Quotations", raiseInvoice,
+}: {
   initial: QuotationState; clients?: ReusableClient[]; templates?: QuotationTemplateRef[];
   /** Every unit on offer; falls back to the built-ins where nothing has been stored yet. */
   units?: string[]; onCreateUnit?: (unit: string) => void | Promise<void>;
   backHref?: string; backLabel?: string;
+  /**
+   * The invoice action next to Save and Share, so raising one no longer means leaving the editor
+   * first. A quotation with no id yet (still unsaved) has nothing to show here.
+   */
+  raiseInvoice?: { action: () => Promise<void> } | { href: string; label: string };
 }) {
   const s = useQuotationSession(initial);
   const { q, dirty, isFinal, status, totals, busy } = s;
@@ -97,6 +105,20 @@ export function QuotationStudio({ initial, clients = [], templates = [], units =
           <button type="button" className="qs-icon" onClick={s.undo} disabled={!s.canUndo} aria-label="Undo (Ctrl+Z)" title="Undo (Ctrl+Z)"><Undo2 size={16} /></button>
           <button type="button" className="qs-icon" onClick={s.redo} disabled={!s.canRedo} aria-label="Redo (Ctrl+Y)" title="Redo (Ctrl+Y)"><Redo2 size={16} /></button>
           <button type="button" className="qs-btn" onClick={() => void s.persist("manual")} disabled={s.saveState === "saving" || isFinal} title="Save draft (Ctrl+S)">{s.saveState === "saving" ? "Saving…" : "Save"}</button>
+          {raiseInvoice && (
+            "href" in raiseInvoice ? (
+              <Link href={raiseInvoice.href} className="qs-btn" onClick={leave}><ReceiptText size={15} aria-hidden /> {raiseInvoice.label}</Link>
+            ) : (
+              <form action={raiseInvoice.action}>
+                <button
+                  type="submit" className="qs-btn" disabled={!status.ready || !q.id}
+                  title={q.id ? (status.ready ? "Raise an invoice from this quotation" : `Still needed: ${status.missing.join(", ")}`) : "Save the draft first"}
+                >
+                  <ReceiptText size={15} aria-hidden /> Raise invoice
+                </button>
+              </form>
+            )
+          )}
           <ShareQuotation intent="share" subject={shareSubject} getPdf={getPdf} render={({ open }) => (
             <button type="button" className="qs-btn" onClick={open} disabled={exportDisabled} title={exportTitle ?? "Send the PDF by WhatsApp, email and more"}>Share</button>
           )} />

@@ -333,6 +333,22 @@ check("the copy is independent: editing the invoice cannot reach back into the q
   assert.equal(quotation.items[0].description, "Submersible pump set 5 HP");
   assert.equal(quotation.client.companyName, "Sample Industrial Works Pvt. Ltd.");
 });
+check("a quotation's untouched GST default does not suppress the invoice's own", () => {
+  // A quotation starts with GST off, so most never turn it on even when every invoice should carry
+  // it: `??` only falls back on null/undefined, never on that explicit `false`.
+  const noGst = { ...quotation, gstEnabled: false };
+  assert.equal(fromQuotation(noGst, S, "2026-09-21", "Haryana").gstEnabled, true, "falls back to the invoice's own default");
+
+  const gstOffByDefault = { ...S, gstEnabled: false };
+  assert.equal(
+    fromQuotation(noGst, gstOffByDefault, "2026-09-21", "Haryana").gstEnabled, false,
+    "and stays off when the invoice's own default is off too",
+  );
+
+  // A quotation that DID turn GST on keeps exactly what it chose, rate included.
+  const gst12 = { ...quotation, gstEnabled: true, gstRate: 12 };
+  assert.equal(fromQuotation(gst12, S, "2026-09-21", "Haryana").gstRate, 12, "an explicit rate is not overridden");
+});
 check("a converted invoice totals the same as the quotation it came from", () => {
   const i = fromQuotation(quotation, S, "2026-09-21", "Haryana");
   const t = calcInvoiceTotals(i, S);
