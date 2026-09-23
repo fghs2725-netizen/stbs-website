@@ -5,7 +5,7 @@ import { SEO } from "@/lib/website/seo-copy";
 import { CLIENTS_SECTIONS, fallbackClientRows } from "@/lib/website/page-defaults";
 import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 const SLUG = "clients";
 

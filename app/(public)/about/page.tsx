@@ -5,7 +5,7 @@ import { SEO } from "@/lib/website/seo-copy";
 import { ABOUT_SECTIONS } from "@/lib/website/page-defaults";
 import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 const SLUG = "about";
 

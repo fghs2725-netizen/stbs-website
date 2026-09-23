@@ -5,7 +5,7 @@ import { getPublishedGalleryItems, getPublishedPage, getPublishedPageMeta } from
 import { pageMetadata } from "@/lib/page-metadata";
 import { SEO } from "@/lib/website/seo-copy";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 const SLUG = "gallery";
 

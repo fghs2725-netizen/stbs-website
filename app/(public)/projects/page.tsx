@@ -5,7 +5,7 @@ import { SEO } from "@/lib/website/seo-copy";
 import { resolveProjects } from "@/lib/website/projects-data";
 import { getPublishedPage } from "@/lib/website/queries";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 export const metadata: Metadata = pageMetadata({ ...SEO.projects, path: "/projects", absoluteTitle: true });
 

@@ -13,7 +13,9 @@
  */
 export function canonicalSiteUrl(): string {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "");
-  return configured || "https://www.stbs.in";
+  // Production's variable names the apex, which only redirects here; upgrade it rather than advertise
+  // a redirecting canonical, sitemap and robots line.
+  return configured?.replace(/^https?:\/\/stbs\.in$/i, "https://www.stbs.in") || "https://www.stbs.in";
 }
 
 /** Joins the canonical origin with a path, e.g. (siteUrl(), "/verify/") -> https://www.stbs.in/verify/ */

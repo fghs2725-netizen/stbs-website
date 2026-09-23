@@ -4,7 +4,7 @@ import { PageRenderer } from "@/components/public/page-renderer";
 import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
 import { pageMetadata, SITE_DEFAULT_DESCRIPTION, SITE_DEFAULT_TITLE } from "@/lib/page-metadata";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 const SLUG = "home";
 

@@ -4,7 +4,8 @@ import { getPublicSiteConfig } from "@/lib/website/public-config";
 import { getPublicSeoMetadata } from "@/lib/website/seo";
 import { buildLocalBusiness } from "@/lib/website/structured-data";
 
-export const dynamic = "force-dynamic";
+// Cached at the edge; publishing in the website editor revalidates at once, this is only the safety net.
+export const revalidate = 86400;
 
 export async function generateMetadata(): Promise<Metadata> {
   const [seo, { settings }] = await Promise.all([getPublicSeoMetadata(), getPublicSiteConfig()]);
