@@ -4,6 +4,7 @@ import {
   FileText,
   Home,
   Images,
+  Inbox,
   KeyRound,
   LayoutTemplate,
   ListChecks,
@@ -35,6 +36,7 @@ export const ADMIN_WORK_NAV: NavItemDef[] = [
   { name: 'Delivery challans', short: 'Challans', href: '/admin/delivery-challans', icon: Truck },
   { name: 'Sale returns', short: 'Returns', href: '/admin/sale-returns', icon: RotateCcw },
   { name: 'Clients', short: 'Clients', href: '/admin/clients', icon: Users },
+  { name: 'Enquiries', short: 'Enquiries', href: '/admin/enquiries', icon: Inbox },
 ];
 
 /**
@@ -63,7 +65,7 @@ export const ADMIN_TAB_NAV: NavItemDef[] = [
 ];
 
 /** Everything the tab bar could not fit, in the order the More sheet lists it. */
-export const ADMIN_MORE_NAV: NavItemDef[] = [ADMIN_WORK_NAV[3], ADMIN_WORK_NAV[4]];
+export const ADMIN_MORE_NAV: NavItemDef[] = [ADMIN_WORK_NAV[6], ADMIN_WORK_NAV[3], ADMIN_WORK_NAV[4]];
 
 /** `/admin` must match exactly or it would light up on every child route. */
 export function isNavItemActive(href: string, pathname: string): boolean {

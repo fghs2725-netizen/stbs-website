@@ -166,7 +166,7 @@
 }
 .inv-overlay-bar {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 10px 16px; border-bottom: 1px solid #ffffff1f;
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px; border-bottom: 1px solid #ffffff1f;
   color: #cdd3d8; font-size: 13px;
 }
 .inv-overlay-actions { display: flex; align-items: center; gap: 8px; }

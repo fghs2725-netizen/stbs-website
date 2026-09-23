@@ -30,7 +30,7 @@
 .qs-bar {
   position: sticky; top: 0; z-index: 30;
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  padding: 10px 16px;
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
   background: rgba(20, 20, 22, .96); backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--panel-line);
 }
@@ -309,7 +309,7 @@
 
 /* ---------- Full preview overlay ---------- */
 .qs-overlay { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; background: #0d0d0f; }
-.qs-overlay-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--panel-line); color: #b9bbb8; font-size: 12.5px; }
+.qs-overlay-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: calc(11px + env(safe-area-inset-top)) 16px 11px; border-bottom: 1px solid var(--panel-line); color: #b9bbb8; font-size: 12.5px; }
 .qs-overlay-bar button { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 13px; border: 1px solid rgba(255, 255, 255, .18); border-radius: 8px; background: rgba(255, 255, 255, .05); color: #e9eae7; font: 600 13px var(--font-inter), sans-serif; cursor: pointer; }
 .qs-overlay-bar button:hover { background: rgba(255, 255, 255, .1); }
 .qs-overlay-scroll { flex: 1; overflow: auto; }

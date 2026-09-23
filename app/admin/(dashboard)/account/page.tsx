@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { KNOWN_DEFAULT_PASSWORDS } from "@/lib/password-policy";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { ChangePasswordForm } from "@/components/admin/account/ChangePasswordForm";
+import { PhoneAppSettings } from "@/components/admin/app/PhoneAppSettings";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export default async function AccountPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/admin/login");
 
-  const user = await prisma.user.findFirst({ where: { id: session.user.id, deletedAt: null }, select: { name: true, email: true, password: true, lastLoginAt: true } });
+  const user = await prisma.user.findFirst({ where: { id: session.user.id, deletedAt: null }, select: { name: true, email: true, password: true, lastLoginAt: true, passkeys: { orderBy: { createdAt: "desc" }, select: { id: true, deviceName: true, createdAt: true, lastUsedAt: true } } } });
   if (!user) redirect("/admin/login");
 
   // Only this page pays for the check (bcrypt is deliberately slow): is the account still on a password that
@@ -28,7 +29,7 @@ export default async function AccountPage() {
 
   return (
     <div className="a-page">
-      <PageHeader eyebrow="Setup" title="Account & password" description="Who you are signed in as, and the password that protects this admin." />
+      <PageHeader eyebrow="Setup" title="Account & password" description="Who you are signed in as, the password that protects this admin, and the phone app's notifications and Face ID." />
 
       {onDefault && (
         <div role="alert" className="a-card flex gap-3 p-4 sm:p-5" style={{ background: "var(--a-danger-soft)" }}>
@@ -58,6 +59,10 @@ export default async function AccountPage() {
           <div className="max-w-[440px]"><ChangePasswordForm /></div>
         </section>
       </div>
+
+      <PhoneAppSettings
+        passkeys={user.passkeys.map((p) => ({ id: p.id, deviceName: p.deviceName, createdAt: p.createdAt.toISOString(), lastUsedAt: p.lastUsedAt?.toISOString() ?? null }))}
+      />
     </div>
   );
 }

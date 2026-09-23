@@ -84,20 +84,34 @@ export function quoteWhatsAppUrl(q: Partial<QuoteRequest>): string {
   return `https://wa.me/91${company.phones[0]}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
 
-export type QuoteResult = { ok: true } | { ok: false; status: number; error: string; fields?: QuoteFieldErrors };
+export type QuoteResult = { ok: true; enquiryId?: string } | { ok: false; status: number; error: string; fields?: QuoteFieldErrors };
 export type QuoteSender = (mail: { to: string[]; subject: string; htmlBody: string; textBody: string; metadata: Record<string, unknown> }) => Promise<{ success: boolean; error?: string }>;
+/** Saves the request (the admin's Enquiries list) and returns its id. */
+export type QuoteStore = (q: QuoteRequest) => Promise<string>;
 
 /**
- * The server-side logic, with the sender injected so it can be tested without sending anything.
- * Bots (honeypot) get a normal-looking success and nothing is sent.
+ * The server-side logic, with the sender and store injected so it can be tested without either.
+ * Bots (honeypot) get a normal-looking success and nothing is stored or sent.
+ *
+ * The request is stored before it is emailed. Once stored it has reached the owner (in the admin app,
+ * with a notification), so a failed email alone no longer tells the visitor it failed; only when it
+ * was neither stored nor emailed is it reported as a failure.
  */
-export async function processQuote(input: unknown, send: QuoteSender, recipient: string): Promise<QuoteResult> {
+export async function processQuote(input: unknown, send: QuoteSender, recipient: string, store?: QuoteStore): Promise<QuoteResult> {
   const parsed = quoteSchema.safeParse(input);
   if (!parsed.success) return { ok: false, status: 422, error: "Please check the highlighted fields.", fields: fieldErrors(parsed.error.issues) };
   const q = parsed.data;
   if (q.website) return { ok: true };
+  let enquiryId: string | undefined;
+  if (store) {
+    try {
+      enquiryId = await store(q);
+    } catch (e) {
+      console.error("[quote] could not store the enquiry:", e);
+    }
+  }
   const mail = buildQuoteEmail(q);
-  const result = await send({ to: [recipient], ...mail, metadata: { source: "website-quote-form", service: q.service } });
-  if (!result.success) return { ok: false, status: 503, error: "We could not send your request online." };
-  return { ok: true };
+  const result = await send({ to: [recipient], ...mail, metadata: { source: "website-quote-form", service: q.service, ...(enquiryId ? { enquiryId } : {}) } });
+  if (!result.success && !enquiryId) return { ok: false, status: 503, error: "We could not send your request online." };
+  return enquiryId ? { ok: true, enquiryId } : { ok: true };
 }

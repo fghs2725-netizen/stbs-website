@@ -78,6 +78,44 @@ function fakeSender(result: { success: boolean; error?: string }) {
     }
   });
 
+  // The admin app stores each request before emailing it.
+  const fakeStore = (outcome: "ok" | "throw") => {
+    const saved: QuoteRequest[] = [];
+    const store = async (q: QuoteRequest) => {
+      if (outcome === "throw") throw new Error("database down");
+      saved.push(q);
+      return "enq_1";
+    };
+    return { store, saved };
+  };
+  await check("a stored request reports its id and is still emailed, carrying the id", async () => {
+    const { send, calls } = fakeSender({ success: true });
+    const { store, saved } = fakeStore("ok");
+    const r = await processQuote(valid, send, "quotes@x.in", store);
+    assert.deepEqual(r, { ok: true, enquiryId: "enq_1" });
+    assert.equal(saved.length, 1);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].metadata.enquiryId, "enq_1");
+  });
+  await check("stored but the email failed: still a success, because the owner has it", async () => {
+    const r = await processQuote(valid, fakeSender({ success: false }).send, "quotes@x.in", fakeStore("ok").store);
+    assert.deepEqual(r, { ok: true, enquiryId: "enq_1" });
+  });
+  await check("not stored but emailed: a success with no id", async () => {
+    const r = await processQuote(valid, fakeSender({ success: true }).send, "quotes@x.in", fakeStore("throw").store);
+    assert.deepEqual(r, { ok: true });
+  });
+  await check("neither stored nor emailed: a failure", async () => {
+    const r = await processQuote(valid, fakeSender({ success: false }).send, "quotes@x.in", fakeStore("throw").store);
+    assert.equal(r.ok, false);
+  });
+  await check("honeypot and invalid input are never stored", async () => {
+    const { store, saved } = fakeStore("ok");
+    await processQuote({ ...valid, website: "http://spam.example" }, fakeSender({ success: true }).send, "quotes@x.in", store);
+    await processQuote({ ...valid, phone: "1" }, fakeSender({ success: true }).send, "quotes@x.in", store);
+    assert.equal(saved.length, 0);
+  });
+
   await check("email body escapes visitor HTML", () => {
     const { htmlBody, textBody } = buildQuoteEmail({ ...valid, details: '<script>alert(1)</script> & "q"' });
     assert.doesNotMatch(htmlBody, /<script>/);

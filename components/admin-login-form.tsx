@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { PasskeySignIn } from "@/components/admin/app/PasskeySignIn";
 
 export function AdminLoginForm() {
   const searchParams = useSearchParams();
@@ -47,6 +48,7 @@ export function AdminLoginForm() {
       <button type="submit" disabled={loading} className="a-btn a-btn-primary w-full">
         {loading ? "Signing in…" : "Sign in"}
       </button>
+      <PasskeySignIn callbackUrl={searchParams.get("callbackUrl") || "/admin"} />
     </form>
   );
 }

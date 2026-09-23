@@ -1,6 +1,8 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { company } from "@/lib/company";
 import { emailService } from "@/lib/email/email-service";
+import { storeEnquiry } from "@/lib/enquiries";
+import { notifyEnquiry } from "@/lib/push";
 import { processQuote, type QuoteSender } from "@/lib/quote-request";
 import { applyRateLimitHeaders, checkRateLimit } from "@/lib/rate-limit";
 
@@ -10,8 +12,8 @@ export const dynamic = "force-dynamic";
 const MAX_BODY_BYTES = 10_000;
 
 // Public endpoint: everything a visitor supplies is validated (lib/quote-request), bots are dropped
-// by a honeypot, and each IP is limited. Delivery uses the existing email service, which also logs
-// every message (EmailLog), so a request is retained even if the provider is down or unconfigured.
+// by a honeypot, and each IP is limited. Each request is stored (the admin's Enquiries, with a phone
+// notification) and emailed through the existing email service, which also logs every message.
 const send: QuoteSender = async (mail) => {
   try {
     const r = await emailService.sendDirect({ to: mail.to, subject: mail.subject, htmlBody: mail.htmlBody, textBody: mail.textBody, metadata: mail.metadata });
@@ -38,7 +40,12 @@ export async function POST(req: Request) {
   }
 
   const recipient = process.env.QUOTE_TO_EMAIL?.trim() || company.email;
-  const result = await processQuote(body, send, recipient);
-  if (result.ok) return applyRateLimitHeaders(NextResponse.json({ ok: true }), limit);
+  const result = await processQuote(body, send, recipient, storeEnquiry);
+  if (result.ok) {
+    // The phone notification goes out after the visitor has their answer, so they never wait on it.
+    const enquiryId = result.enquiryId;
+    if (enquiryId) after(() => notifyEnquiry(enquiryId).catch((e) => console.error("[quote] notification failed:", e)));
+    return applyRateLimitHeaders(NextResponse.json({ ok: true }), limit);
+  }
   return applyRateLimitHeaders(NextResponse.json({ ok: false, error: result.error, fields: result.fields }, { status: result.status }), limit);
 }

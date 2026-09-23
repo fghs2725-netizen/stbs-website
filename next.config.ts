@@ -31,6 +31,11 @@ const nextConfig: NextConfig = {
         source: "/(.*)",
         headers: securityHeaders,
       },
+      // The admin app's service worker: always revalidated, so a new version reaches phones promptly.
+      {
+        source: "/admin-sw.js",
+        headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }],
+      },
     ];
   },
   async redirects() {

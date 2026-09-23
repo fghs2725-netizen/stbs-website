@@ -6,6 +6,18 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import authConfig from "@/auth.config";
 import { passwordFingerprint } from "@/lib/password-fingerprint";
+import { CHALLENGE_COOKIE, relyingPartyFrom, verifyPasskeySignIn, type AuthenticationResponse } from "@/lib/passkeys";
+
+function clientIp(request: unknown): string {
+  return request instanceof Request
+    ? (request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown")
+    : "unknown";
+}
+
+function cookieValue(request: Request, name: string): string | undefined {
+  const pair = (request.headers.get("cookie") ?? "").split(";").map((c) => c.trim()).find((c) => c.startsWith(`${name}=`));
+  return pair ? decodeURIComponent(pair.slice(name.length + 1)) : undefined;
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -91,6 +103,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           // Stamped into the session so a later password change can end it.
           pwf: passwordFingerprint(user.password),
         };
+      },
+    }),
+    // Face ID / Touch ID. The phone signs a one-time challenge; lib/passkeys checks it and applies the
+    // same account rules as the password above, sharing its rate limit.
+    Credentials({
+      id: "passkey",
+      name: "Face ID",
+      credentials: { response: { type: "text" } },
+      async authorize(credentials, request) {
+        if (!(request instanceof Request)) return null;
+        const ip = clientIp(request);
+        const rateLimitResult = await checkRateLimit(`admin-login:${ip}`, { windowMs: 15 * 60 * 1000, maxRequests: 5 });
+        if (!rateLimitResult.allowed) {
+          console.warn(`[Auth] Rate limit exceeded for passkey login from IP: ${ip}`);
+          return null;
+        }
+        let response: AuthenticationResponse;
+        try {
+          response = JSON.parse(String(credentials?.response ?? ""));
+        } catch {
+          return null;
+        }
+        return verifyPasskeySignIn({ challengeId: cookieValue(request, CHALLENGE_COOKIE), response, rp: relyingPartyFrom(request.headers) });
       },
     }),
   ],

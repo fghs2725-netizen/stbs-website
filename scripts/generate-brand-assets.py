@@ -5,7 +5,7 @@
 Outputs (all flat colour, no gradients — brand-deep #0B1F33):
   public/og/stbs-og-1200x630.png   social card
   app/icon.png (512), app/apple-icon.png (180), app/favicon.ico (16/32/48)
-  public/icon-192.png, public/icon-512.png   (referenced by app/manifest.ts)
+  public/icon-192.png, public/icon-512.png   (referenced by public/manifest.webmanifest and public/admin.webmanifest)
 """
 from PIL import Image, ImageDraw, ImageFont
 

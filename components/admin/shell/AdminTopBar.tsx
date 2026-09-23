@@ -11,7 +11,7 @@ export function AdminTopBar({ businessName, userName }: { businessName: string; 
 
   return (
     <header
-      className="a-bar sticky top-0 z-30 flex h-[56px] shrink-0 items-center gap-3 px-4 lg:px-6"
+      className="a-bar sticky top-0 z-30 flex h-[calc(56px+env(safe-area-inset-top))] shrink-0 items-center gap-3 px-4 pt-[env(safe-area-inset-top)] lg:px-6"
       style={{ borderBottom: '1px solid var(--a-hairline)' }}
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">

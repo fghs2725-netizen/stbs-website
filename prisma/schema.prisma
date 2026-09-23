@@ -99,6 +99,8 @@ model User {
   notifications    Notification[]
   sessions         Session[]
   accounts         Account[]
+  passkeys          Passkey[]
+  pushSubscriptions PushSubscription[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   deletedAt        DateTime?
@@ -1254,4 +1256,72 @@ model CustomUnit {
 model InvoiceNumberCounter {
   id         String @id @default("invoice")
   lastNumber Int    @default(764)
+}
+
+// ─── Admin app: enquiries, notifications, Face ID ────────────────────────────
+
+/** A proposal request from the website's quote form. Stored before it is emailed, so none is lost. */
+model Enquiry {
+  id           String    @id @default(cuid())
+  name         String
+  organisation String?
+  phone        String
+  email        String?
+  service      String
+  location     String
+  details      String?   @db.Text
+  readAt       DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([createdAt])
+}
+
+/** One device that asked for enquiry notifications (the browser's Web Push subscription). */
+model PushSubscription {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint      String    @unique
+  p256dh        String
+  auth          String
+  userAgent     String?
+  createdAt     DateTime  @default(now())
+  lastSuccessAt DateTime?
+
+  @@index([userId])
+}
+
+/** The site's Web Push identity. One row, generated the first time a notification is needed. */
+model VapidKey {
+  id         String   @id @default("default")
+  publicKey  String
+  privateKey String
+  createdAt  DateTime @default(now())
+}
+
+/** A Face ID / Touch ID credential (WebAuthn passkey) that can sign its owner in. */
+model Passkey {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialId String    @unique // base64url
+  publicKey    Bytes
+  counter      Int       @default(0)
+  transports   String[]
+  deviceName   String?
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+
+  @@index([userId])
+}
+
+/** A WebAuthn challenge awaiting its answer. Deleted when used, so a response can never be replayed. */
+model WebAuthnChallenge {
+  id        String   @id @default(cuid())
+  challenge String
+  userId    String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
 }
