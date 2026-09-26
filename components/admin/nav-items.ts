@@ -2,6 +2,7 @@ import {
   Building2,
   Database,
   FileText,
+  HardHat,
   Home,
   Images,
   Inbox,
@@ -13,6 +14,7 @@ import {
   SlidersHorizontal,
   Truck,
   Users,
+  Wallet,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -33,6 +35,8 @@ export const ADMIN_WORK_NAV: NavItemDef[] = [
   { name: 'Home', short: 'Home', href: '/admin', icon: Home },
   { name: 'Quotations', short: 'Quotes', href: '/admin/quotations', icon: FileText },
   { name: 'Invoices', short: 'Invoices', href: '/admin/invoices', icon: ReceiptText },
+  { name: 'Workers', short: 'Workers', href: '/admin/workers', icon: HardHat },
+  { name: 'Expenses', short: 'Expenses', href: '/admin/expenses', icon: Wallet },
   { name: 'Delivery challans', short: 'Challans', href: '/admin/delivery-challans', icon: Truck },
   { name: 'Sale returns', short: 'Returns', href: '/admin/sale-returns', icon: RotateCcw },
   { name: 'Clients', short: 'Clients', href: '/admin/clients', icon: Users },
@@ -56,16 +60,17 @@ export const ADMIN_SETUP_NAV: NavItemDef[] = [
   { name: 'Account & password', href: '/admin/account', icon: KeyRound },
 ];
 
-/** Four tabs plus More. Anything not here is one tap away inside the More sheet. */
-export const ADMIN_TAB_NAV: NavItemDef[] = [
-  ADMIN_WORK_NAV[0],
-  ADMIN_WORK_NAV[1],
-  ADMIN_WORK_NAV[2],
-  ADMIN_WORK_NAV[5],
-];
+const nav = (href: string): NavItemDef => {
+  const item = ADMIN_WORK_NAV.find((i) => i.href === href);
+  if (!item) throw new Error(`No admin nav item for ${href}`);
+  return item;
+};
+
+/** Four tabs plus More. Anything not here is one tap away inside the More sheet. Picked by address, so adding an item never shifts them. */
+export const ADMIN_TAB_NAV: NavItemDef[] = ['/admin', '/admin/quotations', '/admin/invoices', '/admin/workers'].map(nav);
 
 /** Everything the tab bar could not fit, in the order the More sheet lists it. */
-export const ADMIN_MORE_NAV: NavItemDef[] = [ADMIN_WORK_NAV[6], ADMIN_WORK_NAV[3], ADMIN_WORK_NAV[4]];
+export const ADMIN_MORE_NAV: NavItemDef[] = ['/admin/enquiries', '/admin/clients', '/admin/expenses', '/admin/delivery-challans', '/admin/sale-returns'].map(nav);
 
 /** `/admin` must match exactly or it would light up on every child route. */
 export function isNavItemActive(href: string, pathname: string): boolean {

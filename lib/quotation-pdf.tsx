@@ -93,7 +93,8 @@ async function waitReady(page: Page, context: PdfContext, root = '#quotation-pdf
   });
 }
 /** Shared by the quotation and the invoice: the only difference is the root element waited for. */
-export async function renderPdf(url: string, context: PdfContext, expectedPages: number, root?: string) {
+/** `expectedPages` guards fixed-layout documents; null for ones that run to any length (worker statements). */
+export async function renderPdf(url: string, context: PdfContext, expectedPages: number | null, root?: string) {
   let browser: Browser | undefined;
   try {
     browser = await launch(context);
@@ -121,7 +122,7 @@ export async function renderPdf(url: string, context: PdfContext, expectedPages:
     if (bytes.length < 1000 || !bytes.subarray(0, 5).equals(Buffer.from("%PDF-"))) throw new Error("INVALID_PDF_BYTES");
     const pageCount = (await PDFDocument.load(bytes)).getPageCount();
     context.stage = "page-count"; diag("PAGE_COUNT", context, { expectedPageCount: expectedPages, actualPageCount: pageCount });
-    if (pageCount !== expectedPages) throw new Error("PDF_PAGE_COUNT_INVALID");
+    if (expectedPages !== null && pageCount !== expectedPages) throw new Error("PDF_PAGE_COUNT_INVALID");
     diag("VALIDATION_SUCCESS", context, { pageCount }); return bytes;
   } catch (error) { fail(context, error); } finally { await browser?.close().catch(() => undefined); }
 }

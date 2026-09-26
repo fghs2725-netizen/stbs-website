@@ -1325,3 +1325,61 @@ model WebAuthnChallenge {
 
   @@index([expiresAt])
 }
+
+// ─── Workers and expenses ────────────────────────────────────────────────────
+
+/** A crew member. "Removing" one archives him (active = false): his work and payment history is kept. */
+model Worker {
+  id             String        @id @default(cuid())
+  name           String
+  phone          String?
+  role           String?
+  notes          String?
+  /** What was pending before the app: positive = the business owed him, negative = he had an advance. */
+  openingBalance Decimal       @default(0) @db.Decimal(12, 2)
+  active         Boolean       @default(true)
+  entries        WorkerEntry[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+
+  @@index([active])
+}
+
+/** One line of a worker's ledger: work done (earned) or money given (paid). See lib/worker-ledger.ts. */
+model WorkerEntry {
+  id          String    @id @default(cuid())
+  workerId    String
+  worker      Worker    @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  kind        String // "WORK" | "PAYMENT"
+  date        String // YYYY-MM-DD
+  description String
+  site        String?
+  quantity    Decimal?  @db.Decimal(10, 2)
+  unit        String?
+  rate        Decimal?  @db.Decimal(12, 2)
+  /** Work: quantity × rate, stored as it was calculated. Payment: the amount given. */
+  amount      Decimal   @db.Decimal(12, 2)
+  method      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([workerId, date])
+}
+
+/** A business cost that is not money handed to a worker: rig diesel, repairs, drill bits, site food. */
+model Expense {
+  id          String    @id @default(cuid())
+  date        String // YYYY-MM-DD
+  amount      Decimal   @db.Decimal(12, 2)
+  category    String
+  description String?
+  forWhat     String?
+  method      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([date])
+}

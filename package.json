@@ -32,6 +32,7 @@
     "test:services": "npx tsx scripts/test-service-pages.ts",
     "test:projects": "npx tsx scripts/test-projects-data.ts",
     "test:quote": "npx tsx scripts/test-quote-request.ts",
+    "test:workers": "npx tsx scripts/test-worker-ledger.ts",
     "test:seo": "npx tsx scripts/test-seo.ts",
     "test:storage": "npx tsx scripts/test-storage-e2e.ts",
     "test:storage-blob": "npx tsx scripts/test-storage-blob-e2e.ts",
