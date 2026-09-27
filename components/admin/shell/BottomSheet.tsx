@@ -12,16 +12,27 @@ export function BottomSheet({ open, title, onClose, children }: { open: boolean;
   const titleId = useId();
   const panel = useRef<HTMLDivElement>(null);
 
+  // Callers pass a fresh onClose on every render. Keeping the latest in a ref lets the effect below depend
+  // on `open` alone: depending on onClose re-ran it on every keystroke and pulled focus back to the first
+  // field, so typing in any other field jumped to the top.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; });
+
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onCloseRef.current(); };
     document.addEventListener("keydown", onKey);
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    // Focus the first field, so the keyboard comes up ready on a phone.
-    const t = setTimeout(() => panel.current?.querySelector<HTMLElement>("input, select, textarea, button:not([data-close])")?.focus(), 60);
+    // Focus the first field once, as the sheet opens, so the keyboard comes up ready on a phone. Never
+    // steal focus from a field the person has already tapped into.
+    const t = setTimeout(() => {
+      const el = panel.current;
+      if (!el || el.contains(document.activeElement)) return;
+      el.querySelector<HTMLElement>("input, select, textarea, button:not([data-close])")?.focus();
+    }, 60);
     return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = overflow; clearTimeout(t); };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open || typeof document === "undefined") return null;
   return createPortal(
