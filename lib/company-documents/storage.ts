@@ -1,4 +1,4 @@
-import { get, head, del, BlobNotFoundError } from "@vercel/blob";
+import { get, head, put, del, BlobNotFoundError } from "@vercel/blob";
 import { mkdir, readFile, writeFile, unlink, stat } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -41,4 +41,8 @@ export async function deleteDocumentObject(provider: string, key: string) {
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT" && !(error instanceof BlobNotFoundError)) throw error;
   }
+}
+export async function writeDocumentObject(provider: "local" | "blob", key: string, data: Buffer) {
+  if (provider === "local") return writeLocalDocument(key, data);
+  await put(key, data, { access: "private", token: privateBlobToken(), addRandomSuffix: false, allowOverwrite: false, contentType: "application/pdf" });
 }

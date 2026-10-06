@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { upload } from "@vercel/blob/client";
-import { Download, Eye, FileText, Loader2, Pencil, Search, Share2, Trash2, Upload } from "lucide-react";
-import { DOCUMENT_ACCEPT, DOCUMENT_CATEGORIES, documentMime, documentUploadSchema, formatDocumentSize, previewable, type CompanyDocumentItem } from "@/lib/company-documents/shared";
+import { Download, Eye, FileSignature, FileText, Loader2, Pencil, Search, Share2, Trash2, Upload } from "lucide-react";
+import { bankLetterSchema, DOCUMENT_ACCEPT, DOCUMENT_CATEGORIES, documentMime, documentUploadSchema, formatDocumentSize, previewable, type CompanyDocumentItem } from "@/lib/company-documents/shared";
 import { ShareDocuments } from "./ShareDocuments";
 import "./company-documents.css";
 
@@ -33,6 +33,7 @@ export function CompanyDocuments() {
   const [shareItems, setShareItems] = useState<CompanyDocumentItem[] | null>(null);
   const [editing, setEditing] = useState<CompanyDocumentItem | null>(null);
   const [deleting, setDeleting] = useState<CompanyDocumentItem | null>(null);
+  const [letterOpen, setLetterOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true); setError("");
@@ -114,6 +115,7 @@ export function CompanyDocuments() {
         <select id="upload-category" className="cd-input" value={uploadCategory} onChange={(event) => setUploadCategory(event.target.value)} disabled={uploading}>{DOCUMENT_CATEGORIES.map((value) => <option key={value}>{value}</option>)}</select>
         <input ref={input} type="file" accept={DOCUMENT_ACCEPT} multiple className="sr-only" aria-label="Upload company documents" disabled={uploading || !storageReady || loading} onChange={(event) => addFiles(event.target.files)} />
         <button type="button" className="a-btn a-btn-primary" disabled={uploading || !storageReady || loading} onClick={() => input.current?.click()}>{uploading ? <Loader2 size={17} className="animate-spin" /> : <Upload size={17} />} {uploading ? "Uploading…" : "Upload documents"}</button>
+        <button type="button" className="a-btn a-btn-secondary" disabled={!storageReady || loading} onClick={() => setLetterOpen(true)}><FileSignature size={17} /> Create bank details letter</button>
       </div>
     </section>
     {!storageReady && <p role="alert" className="cd-notice">Private document storage needs to be configured before you can upload files.</p>}
@@ -148,6 +150,7 @@ export function CompanyDocuments() {
         </div>
       </li>)}</ul>}
     </section>
+    {letterOpen && <BankLetterDialog onClose={() => setLetterOpen(false)} onCreated={(doc) => { remember(doc); setLetterOpen(false); }} />}
     {shareItems && <ShareDocuments documents={shareItems} onClose={() => setShareItems(null)} onRemove={removeShareItem} />}
     {editing && <DocumentEditor document={editing} onClose={() => setEditing(null)} onSaved={(doc) => { setDocuments((items) => items.map((item) => item.id === doc.id ? doc : item)); setEditing(null); }} />}
     {deleting && <DeleteDocument document={deleting} onClose={() => setDeleting(null)} onDeleted={() => { setDocuments((items) => items.filter((doc) => doc.id !== deleting.id)); setSelected((previous) => { const next = new Set(previous); next.delete(deleting.id); return next; }); setDeleting(null); }} />}
@@ -185,4 +188,45 @@ function DeleteDocument({ document, onClose, onDeleted }: { document: CompanyDoc
     {error && <p role="alert" className="cd-error mt-4">{error}</p>}
     <div className="mt-6 flex justify-end gap-2"><button type="button" className="a-btn a-btn-secondary" autoFocus disabled={busy} onClick={onClose}>Cancel</button><button type="button" className="a-btn a-btn-primary" disabled={busy} onClick={async () => { setBusy(true); setError(""); try { await jsonRequest(`${API}/${document.id}`, { method: "DELETE" }); onDeleted(); } catch (err) { setError(err instanceof Error ? err.message : "Could not delete. Please retry."); } finally { setBusy(false); } }}>{busy ? "Deleting…" : "Delete document"}</button></div>
   </dialog>;
+}
+
+const todayIso = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+const EMPTY_LETTER = { accountName: "Saini Tubewell Boring Service", bankName: "", branch: "", accountNumber: "", accountType: "Current", ifsc: "", micr: "", swift: "", upi: "", pan: "", includeGstin: true, date: "" };
+
+function BankLetterDialog({ onClose, onCreated }: { onClose: () => void; onCreated: (document: CompanyDocumentItem) => void }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  const [form, setForm] = useState({ ...EMPTY_LETTER, date: todayIso() });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  useEffect(() => { const dialog = ref.current; dialog?.showModal(); return () => dialog?.close(); }, []);
+  const set = (key: keyof typeof EMPTY_LETTER) => (event: { target: { value: string } }) => setForm((previous) => ({ ...previous, [key]: event.target.value }));
+  const field = (key: keyof typeof EMPTY_LETTER, label: string, extra: { required?: boolean; placeholder?: string; inputMode?: "numeric" } = {}) =>
+    <label className="block text-sm font-medium">{label}{extra.required ? "" : " (optional)"}<input className="cd-input mt-1 w-full" value={form[key] as string} onChange={set(key)} required={extra.required} placeholder={extra.placeholder} inputMode={extra.inputMode} autoComplete="off" /></label>;
+  return <dialog ref={ref} className="cd-dialog" aria-labelledby="bank-letter-title" onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }}><form onSubmit={async (event) => {
+    event.preventDefault(); setError("");
+    const parsed = bankLetterSchema.safeParse(form);
+    if (!parsed.success) { setError(parsed.error.issues[0]?.message || "Check the details."); return; }
+    setBusy(true);
+    try { const data = await jsonRequest(`${API}/bank-letter`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(parsed.data) }); onCreated(data.document); }
+    catch (err) { setError(err instanceof Error ? err.message : "Could not create the letter."); }
+    finally { setBusy(false); }
+  }}><h2 id="bank-letter-title" className="text-xl font-semibold">Bank details letter</h2>
+    <p className="a-sub mt-1 mb-4 text-sm">Made on STBS letterhead, signed by Rajesh Saini, and saved to your library under Bank Details.</p>
+    <div className="grid gap-3 sm:grid-cols-2">
+      <div className="sm:col-span-2">{field("accountName", "Account holder name", { required: true })}</div>
+      {field("bankName", "Bank name", { required: true })}
+      {field("branch", "Branch")}
+      {field("accountNumber", "Account number", { required: true, inputMode: "numeric" })}
+      <label className="block text-sm font-medium">Account type<select className="cd-input mt-1 w-full" value={form.accountType} onChange={set("accountType")}>{["Current", "Savings", "Cash Credit", "Overdraft"].map((value) => <option key={value}>{value}</option>)}</select></label>
+      {field("ifsc", "IFSC code", { required: true, placeholder: "SBIN0001234" })}
+      {field("micr", "MICR code", { inputMode: "numeric" })}
+      {field("swift", "SWIFT code")}
+      {field("upi", "UPI ID")}
+      {field("pan", "PAN")}
+      <label className="block text-sm font-medium">Letter date<input type="date" className="cd-input mt-1 w-full" required value={form.date} onChange={set("date")} /></label>
+      <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" className="cd-checkbox" checked={form.includeGstin} onChange={(event) => setForm((previous) => ({ ...previous, includeGstin: event.target.checked }))} />Include GSTIN on the letter</label>
+    </div>
+    {error && <p role="alert" className="cd-error mt-4">{error}</p>}
+    <div className="mt-6 flex justify-end gap-2"><button type="button" className="a-btn a-btn-secondary" disabled={busy} onClick={onClose}>Cancel</button><button type="submit" className="a-btn a-btn-primary" disabled={busy}>{busy ? "Creating…" : "Create letter"}</button></div>
+  </form></dialog>;
 }

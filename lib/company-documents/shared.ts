@@ -50,3 +50,22 @@ export function validDocumentSignature(bytes: Uint8Array, mime: string): boolean
   if (mime === "text/csv") return bytes.length > 0 && !bytes.includes(0);
   return false;
 }
+
+const line = (label: string, max = 120) => z.string().trim().min(1, `Enter ${label}.`).max(max);
+const optional = (max = 60) => z.string().trim().max(max).optional().default("");
+/** Details printed on the bank details letter. */
+export const bankLetterSchema = z.object({
+  accountName: line("the account holder name"),
+  bankName: line("the bank name"),
+  branch: optional(120),
+  accountNumber: z.string().trim().regex(/^[0-9 ]{6,24}$/, "Enter a valid account number (digits only)."),
+  accountType: z.enum(["Current", "Savings", "Cash Credit", "Overdraft"]),
+  ifsc: z.string().trim().toUpperCase().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Enter a valid IFSC code, e.g. SBIN0001234."),
+  micr: z.string().trim().regex(/^([0-9]{9})?$/, "MICR code is 9 digits.").optional().default(""),
+  swift: optional(11),
+  upi: optional(60),
+  pan: z.string().trim().toUpperCase().regex(/^([A-Z]{5}[0-9]{4}[A-Z])?$/, "Enter a valid PAN.").optional().default(""),
+  includeGstin: z.boolean().default(true),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a date."),
+});
+export type BankLetterDetails = z.infer<typeof bankLetterSchema>;
