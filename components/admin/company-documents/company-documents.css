@@ -1,0 +1,29 @@
+.cd-upload { display: flex; align-items: center; gap: 20px; padding: 24px; }
+.cd-upload-icon, .cd-file-icon { display: grid; place-items: center; flex-shrink: 0; color: var(--a-brand); background: var(--a-brand-soft); border-radius: 12px; width: 52px; height: 52px; }
+.cd-file-icon { width: 42px; height: 46px; border-radius: 8px; }
+.cd-input { min-height: 42px; padding: 9px 12px; border: 1px solid var(--a-hairline-strong); border-radius: 8px; background: var(--a-surface); color: inherit; font-size: 14px; }
+.cd-input.pl-10 { padding-left: 40px; }
+.cd-input:focus-visible, .cd-checkbox:focus-visible { outline: 2px solid var(--a-brand); outline-offset: 3px; }
+.cd-filters { display: flex; gap: 12px; padding: 20px; }
+.cd-selection { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 12px 20px; border-block: 1px solid var(--a-hairline); background: var(--a-bg); }
+.cd-checkbox { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--a-brand); }
+.cd-row { display: flex; align-items: flex-start; gap: 14px; padding: 20px; }
+.cd-row-selected { background: var(--a-brand-soft); }
+.cd-row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.cd-row-actions .a-btn { min-height: 38px; padding: 9px; }
+.cd-category { border-radius: 5px; background: var(--a-surface-2); padding: 3px 8px; font-size: 11px; font-weight: 600; }
+.cd-dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); overflow-y: auto; margin: auto; padding: 24px; border: 1px solid var(--a-hairline-strong); border-radius: 16px; background: var(--a-surface); color: var(--a-ink); box-shadow: var(--a-shadow-lift); }
+.cd-dialog::backdrop { background: #13231d80; }
+.cd-notice { border: 1px solid var(--a-warn-soft); background: var(--a-warn-soft); border-radius: 8px; padding: 12px 16px; font-size: 14px; color: var(--a-warn); }
+.cd-error { color: var(--a-danger); }
+@media (max-width: 640px) {
+  .cd-upload { flex-wrap: wrap; padding: 18px; gap: 14px; }
+  .cd-upload > .flex-1 { flex-basis: calc(100% - 70px); }
+  .cd-filters { flex-direction: column; padding: 16px; }
+  .cd-selection { padding: 12px 16px; gap: 12px; }
+  .cd-selection > .a-btn { width: 100%; }
+  .cd-row { flex-wrap: wrap; gap: 10px; padding: 16px; }
+  .cd-row-actions { width: 100%; padding-left: 28px; }
+  .cd-file-icon { display: none; }
+  .cd-dialog { padding: 20px; }
+}

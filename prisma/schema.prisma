@@ -560,6 +560,25 @@ model Notification {
 
 // ─── Enterprise Storage ──────────────────────────────────────────────────────
 
+// Private company attachments, independent of public website media.
+model CompanyDocument {
+  id             String   @id @default(cuid())
+  title          String
+  category       String   @default("Other")
+  originalName   String
+  mimeType       String
+  size           Int
+  storageKey     String   @unique
+  provider       String
+  status         String   @default("PENDING")
+  uploadedById   String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([status, createdAt])
+}
+
 model StorageFile {
   id           String    @id @default(cuid())
   key          String    @unique
