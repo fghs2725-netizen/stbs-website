@@ -26,16 +26,17 @@ export default async function WorkersSummaryRender({ searchParams }: { searchPar
     >
       <table className="ws">
         <thead>
-          <tr><th>Worker</th><th className="num">Work in {short}</th><th className="num">Given in {short}</th><th className="num">Balance now</th></tr>
+          <tr><th>Worker</th><th className="num">Net work in {short}</th><th className="num">Business paid in {short}</th><th className="num">Balance now</th></tr>
         </thead>
         <tbody>
           {workers.map((w) => {
             const inMonth = w.entries.filter((e) => monthOf(e.date) === month);
-            const work = inMonth.filter((e) => e.kind === "WORK").reduce((a, e) => a + e.amount, 0);
+            const monthly = workerTotals(0, inMonth);
+            const work = monthly.work - monthly.contributions;
             const given = inMonth.filter((e) => e.kind === "PAYMENT").reduce((a, e) => a + e.amount, 0);
             return (
               <tr key={w.id}>
-                <td>{w.name}{w.role ? <div className="muted">{w.role}</div> : null}</td>
+                <td>{w.name}{w.role ? <div className="muted">{w.role}</div> : null}{monthly.reimbursements > 0 && <div className="muted">Helper payment credit: {formatRupees(monthly.reimbursements)}</div>}</td>
                 <td className="num ws-work">{work ? formatRupees(work) : "—"}</td>
                 <td className="num">{given ? formatRupees(given) : "—"}</td>
                 <td className="num">{balanceText(workerTotals(w.openingBalance, w.entries).balance)}</td>

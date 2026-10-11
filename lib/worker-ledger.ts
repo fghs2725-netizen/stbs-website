@@ -9,7 +9,10 @@
  * Expenses (rig diesel, repairs…) are business costs and never touch a worker's balance.
  */
 
-export type EntryKind = "WORK" | "PAYMENT";
+export type EntryKind = "WORK" | "PAYMENT" | "CONTRIBUTION" | "REIMBURSEMENT" | "THIRD_PARTY_PAYMENT";
+
+export const entryCredit = (e: Pick<LedgerEntry, 'kind' | 'amount'>) => e.kind === 'WORK' || e.kind === 'REIMBURSEMENT' ? e.amount : 0;
+export const entryDebit = (e: Pick<LedgerEntry, 'kind' | 'amount'>) => entryCredit(e) ? 0 : e.amount;
 
 export type LedgerEntry = {
   id: string;
@@ -113,28 +116,34 @@ export function describeBalance(balance: number): BalanceState {
   return { kind: "SETTLED", amount: 0 };
 }
 
-export type WorkerTotals = { work: number; payments: number; earned: number; paid: number; balance: number };
+export type WorkerTotals = { work: number; payments: number; contributions: number; reimbursements: number; earned: number; paid: number; balance: number };
 
 /** Totals over every live entry, including the opening balance. */
 export function workerTotals(openingBalance: number, entries: LedgerEntry[]): WorkerTotals {
   let work = 0;
   let payments = 0;
+  let contributions = 0;
+  let reimbursements = 0;
   for (const e of live(entries)) {
     if (e.kind === "WORK") work += e.amount;
+    else if (e.kind === 'CONTRIBUTION') contributions += e.amount;
+    else if (e.kind === 'REIMBURSEMENT') reimbursements += e.amount;
     else payments += e.amount;
   }
   work = round2(work);
   payments = round2(payments);
-  const earned = round2(Math.max(openingBalance, 0) + work);
+  contributions = round2(contributions);
+  reimbursements = round2(reimbursements);
+  const earned = round2(Math.max(openingBalance, 0) + work - contributions);
   const paid = round2(Math.max(-openingBalance, 0) + payments);
-  return { work, payments, earned, paid, balance: round2(earned - paid) };
+  return { work, payments, contributions, reimbursements, earned, paid, balance: round2(earned + reimbursements - paid) };
 }
 
 /** Every live entry, oldest first, with the balance after it (starting from the opening balance). */
 export function runningLedger(openingBalance: number, entries: LedgerEntry[]): LedgerRow[] {
   let balance = round2(openingBalance);
   return sortEntries(live(entries)).map((e) => {
-    balance = round2(balance + (e.kind === "WORK" ? e.amount : -e.amount));
+    balance = round2(balance + entryCredit(e) - entryDebit(e));
     return { ...e, balanceAfter: balance };
   });
 }
@@ -145,6 +154,10 @@ export type Statement = {
   rows: LedgerRow[];
   work: number;
   payments: number;
+  contributions: number;
+  reimbursements: number;
+  credits: number;
+  debits: number;
   closing: number;
 };
 
@@ -158,8 +171,11 @@ export function statementFor(openingBalance: number, entries: LedgerEntry[], fro
   const broughtForward = before.length ? before[before.length - 1].balanceAfter : round2(openingBalance);
   const rows = all.filter((r) => (!from || r.date >= from) && (!to || r.date <= to));
   const work = round2(rows.filter((r) => r.kind === "WORK").reduce((s, r) => s + r.amount, 0));
-  const payments = round2(rows.filter((r) => r.kind === "PAYMENT").reduce((s, r) => s + r.amount, 0));
-  return { broughtForward, rows, work, payments, closing: round2(broughtForward + work - payments) };
+  const totals = workerTotals(0, rows);
+  const { payments, contributions, reimbursements } = totals;
+  const credits = round2(work + reimbursements);
+  const debits = round2(payments + contributions);
+  return { broughtForward, rows, work, payments, contributions, reimbursements, credits, debits, closing: round2(broughtForward + credits - debits) };
 }
 
 export type DashboardTotals = { toPay: number; advance: number; monthWork: number; monthPaid: number };
@@ -177,7 +193,8 @@ export function dashboardTotals(workers: Array<{ openingBalance: number; entries
     for (const e of live(w.entries)) {
       if (monthOf(e.date) !== month) continue;
       if (e.kind === "WORK") monthWork += e.amount;
-      else monthPaid += e.amount;
+      else if (e.kind === 'CONTRIBUTION') monthWork -= e.amount;
+      else if (e.kind === 'PAYMENT') monthPaid += e.amount;
     }
   }
   return { toPay: round2(toPay), advance: round2(advance), monthWork: round2(monthWork), monthPaid: round2(monthPaid) };

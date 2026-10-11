@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { verifyQuotationRenderToken } from "@/lib/quotation-render-auth";
 import { getWorkerForRender } from "@/lib/worker-management";
 import { isPeriod, statementBinding } from "@/lib/worker-pdf";
-import { formatRupees, monthLabel, monthRange, statementFor } from "@/lib/worker-ledger";
+import { entryCredit, entryDebit, formatRupees, monthLabel, monthRange, statementFor } from "@/lib/worker-ledger";
 import { balanceText } from "@/components/admin/workers/BalanceLabel";
 import { StatementFrame } from "@/components/admin/workers/StatementDocument";
 
@@ -30,7 +30,7 @@ export default async function WorkerStatementRender({ params, searchParams }: { 
     >
       <table className="ws">
         <thead>
-          <tr><th style={{ width: "15%" }}>Date</th><th>Particulars</th><th className="num">Work (₹)</th><th className="num">Given (₹)</th><th className="num">Balance</th></tr>
+          <tr><th style={{ width: "15%" }}>Date</th><th>Particulars</th><th className="num">Credit (₹)</th><th className="num">Debit (₹)</th><th className="num">Balance</th></tr>
         </thead>
         <tbody>
           <tr className="ws-carry">
@@ -45,8 +45,8 @@ export default async function WorkerStatementRender({ params, searchParams }: { 
               <tr key={r.id}>
                 <td>{day(r.date)}</td>
                 <td>{r.description}{detail ? <div className="muted">{detail}</div> : null}</td>
-                <td className="num ws-work">{r.kind === "WORK" ? formatRupees(r.amount) : ""}</td>
-                <td className="num">{r.kind === "PAYMENT" ? formatRupees(r.amount) : ""}</td>
+                <td className="num ws-work">{entryCredit(r) ? formatRupees(r.amount) : ""}</td>
+                <td className="num">{entryDebit(r) ? formatRupees(r.amount) : ""}</td>
                 <td className="num">{balanceText(r.balanceAfter)}</td>
               </tr>
             );
@@ -54,12 +54,13 @@ export default async function WorkerStatementRender({ params, searchParams }: { 
           {!s.rows.length && <tr><td colSpan={5} className="muted">Nothing recorded in this period.</td></tr>}
           <tr className="ws-strong">
             <td /><td>Total for the period</td>
-            <td className="num ws-work">{formatRupees(s.work)}</td>
-            <td className="num">{formatRupees(s.payments)}</td>
+            <td className="num ws-work">{formatRupees(s.credits)}</td>
+            <td className="num">{formatRupees(s.debits)}</td>
             <td className="num">{balanceText(s.closing)}</td>
           </tr>
         </tbody>
       </table>
+      <p className="muted">Original work: {formatRupees(s.work)} · Helper contributions: {formatRupees(s.contributions)} · Final earnings: {formatRupees(s.work - s.contributions)} · Credit for helper paid personally: {formatRupees(s.reimbursements)} · Payments received: {formatRupees(s.payments)}</p>
     </StatementFrame>
   );
 }

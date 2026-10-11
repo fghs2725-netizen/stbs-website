@@ -7,11 +7,12 @@ import { BottomSheet } from "@/components/admin/shell/BottomSheet";
 import { ConfirmDialog } from "@/components/quotation/feedback";
 import {
   DEFAULT_WORK_DESCRIPTION, DEFAULT_WORK_UNIT, PAYMENT_METHODS, PAYMENT_PICKS, formatRupees, parseAmount,
-  parseQuantity, todayIST, workAmount, type EntryKind, type LedgerRow,
+  parseQuantity, todayIST, workAmount, entryCredit, type EntryKind, type LedgerRow,
 } from "@/lib/worker-ledger";
 import { addEntryAction, deleteEntryAction, updateEntryAction } from "@/app/admin/(dashboard)/workers/actions";
 import { FormError } from "./WorkerForms";
 import { balanceText } from "./BalanceLabel";
+import { siteWorkPrefix } from '@/lib/site-work';
 
 type Draft = {
   id?: string; kind: EntryKind; date: string; description: string; site: string;
@@ -79,6 +80,7 @@ export function WorkerLedger({ workerId, rows, units, lastRates, emptyText }: {
   };
 
   const unitOptions = draft && !units.includes(draft.unit) ? [draft.unit, ...units] : units;
+  const linked = !!(draft?.id && siteWorkPrefix(draft.id));
 
   return (
     <>
@@ -108,8 +110,8 @@ export function WorkerLedger({ workerId, rows, units, lastRates, emptyText }: {
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="a-num text-[0.9375rem] font-semibold" style={{ color: r.kind === "WORK" ? "var(--a-positive)" : "var(--a-ink)" }}>
-                      {r.kind === "WORK" ? "+" : "−"}{formatRupees(r.amount)}
+                    <p className="a-num text-[0.9375rem] font-semibold" style={{ color: entryCredit(r) ? "var(--a-positive)" : "var(--a-ink)" }}>
+                      {entryCredit(r) ? "+" : "−"}{formatRupees(r.amount)}
                     </p>
                     <p className="a-num mt-[2px] text-[0.75rem]" style={{ color: "var(--a-faint)" }}>{balanceText(r.balanceAfter)}</p>
                   </div>
@@ -124,10 +126,16 @@ export function WorkerLedger({ workerId, rows, units, lastRates, emptyText }: {
 
       <BottomSheet
         open={!!draft}
-        title={draft ? `${draft.id ? "Edit" : "Add"} ${draft.kind === "WORK" ? "work" : "money given"}` : ""}
+        title={linked ? 'Linked site booking' : draft ? `${draft.id ? "Edit" : "Add"} ${draft.kind === "WORK" ? "work" : "money given"}` : ""}
         onClose={close}
       >
-        {draft && (
+        {draft && linked ? <div className="space-y-4">
+          <p className="font-semibold">{draft.site} · {draft.description}</p>
+          <p>{formatRupees(Number(draft.amount))} · {dateLabel(draft.date)}</p>
+          <p className="text-sm">This entry belongs to a site booking shared by three workers. To correct it, remove the booking and enter it again from Workers → Add site work. Removing it reverses all earnings, contributions and payments created by that booking.</p>
+          <FormError message={error} />
+          <button type="button" className="a-btn a-btn-danger w-full" disabled={pending} onClick={() => setConfirmDelete(true)}>Remove whole site booking</button>
+        </div> : draft && (
           <form onSubmit={submit} className="space-y-4" noValidate>
             {draft.kind === "PAYMENT" ? (
               <>
@@ -198,9 +206,9 @@ export function WorkerLedger({ workerId, rows, units, lastRates, emptyText }: {
       </BottomSheet>
       {confirmDelete && (
         <ConfirmDialog
-          title="Delete this entry?"
-          body="It is removed from his balance and from future statements."
-          confirmLabel="Delete entry"
+          title={linked ? 'Remove the whole site booking?' : 'Delete this entry?'}
+          body={linked ? 'All linked earnings, helper contributions, payment credits and helper payments will be removed from every affected worker’s balance and statements. Separately recorded entries are kept.' : 'It is removed from his balance and from future statements.'}
+          confirmLabel={linked ? 'Remove booking' : 'Delete entry'}
           destructive
           busy={pending}
           onConfirm={remove}

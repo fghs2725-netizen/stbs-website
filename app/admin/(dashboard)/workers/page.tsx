@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/admin/shell/ui';
 import { BalanceLabel } from '@/components/admin/workers/BalanceLabel';
 import { WorkerArchiveButton, WorkerFormButton } from '@/components/admin/workers/WorkerForms';
 import { SummaryShareButton } from '@/components/admin/workers/ShareButtons';
+import { SiteWorkForm } from '@/components/admin/workers/SiteWorkForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,7 +61,7 @@ export default async function WorkersPage({ searchParams }: { searchParams: Prom
         eyebrow="Records"
         title="Workers"
         description="Advances, work done and what is still to pay, for every crew member."
-        action={<div className="flex flex-wrap gap-2"><WorkerFormButton /><SummaryShareButton month={month} /></div>}
+        action={<div className="flex flex-wrap gap-2"><WorkerFormButton /><SiteWorkForm workers={workers.map(w => ({ id: w.id, name: w.name }))} /><SummaryShareButton month={month} /></div>}
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -76,8 +77,8 @@ export default async function WorkersPage({ searchParams }: { searchParams: Prom
         </div>
         <div className="a-card p-4">
           <p className="a-label">{monthLabel(month)}</p>
-          <p className="a-num mt-1 text-[1.125rem] font-semibold leading-tight" style={{ color: 'var(--a-ink)' }}>{formatRupees(totals.monthWork)} work</p>
-          <p className="a-num mt-1 text-[0.8125rem]" style={{ color: 'var(--a-muted)' }}>{formatRupees(totals.monthPaid)} given</p>
+          <p className="a-num mt-1 text-[1.125rem] font-semibold leading-tight" style={{ color: 'var(--a-ink)' }}>{formatRupees(totals.monthWork)} net work</p>
+          <p className="a-num mt-1 text-[0.8125rem]" style={{ color: 'var(--a-muted)' }}>{formatRupees(totals.monthPaid)} paid by business</p>
         </div>
         <Link href="/admin/expenses" className="a-card block p-4">
           <p className="a-label">Expenses · {monthLabel(month).split(' ')[0]}</p>

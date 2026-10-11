@@ -1375,7 +1375,7 @@ model WorkerEntry {
   id          String    @id @default(cuid())
   workerId    String
   worker      Worker    @relation(fields: [workerId], references: [id], onDelete: Cascade)
-  kind        String // "WORK" | "PAYMENT"
+  kind        String // WORK | PAYMENT | CONTRIBUTION | REIMBURSEMENT | THIRD_PARTY_PAYMENT
   date        String // YYYY-MM-DD
   description String
   site        String?

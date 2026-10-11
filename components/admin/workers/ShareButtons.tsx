@@ -20,8 +20,9 @@ async function fetchPdf(url: string): Promise<Blob> {
 const base = { company: company.name, signatory: company.name, phones: company.phones.join(" / ") };
 
 /** A worker's statement for the period on screen, through the same share sheet as invoices. */
-export function StatementShareButton({ workerId, workerName, phone, period, periodLabel, work, paid, closing }: {
+export function StatementShareButton({ workerId, workerName, phone, period, periodLabel, work, paid, closing, contributions, reimbursements }: {
   workerId: string; workerName: string; phone: string | null; period: string; periodLabel: string; work: number; paid: number; closing: number;
+  contributions?: number; reimbursements?: number;
 }) {
   const subject: ShareSubject = {
     ...base,
@@ -29,7 +30,7 @@ export function StatementShareButton({ workerId, workerName, phone, period, peri
     reference: periodLabel,
     clientName: workerName,
     phone: phone ?? undefined,
-    statement: { work, paid, balanceText: balanceText(closing) },
+    statement: { work, paid, contributions, reimbursements, balanceText: balanceText(closing) },
   };
   return (
     <ShareQuotation

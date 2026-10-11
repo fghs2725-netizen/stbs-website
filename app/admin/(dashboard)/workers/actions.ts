@@ -1,9 +1,14 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import {
-  addEntry, createWorker, deleteEntry, InputError, setWorkerActive, updateEntry, updateWorker,
+  addEntry, addSiteWork, createWorker, deleteEntry, InputError, setWorkerActive, updateEntry, updateWorker,
   type EntryInput, type WorkerInput,
 } from "@/lib/worker-management";
+import type { SiteWorkInput } from '@/lib/site-work';
+
+export async function addSiteWorkAction(input: SiteWorkInput) {
+  return run(async () => { await addSiteWork(input); revalidatePath('/admin/workers', 'layout'); }, ['/admin/workers']);
+}
 
 export type ActionResult = { ok: true; id?: string } | { ok: false; error: string };
 
@@ -41,5 +46,5 @@ export async function updateEntryAction(entryId: string, workerId: string, input
 }
 
 export async function deleteEntryAction(entryId: string, workerId: string) {
-  return run(async () => { await deleteEntry(entryId); }, ["/admin/workers", `/admin/workers/${workerId}`]);
+  return run(async () => { await deleteEntry(entryId); revalidatePath('/admin/workers', 'layout'); }, ["/admin/workers", `/admin/workers/${workerId}`]);
 }

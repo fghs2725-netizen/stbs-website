@@ -19,7 +19,7 @@ const e = (kind: "WORK" | "PAYMENT", date: string, amount: number, extra: Partia
 
 check("work pays in, money given pays out: to pay", () => {
   const t = workerTotals(0, [e("WORK", "2026-09-02", 5000), e("PAYMENT", "2026-09-03", 500)]);
-  assert.deepEqual(t, { work: 5000, payments: 500, earned: 5000, paid: 500, balance: 4500 });
+  assert.deepEqual(t, { work: 5000, payments: 500, contributions: 0, reimbursements: 0, earned: 5000, paid: 500, balance: 4500 });
   assert.deepEqual(describeBalance(t.balance), { kind: "TO_PAY", amount: 4500 });
 });
 

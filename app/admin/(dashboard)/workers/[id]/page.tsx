@@ -71,6 +71,8 @@ export default async function WorkerPage({ params, searchParams }: { params: Pro
         <dl className="a-num mt-3 grid grid-cols-2 gap-3 text-[0.875rem]">
           <div><dt style={{ color: 'var(--a-faint)' }}>Work done</dt><dd className="font-semibold" style={{ color: 'var(--a-positive)' }}>{formatRupees(totals.work)}</dd></div>
           <div><dt style={{ color: 'var(--a-faint)' }}>Money given</dt><dd className="font-semibold" style={{ color: 'var(--a-ink)' }}>{formatRupees(totals.payments)}</dd></div>
+          {totals.contributions > 0 && <><div><dt>Helper contributions</dt><dd>−{formatRupees(totals.contributions)}</dd></div><div><dt>Final earnings</dt><dd>{formatRupees(totals.work - totals.contributions)}</dd></div></>}
+          {totals.reimbursements > 0 && <div><dt>Credit for helper paid personally</dt><dd>+{formatRupees(totals.reimbursements)}</dd></div>}
         </dl>
         {worker.openingBalance !== 0 && (
           <p className="a-num mt-2 text-[0.8125rem]" style={{ color: 'var(--a-muted)' }}>Pending from before the app: {balanceText(worker.openingBalance)}</p>
@@ -92,13 +94,15 @@ export default async function WorkerPage({ params, searchParams }: { params: Pro
           periodLabel={periodLabel}
           work={statement.work}
           paid={statement.payments}
+          contributions={statement.contributions}
+          reimbursements={statement.reimbursements}
           closing={statement.closing}
         />
       </div>
 
       {period !== 'all' && (
         <p className="a-num -mt-2 text-[0.8125rem]" style={{ color: 'var(--a-muted)' }}>
-          {periodLabel}: {formatRupees(statement.work)} work · {formatRupees(statement.payments)} given · brought forward {formatRupees(Math.abs(statement.broughtForward))}{statement.broughtForward < 0 ? ' advance' : statement.broughtForward > 0 ? ' to pay' : ''}
+          {periodLabel}: {formatRupees(statement.work)} work · {formatRupees(statement.contributions)} contributions · {formatRupees(statement.reimbursements)} payment credits · {formatRupees(statement.payments)} given · brought forward {formatRupees(Math.abs(statement.broughtForward))}{statement.broughtForward < 0 ? ' advance' : statement.broughtForward > 0 ? ' to pay' : ''}
         </p>
       )}
 

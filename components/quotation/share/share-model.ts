@@ -19,7 +19,7 @@ import { formatRupees } from "@/lib/worker-ledger";
 export type ShareSubject = {
   kind?: "quotation" | "invoice" | "statement" | "summary";
   /** Worker statements only: the period's figures, for the message. */
-  statement?: { work: number; paid: number; balanceText: string };
+  statement?: { work: number; paid: number; balanceText: string; contributions?: number; reimbursements?: number };
   /** Invoices only: when payment is due, and what is left to pay. */
   dueDate?: string;
   balance?: number;
@@ -85,7 +85,12 @@ export function buildShareMessage(s: ShareSubject): string {
   if (s.kind === "statement") {
     // A worker's statement: plain and short, the figures he will check first.
     const lines = [`Namaste ${s.clientName},`, "", `Your work and payment statement${s.reference ? ` for ${s.reference}` : ""} is attached.`];
-    if (s.statement) lines.push("", `Work done: ${formatRupees(s.statement.work)}`, `Money given: ${formatRupees(s.statement.paid)}`, `Balance: ${s.statement.balanceText}`);
+    if (s.statement) {
+      lines.push('', `Work done: ${formatRupees(s.statement.work)}`);
+      if (s.statement.contributions) lines.push(`Helper contributions: ${formatRupees(s.statement.contributions)}`, `Final earnings: ${formatRupees(s.statement.work - s.statement.contributions)}`);
+      if (s.statement.reimbursements) lines.push(`Credit for helper paid personally: ${formatRupees(s.statement.reimbursements)}`);
+      lines.push(`Money given: ${formatRupees(s.statement.paid)}`, `Balance: ${s.statement.balanceText}`);
+    }
     lines.push("", "Regards,", s.company);
     if (s.phones) lines.push(s.phones);
     return lines.join("\n");

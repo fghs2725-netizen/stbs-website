@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { planSiteWork, siteWorkPrefix, type SiteWorkInput } from './site-work';
 import {
   DEFAULT_WORK_UNIT, isIsoDate, parseAmount, parseQuantity, round2, workAmount,
   type EntryKind, type LedgerEntry,
@@ -153,14 +154,56 @@ export async function addEntry(workerId: string, input: EntryInput): Promise<voi
 
 export async function updateEntry(id: string, input: EntryInput): Promise<string> {
   await requireAdmin();
+  if (siteWorkPrefix(id)) throw new InputError('Site work entries are linked. Remove the whole booking and add the corrected booking.');
   const row = await prisma.workerEntry.update({ where: { id }, data: entryData(input), select: { workerId: true } });
   return row.workerId;
 }
 
 export async function deleteEntry(id: string): Promise<string> {
   await requireAdmin();
+  const prefix = siteWorkPrefix(id);
+  if (prefix) {
+    return prisma.$transaction(async tx => {
+      const row = await tx.workerEntry.findUniqueOrThrow({ where: { id }, select: { workerId: true } });
+      await tx.workerEntry.updateMany({ where: { id: { startsWith: prefix }, deletedAt: null }, data: { deletedAt: new Date() } });
+      return row.workerId;
+    });
+  }
   const row = await prisma.workerEntry.update({ where: { id }, data: { deletedAt: new Date() }, select: { workerId: true } });
   return row.workerId;
+}
+
+/** All participants are booked together, or nothing is saved. Retries cannot double-charge. */
+export async function addSiteWork(input: SiteWorkInput): Promise<void> {
+  await requireAdmin();
+  const workers = await prisma.worker.findMany({ where: { deletedAt: null, active: true }, select: { id: true, name: true } });
+  let plan: ReturnType<typeof planSiteWork>;
+  try { plan = planSiteWork(input, Object.fromEntries(workers.map(w => [w.id, w.name]))); }
+  catch (e) { throw new InputError(e instanceof Error ? e.message : 'Check the site work details.'); }
+  const data = plan.entries.map((entry, i) => ({ ...entry, id: `sw_${input.requestId}_${i}` }));
+  const verifyRetry = (existing: EntryRecord[]) => {
+    if (existing.some(e => e.deletedAt)) throw new InputError('This booking was removed. Reopen the form to create a new booking.');
+    if (existing.length !== data.length || data.some(d => {
+      const e = existing.find(e => e.id === d.id);
+      return !e || e.workerId !== d.workerId || e.kind !== d.kind || Number(e.amount) !== d.amount ||
+        e.date !== d.date || e.site !== d.site || e.description !== d.description ||
+        num(e.quantity) !== (d.quantity ?? null) || num(e.rate) !== (d.rate ?? null) ||
+        e.unit !== (d.unit ?? null) || e.method !== (d.method ?? null);
+    })) throw new InputError('This booking was already saved with different details. Close the form and check the worker accounts before correcting it.');
+  };
+  try {
+    await prisma.$transaction(async tx => {
+      const existing = await tx.workerEntry.findMany({ where: { id: { startsWith: `sw_${input.requestId}_` } } });
+      if (existing.length) { verifyRetry(existing); return; }
+      await tx.workerEntry.createMany({ data });
+    });
+  } catch (e) {
+    // Two concurrent retries may both pass the read; the unique IDs arbitrate the write.
+    if (e && typeof e === 'object' && 'code' in e && e.code === 'P2002') {
+      const existing = await prisma.workerEntry.findMany({ where: { id: { startsWith: `sw_${input.requestId}_` } } });
+      verifyRetry(existing);
+    } else throw e;
+  }
 }
 
 /** The rate this worker was last paid in a unit, to pre-fill the next work entry. */
