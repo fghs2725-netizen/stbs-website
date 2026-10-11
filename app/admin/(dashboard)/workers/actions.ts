@@ -1,10 +1,19 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import {
-  addEntry, addSiteWork, createWorker, deleteEntry, InputError, setWorkerActive, updateEntry, updateWorker,
+  addEntry, addSiteWork, getSiteWorkForEdit, updateSiteWork, createWorker, deleteEntry, InputError, setWorkerActive, updateEntry, updateWorker,
   type EntryInput, type WorkerInput,
 } from "@/lib/worker-management";
 import type { SiteWorkInput } from '@/lib/site-work';
+
+export async function getSiteWorkForEditAction(entryId: string) {
+  try { return { ok: true as const, booking: await getSiteWorkForEdit(entryId) }; }
+  catch (e) { return { ok: false as const, error: e instanceof InputError ? e.message : 'Could not load this site booking. Please try again.' }; }
+}
+
+export async function updateSiteWorkAction(entryId: string, revision: string, input: SiteWorkInput) {
+  return run(async () => { await updateSiteWork(entryId, revision, input); revalidatePath('/admin/workers', 'layout'); }, ['/admin/workers']);
+}
 
 export async function addSiteWorkAction(input: SiteWorkInput) {
   return run(async () => { await addSiteWork(input); revalidatePath('/admin/workers', 'layout'); }, ['/admin/workers']);

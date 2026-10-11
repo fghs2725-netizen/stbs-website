@@ -12,6 +12,7 @@ export type SiteHelperInput = SiteWorkerInput & {
 export type SiteWorkInput = {
   requestId: string; site: string; date: string; description: string;
   footage: string; rate: string; workerSplit: 'EQUAL' | 'CUSTOM';
+  crewBasis?: 'FOOTAGE' | 'FIXED';
   workers: SiteWorkerInput[]; recordEarnings: boolean; helpers: SiteHelperInput[];
 };
 export type SiteWorkEntry = Omit<LedgerEntry, 'id' | 'createdAt'> & { workerId: string };
@@ -58,9 +59,10 @@ export function planSiteWork(input: SiteWorkInput, names: Record<string, string>
   if (new Set(allIds).size !== allIds.length || allIds.some(id => !Object.prototype.hasOwnProperty.call(names, id))) fail('Choose a different active person for every worker and helper.');
   if (typeof input.recordEarnings !== 'boolean') fail('Choose whether to record main-worker earnings.');
   const footage = parseQuantity(input.footage), crewRate = parseAmount(input.rate);
-  if (ids.length && (footage == null || crewRate == null)) fail('Enter the feet drilled and crew rate per foot.');
-  const crewAmount = ids.length ? round2(footage! * crewRate!) : 0;
-  if (ids.length && (crewAmount <= 0 || crewAmount >= 1e10)) fail('The crew earning amount is out of range.');
+  const fixed = input.crewBasis === 'FIXED';
+  if (ids.length && input.recordEarnings && (crewRate == null || (!fixed && footage == null))) fail('Enter the crew amount or feet drilled and rate per foot.');
+  const crewAmount = ids.length ? round2(fixed ? crewRate ?? 0 : (footage ?? 0) * (crewRate ?? 0)) : 0;
+  if (ids.length && ((input.recordEarnings && crewAmount <= 0) || crewAmount >= 1e10)) fail('The crew earning amount is out of range.');
   let workerShares: Record<string, number>;
   if (!ids.length) workerShares = {};
   else if (input.workerSplit === 'EQUAL') {
@@ -77,7 +79,7 @@ export function planSiteWork(input: SiteWorkInput, names: Record<string, string>
   if (input.recordEarnings) input.workers.forEach(w => {
     const amount = workerShares[w.workerId];
     // The footage is one shared job, not repeated full earnings for each worker.
-    add(w.workerId, 'WORK', amount, `${input.description?.trim().slice(0, 50) || 'Borewell'} · ${footage} Rft × ₹${crewRate} · crew share`, { quantity: 1, unit: 'Share', rate: amount });
+    add(w.workerId, 'WORK', amount, `${input.description?.trim().slice(0, 50) || 'Borewell'} · ${fixed ? `₹${crewRate} crew total` : `${footage} Rft × ₹${crewRate}`} · crew share`, { quantity: 1, unit: 'Share', rate: amount });
   });
   const helperPlans = input.helpers.map(helper => {
     if (!ids.length && helper.costMode !== 'BUSINESS') fail('For a helper-only booking, choose business pays the helper cost.');

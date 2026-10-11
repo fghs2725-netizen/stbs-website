@@ -2,6 +2,8 @@ import type { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { planSiteWork, siteWorkPrefix, type SiteWorkInput } from './site-work';
+import { restoreSiteWork, type SiteWorkEdit } from './site-work-edit';
+import { bookingRevision, replaceSiteWork, SiteWorkSaveError } from './site-work-persistence';
 import {
   DEFAULT_WORK_UNIT, isIsoDate, parseAmount, parseQuantity, round2, workAmount,
   type EntryKind, type LedgerEntry,
@@ -154,7 +156,7 @@ export async function addEntry(workerId: string, input: EntryInput): Promise<voi
 
 export async function updateEntry(id: string, input: EntryInput): Promise<string> {
   await requireAdmin();
-  if (siteWorkPrefix(id)) throw new InputError('Site work entries are linked. Remove the whole booking and add the corrected booking.');
+  if (siteWorkPrefix(id)) throw new InputError('Use Edit site work to update this linked booking.');
   const row = await prisma.workerEntry.update({ where: { id }, data: entryData(input), select: { workerId: true } });
   return row.workerId;
 }
@@ -196,6 +198,7 @@ export async function addSiteWork(input: SiteWorkInput): Promise<void> {
       const existing = await tx.workerEntry.findMany({ where: { id: { startsWith: `sw_${input.requestId}_` } } });
       if (existing.length) { verifyRetry(existing); return; }
       await tx.workerEntry.createMany({ data });
+      await tx.auditLog.create({ data: { id: `sitework_${input.requestId}`, action: 'CREATED', entityType: 'SiteWork', entityId: `sw_${input.requestId}_`, metadata: { input: JSON.parse(JSON.stringify(input)) } } });
     });
   } catch (e) {
     // Two concurrent retries may both pass the read; the unique IDs arbitrate the write.
@@ -203,6 +206,41 @@ export async function addSiteWork(input: SiteWorkInput): Promise<void> {
       const existing = await prisma.workerEntry.findMany({ where: { id: { startsWith: `sw_${input.requestId}_` } } });
       verifyRetry(existing);
     } else throw e;
+  }
+}
+
+
+export async function getSiteWorkForEdit(entryId: string): Promise<SiteWorkEdit> {
+  await requireAdmin();
+  const prefix = siteWorkPrefix(entryId);
+  if (!prefix) throw new InputError('This is not a site booking.');
+  return prisma.$transaction(async tx => {
+    const rows = await tx.workerEntry.findMany({ where: { id: { startsWith: prefix }, deletedAt: null } });
+    if (!rows.some(r => r.id === entryId)) throw new InputError('This booking was changed or removed. Refresh the worker account.');
+    const snapshot = await tx.auditLog.findUnique({ where: { id: `sitework_${prefix.slice(3, -1)}` } });
+    const saved = snapshot?.metadata as { input?: SiteWorkInput } | null;
+    let restored: { input: SiteWorkInput; notice?: string };
+    try { restored = saved?.input ? { input: saved.input } : restoreSiteWork(rows.map(r => ({ ...toEntry(r), workerId: r.workerId }))); }
+    catch (e) { throw new InputError(e instanceof Error ? e.message : 'Could not restore this booking.'); }
+    const ids = [...restored.input.workers, ...restored.input.helpers].map(w => w.workerId);
+    const workers = await tx.worker.findMany({ where: { deletedAt: null, OR: [{ active: true }, { id: { in: ids } }] }, select: { id: true, name: true } });
+    return { entryId, revision: bookingRevision(rows), workers, ...restored };
+  }, { isolationLevel: 'RepeatableRead' });
+}
+
+/** Replace only this booking, preserving separate payments and an audit snapshot of each version. */
+export async function updateSiteWork(entryId: string, revision: string, input: SiteWorkInput): Promise<void> {
+  await requireAdmin();
+  const prefix = siteWorkPrefix(entryId);
+  if (!prefix || input.requestId === prefix.slice(3, -1)) throw new InputError('Reopen the edit form before saving.');
+  try {
+    await prisma.$transaction(async tx => {
+      await replaceSiteWork(tx, entryId, prefix, revision, input);
+    }, { isolationLevel: 'Serializable' });
+  } catch (e) {
+    if (e instanceof SiteWorkSaveError) throw new InputError(e.message);
+    if (e && typeof e === 'object' && 'code' in e && (e.code === 'P2034' || e.code === 'P2002')) throw new InputError('Another save is in progress. Retry; if the booking changed, refresh and reopen it.');
+    throw e;
   }
 }
 

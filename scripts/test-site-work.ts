@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { planSiteWork, reconcileHelperFunding, siteWorkerEarning, siteWorkPrefix, type SiteWorkInput, type SiteWorkerInput, type SiteHelperInput } from '../lib/site-work';
 import { dashboardTotals, runningLedger, statementFor, workerTotals, type LedgerEntry } from '../lib/worker-ledger';
+import { restoreSiteWork, type BookingRow } from '../lib/site-work-edit';
 
 const names = { a: 'Worker A', b: 'Worker B', c: 'Worker C', h: 'Helper', j: 'Second helper' };
 const worker = (workerId: string, amount = ''): SiteWorkerInput => ({ workerId, basis: 'FIXED', amount, quantity: '1', rate: '' });
@@ -109,3 +110,37 @@ assert.equal(siteWorkPrefix(`sw_${base.requestId}_000013`), `sw_${base.requestId
 assert.equal(siteWorkPrefix(`sw_${base.requestId}_3`), `sw_${base.requestId}_`);
 assert.equal(siteWorkPrefix('normal-cuid'), null);
 console.log('Site work checks passed: shared footage/rate, arbitrary crew size, optional/multiple helpers, cost splits, payer credits, row removal, rounding, statements and validation.');
+
+function restore(plan: ReturnType<typeof planSiteWork>) {
+  return restoreSiteWork(plan.entries.map((e, i): BookingRow => ({ ...e, id: `sw_${base.requestId}_${String(i).padStart(6, '0')}`, createdAt: '2026-10-11T00:00:00Z' })));
+}
+function balances(plan: ReturnType<typeof planSiteWork>) {
+  return Object.fromEntries(Object.keys(names).map(id => [id, workerTotals(0, plan.entries.filter(e => e.workerId === id).map((e, i) => ({ ...e, id: String(i), createdAt: '' }))).balance]));
+}
+// Old bookings reopen without changing money: per-foot crew, independent helper blocks,
+// business payments, worker-funded payments, and helpers-only / adjustments-only work.
+for (const plan of [booking().plan, multi.plan, helpersOnly.plan, booking({ recordEarnings: false }).plan,
+  booking({ helpers: [] }).plan, booking({}, { paidBy: 'a' }).plan]) {
+  const restored = restore(plan);
+  assert.deepEqual(balances(planSiteWork(restored.input, names)), balances(plan));
+}
+const recovered = restore(multi.plan).input;
+assert.equal(recovered.footage, '200');
+assert.equal(recovered.rate, '50');
+assert.equal(recovered.helpers[0].paidBy, 'a');
+assert.equal(recovered.helpers[1].paidBy, 'BUSINESS');
+assert.equal(recovered.helpers[1].contributions.b, '200');
+// The oldest fixed-amount format has no footage: retain agreed amounts, never invent feet.
+const legacyRows: BookingRow[] = booking().plan.entries.map((e, i) => ({ ...e,
+  description: e.kind === 'WORK' && e.workerId !== 'h' ? 'Site work' : e.description,
+  id: `sw_${base.requestId}_${i}`, createdAt: '' }));
+const legacy = restoreSiteWork(legacyRows).input;
+assert.equal(legacy.crewBasis, 'FIXED');
+assert.equal(legacy.footage, '');
+assert.equal(legacy.rate, '10000');
+assert.deepEqual(balances(planSiteWork(legacy, names)), balances(booking().plan));
+// Editing can change crew size, helpers and price without retaining obsolete deductions.
+const changed = planSiteWork({ ...recovered, workers: [worker('c')], workerSplit: 'EQUAL', helpers: [], rate: '75' }, names);
+assert.deepEqual(balances(changed), { a: 0, b: 0, c: 15000, h: 0, j: 0 });
+assert.equal(siteWorkPrefix(`sw_${base.requestId}_000000`), siteWorkPrefix(`sw_${base.requestId}_0`));
+console.log('Site work edit checks passed: legacy restoration, per-foot and fixed totals, helper-only, paid/unpaid helpers and changed participants.');

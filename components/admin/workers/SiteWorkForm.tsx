@@ -3,7 +3,8 @@
 import { useRef, useState, useTransition, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { BottomSheet } from '@/components/admin/shell/BottomSheet';
-import { addSiteWorkAction, createWorkerAction } from '@/app/admin/(dashboard)/workers/actions';
+import { addSiteWorkAction, updateSiteWorkAction, createWorkerAction } from '@/app/admin/(dashboard)/workers/actions';
+import type { SiteWorkEdit } from '@/lib/site-work-edit';
 import { formatRupees, parseAmount, parseQuantity, round2, todayIST, workerTotals } from '@/lib/worker-ledger';
 import { planSiteWork, reconcileHelperFunding, siteWorkerEarning, type SiteWorkInput, type SiteWorkerInput, type SiteHelperInput } from '@/lib/site-work';
 import { FormError } from './WorkerForms';
@@ -27,12 +28,12 @@ function HelperEarnings({ value, onChange }: { value: SiteHelperInput; onChange:
   </div>;
 }
 
-export function SiteWorkForm({ workers }: { workers: Worker[] }) {
+export function SiteWorkForm({ workers, edit, onClose }: { workers: Worker[]; edit?: SiteWorkEdit; onClose?: () => void }) {
   const router = useRouter();
   const [created, setCreated] = useState<Worker[]>([]);
   const catalog = [...workers, ...created.filter(w => !workers.some(p => p.id === w.id))];
   const names = Object.fromEntries(catalog.map(w => [w.id, w.name]));
-  const [draft, setDraft] = useState<SiteWorkInput | null>(null);
+  const [draft, setDraft] = useState<SiteWorkInput | null>(() => edit ? { ...edit.input, requestId: crypto.randomUUID(), workers: edit.input.workers.map(w => ({ ...w, rowId: w.workerId })), helpers: edit.input.helpers.map(h => ({ ...h, rowId: h.workerId })) } : null);
   const [error, setError] = useState('');
   const [pending, start] = useTransition();
   const saving = useRef(false);
@@ -84,24 +85,26 @@ export function SiteWorkForm({ workers }: { workers: Worker[] }) {
     saving.current = true; setError('');
     start(async () => {
       try {
-        const result = await addSiteWorkAction(draft);
+        const result = edit ? await updateSiteWorkAction(edit.entryId, edit.revision, draft) : await addSiteWorkAction(draft);
         if (!result.ok) { setError(result.error); return; }
-        setDraft(null); router.refresh();
+        setDraft(null); onClose?.(); router.refresh();
       } catch { setError('Could not confirm the save. Retry with this form to avoid duplicate entries.'); }
       finally { saving.current = false; }
     });
   };
   const available = catalog.filter(w => !draft?.workers.some(v => v.workerId === w.id) && !draft?.helpers.some(v => v.workerId === w.id));
   return <>
-    <button type="button" className="a-btn a-btn-secondary" onClick={open}>Add site work</button>
-    <BottomSheet open={!!draft} title="Add site work" onClose={() => { if (!saving.current && !creating.current) setDraft(null); }}>
+    {!edit && <button type="button" className="a-btn a-btn-secondary" onClick={open}>Add site work</button>}
+    <BottomSheet open={!!draft} title={edit ? 'Edit site work' : 'Add site work'} onClose={() => { if (!saving.current && !creating.current) { setDraft(null); onClose?.(); } }}>
       {draft && <form onSubmit={submit} className="space-y-4">
         <fieldset disabled={pending || personPending} className="space-y-4">
+          {edit && <p className="text-sm">Saving replaces this booking’s entries for everyone. Separately recorded work and payments stay unchanged.</p>}
+          {edit?.notice && <p className="text-sm" role="status">{edit.notice}</p>}
           <div className="grid grid-cols-2 gap-3">
             <label className="a-label">Site<input className="a-input mt-1" value={draft.site} onChange={e => set({ site: e.target.value })} placeholder="Nextra City" maxLength={120} required /></label>
             <label className="a-label">Date<input className="a-input mt-1" type="date" value={draft.date} onChange={e => set({ date: e.target.value })} required /></label>
           </div>
-          <label className="a-label">1. How many feet drilled?{!draft.workers.length && ' (optional for helpers only)'}<input className="a-input mt-1" inputMode="decimal" placeholder="e.g. 200" value={draft.footage} onChange={e => set({ footage: e.target.value })} required={draft.workers.length > 0} /></label>
+          {draft.crewBasis !== 'FIXED' && <label className="a-label">1. How many feet drilled?{!draft.workers.length && ' (optional for helpers only)'}<input className="a-input mt-1" inputMode="decimal" placeholder="e.g. 200" value={draft.footage} onChange={e => set({ footage: e.target.value })} required={draft.workers.length > 0 && draft.recordEarnings} /></label>}
           <section className="space-y-3" aria-label="Choose crew">
             <h3 className="font-semibold">2. Choose workers and helpers</h3>
             <p className="text-sm">You can select only helpers; no main worker is required.</p>
@@ -121,8 +124,9 @@ export function SiteWorkForm({ workers }: { workers: Worker[] }) {
             </section>}
           </section>
           {draft.workers.length > 0 && <>
-          <label className="a-label">3. Crew labour rate per foot (₹)<input className="a-input mt-1" inputMode="decimal" placeholder="e.g. 75" value={draft.rate} onChange={e => set({ rate: e.target.value })} required /></label>
-          <p className="a-num text-sm">{total != null ? `${footage} feet × ${formatRupees(rate!)} = ${formatRupees(total)} for the main crew` : 'Enter feet and rate to calculate the main crew’s total.'} Helper costs are entered below.</p>
+          {edit && <label className="a-label">Crew pricing<select className="a-input mt-1" value={draft.crewBasis ?? 'FOOTAGE'} onChange={e => set({ crewBasis: e.target.value as 'FOOTAGE' | 'FIXED' })}><option value="FOOTAGE">Feet × rate</option><option value="FIXED">Agreed crew amount</option></select></label>}
+          <label className="a-label">{draft.crewBasis === 'FIXED' ? '3. Total crew amount (₹)' : '3. Crew labour rate per foot (₹)'}<input className="a-input mt-1" inputMode="decimal" placeholder="e.g. 75" value={draft.rate} onChange={e => set({ rate: e.target.value })} required={draft.recordEarnings} /></label>
+          <p className="a-num text-sm">{draft.crewBasis === 'FIXED' ? `Agreed crew amount: ${formatRupees(rate ?? 0)}` : total != null ? `${footage} feet × ${formatRupees(rate!)} = ${formatRupees(total)} for the main crew` : 'Enter feet and rate to calculate the main crew’s total.'} Helper costs are entered below.</p>
           <label className="a-label">4. Split the crew amount<select className="a-input mt-1" value={draft.workerSplit} onChange={e => set({ workerSplit: e.target.value as SiteWorkInput['workerSplit'] })}><option value="EQUAL">Equal shares among selected workers</option><option value="CUSTOM">Custom amount for each worker</option></select></label>
           {draft.workerSplit === 'CUSTOM' && draft.workers.map(w => <label key={w.rowId} className="a-label">{names[w.workerId]} share (₹)<input className="a-input mt-1" inputMode="decimal" value={w.amount} onChange={e => set({ workers: draft.workers.map(v => v.rowId === w.rowId ? { ...v, amount: e.target.value } : v) })} required /></label>)}
           <label className="a-label">Record main-worker earnings<select className="a-input mt-1" value={draft.recordEarnings ? 'NEW' : 'EXISTING'} onChange={e => set({ recordEarnings: e.target.value === 'NEW' })}><option value="NEW">Add the shares to their accounts</option><option value="EXISTING">Already recorded — only add helper entries</option></select></label>
@@ -142,7 +146,7 @@ export function SiteWorkForm({ workers }: { workers: Worker[] }) {
               {draft.workers.map(w => {
                 const entries = preview!.entries.filter(e => e.workerId === w.workerId).map((e, i) => ({ ...e, id: String(i), createdAt: '' }));
                 const totals = workerTotals(0, entries);
-                return <p key={w.workerId}>{names[w.workerId]}: {formatRupees(preview!.workerShares[w.workerId])} share{!draft.recordEarnings && ' (already recorded)'} − {formatRupees(totals.contributions)} helper costs + {formatRupees(totals.reimbursements)} payment credit. Account change: {formatRupees(totals.balance)}.</p>;
+                return <p key={w.workerId}>{names[w.workerId]}: {formatRupees(preview!.workerShares[w.workerId])} share{!draft.recordEarnings && ' (already recorded)'} − {formatRupees(totals.contributions)} helper costs + {formatRupees(totals.reimbursements)} payment credit. {edit ? 'Revised booking balance' : 'Account change'}: {formatRupees(totals.balance)}.</p>;
               })}
               {preview.helpers.map(h => <p key={h.workerId}>{names[h.workerId]}: {formatRupees(h.amount)} {h.paidBy === 'UNPAID' ? 'still to pay' : 'paid in full'}</p>)}
               <p>{draft.recordEarnings || !draft.workers.length ? 'Total labour cost' : 'Additional labour cost from this booking'}: {formatRupees(preview.labourCost)}</p>
@@ -150,7 +154,7 @@ export function SiteWorkForm({ workers }: { workers: Worker[] }) {
             </> : <p>{previewError}</p>}
           </section>
           <FormError message={error} />
-          <button type="submit" className="a-btn a-btn-primary w-full" disabled={pending || personPending || !!newPerson || !preview}>{pending ? 'Saving…' : 'Save site work'}</button>
+          <button type="submit" className="a-btn a-btn-primary w-full" disabled={pending || personPending || !!newPerson || !preview}>{pending ? 'Saving…' : edit ? 'Save changes to site work' : 'Save site work'}</button>
         </fieldset>
       </form>}
     </BottomSheet>

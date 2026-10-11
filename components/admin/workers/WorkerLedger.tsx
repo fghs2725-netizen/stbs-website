@@ -9,7 +9,9 @@ import {
   DEFAULT_WORK_DESCRIPTION, DEFAULT_WORK_UNIT, PAYMENT_METHODS, PAYMENT_PICKS, formatRupees, parseAmount,
   parseQuantity, todayIST, workAmount, entryCredit, type EntryKind, type LedgerRow,
 } from "@/lib/worker-ledger";
-import { addEntryAction, deleteEntryAction, updateEntryAction } from "@/app/admin/(dashboard)/workers/actions";
+import { addEntryAction, deleteEntryAction, updateEntryAction, getSiteWorkForEditAction } from "@/app/admin/(dashboard)/workers/actions";
+import { SiteWorkForm } from './SiteWorkForm';
+import type { SiteWorkEdit } from '@/lib/site-work-edit';
 import { FormError } from "./WorkerForms";
 import { balanceText } from "./BalanceLabel";
 import { siteWorkPrefix } from '@/lib/site-work';
@@ -46,6 +48,7 @@ export function WorkerLedger({ workerId, rows, units, lastRates, emptyText }: {
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [pending, start] = useTransition();
+  const [editBooking, setEditBooking] = useState<SiteWorkEdit | null>(null);
   const newestFirst = useMemo(() => [...rows].reverse(), [rows]);
 
   const set = (patch: Partial<Draft>) => setDraft((d) => (d ? { ...d, ...patch } : d));
@@ -81,9 +84,22 @@ export function WorkerLedger({ workerId, rows, units, lastRates, emptyText }: {
 
   const unitOptions = draft && !units.includes(draft.unit) ? [draft.unit, ...units] : units;
   const linked = !!(draft?.id && siteWorkPrefix(draft.id));
+  const editSite = () => {
+    if (!draft?.id) return;
+    const id = draft.id;
+    setError('');
+    start(async () => {
+      try {
+        const result = await getSiteWorkForEditAction(id);
+        if (!result.ok) { setError(result.error); return; }
+        close(); setEditBooking(result.booking);
+      } catch { setError('Could not load the booking. Please try again.'); }
+    });
+  };
 
   return (
     <>
+      {editBooking && <SiteWorkForm key={editBooking.revision} workers={editBooking.workers} edit={editBooking} onClose={() => setEditBooking(null)} />}
       <div className="grid grid-cols-2 gap-3">
         <button type="button" className="a-btn a-btn-primary min-h-[56px]" onClick={() => openNew("PAYMENT")}>
           <IndianRupee className="size-5" aria-hidden /> Money given
@@ -132,8 +148,9 @@ export function WorkerLedger({ workerId, rows, units, lastRates, emptyText }: {
         {draft && linked ? <div className="space-y-4">
           <p className="font-semibold">{draft.site} · {draft.description}</p>
           <p>{formatRupees(Number(draft.amount))} · {dateLabel(draft.date)}</p>
-          <p className="text-sm">This entry belongs to a site booking for the selected crew. To correct it, remove the booking and enter it again from Workers → Add site work. Removing it reverses all earnings, contributions and payments created by that booking.</p>
+          <p className="text-sm">Edit the full site booking to update its workers, helpers, prices, splits and payments together.</p>
           <FormError message={error} />
+          <button type="button" className="a-btn a-btn-primary w-full" disabled={pending} onClick={editSite}>{pending ? 'Loading…' : 'Edit site work'}</button>
           <button type="button" className="a-btn a-btn-danger w-full" disabled={pending} onClick={() => setConfirmDelete(true)}>Remove whole site booking</button>
         </div> : draft && (
           <form onSubmit={submit} className="space-y-4" noValidate>
