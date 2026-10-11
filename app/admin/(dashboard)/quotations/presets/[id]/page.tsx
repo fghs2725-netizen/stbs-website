@@ -82,6 +82,11 @@ export default async function QuotationPresetPage({ params }: { params: Promise<
                   <span className="a-num text-[0.8125rem]" style={{ color: "var(--a-faint)" }}>
                     {item.lastRate === null ? "no rate yet" : `last ₹${Number(item.lastRate).toLocaleString("en-IN")}`}
                   </span>
+                  {item.lastRates && typeof item.lastRates === "object" && !Array.isArray(item.lastRates) && Object.keys(item.lastRates).length > 0 && (
+                    <span className="max-w-[260px] text-right text-[0.75rem] leading-snug" style={{ color: "var(--a-faint)" }}>
+                      {Object.entries(item.lastRates as Record<string, number>).map(([k, v]) => `${k.split("|").map((p) => p.split("=")[1]).join(", ")}: ₹${Number(v).toLocaleString("en-IN")}`).join(" · ")}
+                    </span>
+                  )}
                   <div className="flex items-center gap-1">
                     <Button type="submit" size="sm" variant="secondary">Save</Button>
                   </div>

@@ -33,6 +33,7 @@ export async function listPresets(): Promise<Preset[]> {
       description: i.description,
       unit: i.unit,
       lastRate: i.lastRate === null ? null : Number(i.lastRate),
+      lastRates: i.lastRates && typeof i.lastRates === "object" && !Array.isArray(i.lastRates) ? (i.lastRates as Record<string, number>) : null,
     })),
   }));
 }

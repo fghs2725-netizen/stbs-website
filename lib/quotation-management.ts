@@ -5,6 +5,7 @@ import type { QuotationState } from "@/components/quotation/quotation-model";
 import { calcTotal, calcTotals, getValidItems, isQuotationPdfReady } from "@/components/quotation/quotation-model";
 import { resolveQuotationTemplate, storableTemplateId } from "@/lib/quotation-templates";
 import { decodeItemText, encodeItemText } from "@/components/quotation/item-text";
+import { rememberedRates } from "@/lib/quotation-presets";
 
 export async function requireAdmin() { const session = await auth(); if (!session?.user) throw new Error("UNAUTHORIZED"); }
 function input(q: QuotationState) { return { date:q.quotationDate, validity:q.validity, serviceType:q.serviceType, customServiceType:q.customServiceType || null, subject:q.subject, clientCompanyName:q.client.companyName, clientContactPerson:q.client.contactPerson || null, clientAddressLine1:q.client.addressLine1 || null, clientAddressLine2:q.client.addressLine2 || null, clientCity:q.client.city || null, clientState:q.client.state || null, clientPinCode:q.client.pinCode || null, clientPhone:q.client.phone || null, clientEmail:q.client.email || null, clientGstin:q.client.gstin?.trim() || null, discountType:q.discountType || null, discountValue:q.discountType ? (q.discountValue ?? 0) : 0, gstEnabled:Boolean(q.gstEnabled), gstMode:q.gstEnabled ? (q.gstMode || "CGST_SGST") : null, gstRate:q.gstRate ?? 18, templateId:storableTemplateId(q.templateId) }; }
@@ -106,14 +107,18 @@ export async function listClients(search=""){await requireAdmin(); const clients
 export async function rememberQuotedRates(quotationId: string): Promise<void> {
   const rows = await prisma.quotationItem.findMany({
     where: { quotationId, presetItemId: { not: null } },
-    select: { presetItemId: true, rate: true },
+    orderBy: { position: "asc" },
+    select: { description: true, rate: true, presetItem: { select: { id: true, description: true, lastRates: true } } },
   });
-  await Promise.all(
-    rows
-      .filter((r) => Number(r.rate) > 0)
-      .map((r) => prisma.quotationPresetItem.update({
-        where: { id: r.presetItemId as string },
-        data: { lastRate: r.rate },
-      })),
-  );
+  // In order, one at a time: two lines can come from the same preset item, and each must see the
+  // other's write rather than race it.
+  const memory = new Map<string, unknown>();
+  for (const r of rows) {
+    if (!r.presetItem) continue;
+    const id = r.presetItem.id;
+    const next = rememberedRates(r.presetItem.description, decodeItemText(r.description).description, Number(r.rate), memory.has(id) ? memory.get(id) : r.presetItem.lastRates);
+    if (!next) continue;
+    memory.set(id, next.lastRates);
+    await prisma.quotationPresetItem.update({ where: { id }, data: { lastRate: next.lastRate, lastRates: next.lastRates } });
+  }
 }

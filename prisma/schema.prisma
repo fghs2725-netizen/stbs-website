@@ -418,6 +418,11 @@ model QuotationPresetItem {
    * What this line was last quoted at, so the next quotation starts from a real number.
    */
   lastRate    Decimal?        @db.Decimal(12, 2)
+  /**
+   * The last rate per size, keyed by the answers this line's wording uses (e.g. "boreDia=300 mm"),
+   * so a 300 mm job does not start from a 160 mm job's price. Written on finalise.
+   */
+  lastRates   Json?
 
   items QuotationItem[]
 }

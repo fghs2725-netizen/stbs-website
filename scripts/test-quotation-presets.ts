@@ -6,12 +6,13 @@
  */
 import assert from "node:assert/strict";
 import {
-  SEED_PRESETS, buildPresetItems, fieldsInUse, fillDescription, type Preset,
+  SEED_PRESETS, buildPresetItems, fieldsInUse, fillDescription, rateKey, rateKeyFromText, rememberedRates, type Preset,
 } from "../lib/quotation-presets";
 
 let failures = 0;
+let passed = 0;
 function check(name: string, fn: () => void) {
-  try { fn(); console.log(`  ok  ${name}`); } catch (e) {
+  try { fn(); passed++; console.log(`  ok  ${name}`); } catch (e) {
     failures++;
     console.log(`  FAIL ${name}`);
     console.log(`       ${e instanceof Error ? e.message : String(e)}`);
@@ -104,5 +105,37 @@ check("the owner's wording is carried exactly", () => {
   assert.equal(borewell.items.length, 15);
 });
 
-console.log(failures ? `\n${failures} check(s) failed` : `\n${10} checks passed`);
+/* ── rates remembered per size ── */
+const drill = borewell.items[0].description; // Drilling of {boreDia} dia borewell …
+const pump = borewell.items.find((i) => i.description.includes("{pumpHp}"))!.description;
+
+check("a line keys only on the answers its own wording uses", () => {
+  assert.equal(rateKey(drill, { boreDia: "300 mm", pumpHp: "10" }), "boreDia=300");
+  assert.equal(rateKey(pump, { pumpHp: "10", pumpStage: "4", boreDia: "300 mm" }), "pumpHp=10|pumpStage=4");
+  assert.equal(rateKey("Flat line", {}), null);
+  assert.equal(rateKey(drill, { boreDia: "160" }), rateKey(drill, { boreDia: "160 mm" }), "a typed 160 and the 160 mm option are one size");
+});
+
+check("the size is read back from a finalised line's wording", () => {
+  assert.equal(rateKeyFromText(drill, fillDescription(drill, { boreDia: "300 mm" })), "boreDia=300");
+  assert.equal(rateKeyFromText(pump, fillDescription(pump, { pumpHp: "10", pumpStage: "4" }) + " field marshal by Fassco"), "pumpHp=10|pumpStage=4", "a brand typed after the wording is allowed");
+  assert.equal(rateKeyFromText(drill, "Completely reworded drilling line"), null, "reworded lines are not filed under a guessed size");
+});
+
+check("a 300 mm job and a 160 mm job each keep their own rate", () => {
+  let mem = rememberedRates(drill, fillDescription(drill, { boreDia: "300 mm" }), 550, null)!;
+  mem = rememberedRates(drill, fillDescription(drill, { boreDia: "160 mm" }), 210, mem.lastRates)!;
+  assert.deepEqual(mem.lastRates, { "boreDia=300": 550, "boreDia=160": 210 });
+  assert.equal(mem.lastRate, 210, "the line-wide fallback is still the most recent rate");
+  const preset: Preset = { ...borewell, items: [{ id: "x", description: drill, unit: "Rft", lastRate: mem.lastRate, lastRates: mem.lastRates }] };
+  assert.equal(buildPresetItems(preset, { boreDia: "300 mm" })[0].rate, 550);
+  assert.equal(buildPresetItems(preset, { boreDia: "160 mm" })[0].rate, 210);
+  assert.equal(buildPresetItems(preset, { boreDia: "250 mm" })[0].rate, 210, "a size never quoted falls back to the last rate");
+});
+
+check("a zero rate is never remembered", () => {
+  assert.equal(rememberedRates(drill, fillDescription(drill, { boreDia: "300 mm" }), 0, null), null);
+});
+
+console.log(failures ? `\n${failures} check(s) failed` : `\n${passed} checks passed`);
 process.exit(failures ? 1 : 0);
