@@ -180,7 +180,7 @@ export async function addSiteWork(input: SiteWorkInput): Promise<void> {
   let plan: ReturnType<typeof planSiteWork>;
   try { plan = planSiteWork(input, Object.fromEntries(workers.map(w => [w.id, w.name]))); }
   catch (e) { throw new InputError(e instanceof Error ? e.message : 'Check the site work details.'); }
-  const data = plan.entries.map((entry, i) => ({ ...entry, id: `sw_${input.requestId}_${i}` }));
+  const data = plan.entries.map((entry, i) => ({ ...entry, id: `sw_${input.requestId}_${String(i).padStart(6, '0')}` }));
   const verifyRetry = (existing: EntryRecord[]) => {
     if (existing.some(e => e.deletedAt)) throw new InputError('This booking was removed. Reopen the form to create a new booking.');
     if (existing.length !== data.length || data.some(d => {

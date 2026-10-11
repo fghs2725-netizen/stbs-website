@@ -132,7 +132,7 @@ export function WorkerLedger({ workerId, rows, units, lastRates, emptyText }: {
         {draft && linked ? <div className="space-y-4">
           <p className="font-semibold">{draft.site} · {draft.description}</p>
           <p>{formatRupees(Number(draft.amount))} · {dateLabel(draft.date)}</p>
-          <p className="text-sm">This entry belongs to a site booking shared by three workers. To correct it, remove the booking and enter it again from Workers → Add site work. Removing it reverses all earnings, contributions and payments created by that booking.</p>
+          <p className="text-sm">This entry belongs to a site booking for the selected crew. To correct it, remove the booking and enter it again from Workers → Add site work. Removing it reverses all earnings, contributions and payments created by that booking.</p>
           <FormError message={error} />
           <button type="button" className="a-btn a-btn-danger w-full" disabled={pending} onClick={() => setConfirmDelete(true)}>Remove whole site booking</button>
         </div> : draft && (
