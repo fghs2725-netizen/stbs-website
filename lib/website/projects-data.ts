@@ -118,3 +118,17 @@ export function resolveProjects(raw: unknown): ProjectCase[] {
 export function scopeLines(scope: string | undefined): string[] {
   return (scope ?? "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
 }
+
+/**
+ * Illustrative photography for a project card. These are STBS site photos from comparable
+ * work, not pictures of the client's own site, so pages that show them say so.
+ */
+const PROJECT_PHOTOS = [
+  { src: "/services/rainwater-harvesting-recharge.webp", alt: "Precast concrete rings beside an excavated recharge pit at a commercial site" },
+  { src: "/services/borewell-rig-factory-site.webp", alt: "Crew handling drill pipe beside a truck-mounted drilling rig at a factory under construction" },
+  { src: "/services/tubewell-rig-pipes.webp", alt: "A worker carrying white uPVC casing pipe past a drilling rig at an industrial site" },
+] as const;
+
+export function projectPhoto(index: number): { src: string; alt: string } {
+  return PROJECT_PHOTOS[index % PROJECT_PHOTOS.length];
+}

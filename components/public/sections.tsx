@@ -7,10 +7,9 @@ import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain
 import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "@/lib/website/home-defaults";
 import { SERVICE_PAGES, serviceHref, servicePageFor } from "@/lib/website/service-pages";
 import { SERVICE_ICONS } from "@/components/public/service-icons";
-import { HOME_PROJECTS, resolveProjects } from "@/lib/website/projects-data";
+import { HOME_PROJECTS, projectPhoto, resolveProjects } from "@/lib/website/projects-data";
 import { StatsStrip } from "@/components/public/stats-strip";
 import { PagePhoto } from "@/components/public/photo";
-import { LogoMarquee } from "@/components/public/logo-marquee";
 import { formatIndianPhone, telHref } from "@/lib/phone";
 import { Reveal } from "@/components/reveal";
 import { Accent } from "@/components/public/accent";
@@ -401,7 +400,7 @@ function TestimonialsSection({ owner, content, data }: { owner?: RenderableSecti
               <Reveal delay={i * 0.05} className="h-full">
                 <Editable target={{ kind: "testimonials" }} label="Edit Testimonial" className="block h-full">
                   <figure className="tile m-0 flex h-full flex-col gap-u3 p-u3">
-                    <blockquote className="t-body m-0">&ldquo;{t.quote}&rdquo;</blockquote>
+                    <blockquote className="t-serif m-0 text-[1.5rem] leading-[1.3]">&ldquo;{t.quote}&rdquo;</blockquote>
                     <figcaption className="mt-auto">
                       {t.photo && <Image src={t.photo} alt={t.name} width={48} height={48} className="mb-u1 size-12 rounded-[4px] object-cover" />}
                       <p className="font-medium text-stbs-ink">{t.name}</p>
@@ -765,24 +764,32 @@ export function CaseStudiesSection({ owner, content }: { owner?: RenderableSecti
           </div>
           {ctaText && ctaUrl && <Link href={ctaUrl} className="link-arrow hidden shrink-0 md:inline-flex">{ctaText}</Link>}
         </Reveal>
-        <ul className="mt-u6 grid auto-rows-fr gap-u2 lg:grid-cols-3 lg:gap-u3">
-          {projects.map((p, i) => (
-            <li key={`${p.title}-${i}`}>
-              <Reveal delay={i * 0.06} className="h-full">
-                <Editable target={{ kind: "section", section: target }} label="Edit projects" className="block h-full">
-                  <article className="hairline-card flex h-full flex-col p-u4">
-                    {p.sector && <span className="inline-flex w-fit rounded-full bg-stbs-brand-mid/10 px-u2 py-[5px] text-[0.8125rem] font-medium text-stbs-brand-mid">{p.sector}</span>}
-                    <h3 className="mt-u3 text-[1.5rem] font-semibold leading-[1.15] tracking-[-0.025em] text-stbs-ink">{p.title}</h3>
-                    {p.summary && <p className="mt-u2 text-[1.0625rem] leading-[1.5] text-stbs-body">{p.summary}</p>}
-                    <p className="mt-auto flex items-center gap-u1 pt-u3 text-[0.9375rem] text-stbs-muted">
-                      <MapPin size={16} strokeWidth={1.75} className="shrink-0" aria-hidden />
-                      {p.location}
-                    </p>
-                  </article>
-                </Editable>
-              </Reveal>
-            </li>
-          ))}
+        <ul className="mt-u6 grid auto-rows-fr gap-u3 lg:grid-cols-3">
+          {projects.map((p, i) => {
+            const photo = projectPhoto(i);
+            return (
+              <li key={`${p.title}-${i}`}>
+                <Reveal delay={i * 0.06} className="h-full">
+                  <Editable target={{ kind: "section", section: target }} label="Edit projects" className="block h-full">
+                    <Link href={ctaUrl || "/projects"} className="group flex h-full flex-col overflow-hidden rounded-[18px] bg-[var(--card)] shadow-[0_1px_0_rgba(19,24,25,.06)] transition-shadow duration-500 hover:shadow-[0_30px_60px_-40px_rgba(19,24,25,.55)]">
+                      <div className="relative aspect-[4/3] overflow-hidden">
+                        <Image src={photo.src} alt={photo.alt} fill sizes="(max-width:1024px) 100vw, 33vw" className="object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.28,0.11,0.32,1)] group-hover:scale-105 motion-reduce:transition-none" />
+                        {p.sector && <span className="absolute left-u2 top-u2 rounded-full bg-stbs-ink/75 px-3 py-[6px] text-[.75rem] font-bold uppercase tracking-[.12em] text-white backdrop-blur">{p.sector}</span>}
+                      </div>
+                      <div className="flex flex-1 flex-col p-u3">
+                        <h3 className="t-h3">{p.title}</h3>
+                        {p.summary && <p className="mt-u1 text-[1rem] leading-[1.5] text-stbs-body">{p.summary}</p>}
+                        <p className="mt-auto flex items-center gap-u1 pt-u3 text-[0.9375rem] text-stbs-muted">
+                          <MapPin size={16} strokeWidth={1.75} className="shrink-0 text-stbs-brand-mid" aria-hidden />
+                          {p.location}
+                        </p>
+                      </div>
+                    </Link>
+                  </Editable>
+                </Reveal>
+              </li>
+            );
+          })}
         </ul>
         {ctaText && ctaUrl && <Link href={ctaUrl} className="btn btn-secondary mt-u5 w-full md:hidden">{ctaText}</Link>}
       </div>
@@ -815,9 +822,13 @@ function FeaturedClientsSection({ owner, content, data }: { owner?: RenderableSe
       </div>
       {withLogo.length > 0 && (
         <Editable target={{ kind: "clients" }} label="Edit Logos">
-          <div className="marquee-mask mt-u6">
-            <LogoMarquee logos={withLogo} />
-          </div>
+          <ul className="container-x mt-u6 grid grid-cols-2 gap-u2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+            {withLogo.map((c) => (
+              <li key={c.id} className="flex aspect-[3/2] items-center justify-center rounded-[14px] bg-white p-u3 shadow-[0_1px_0_rgba(19,24,25,.06)] transition-transform duration-500 ease-[cubic-bezier(0.28,0.11,0.32,1)] hover:-translate-y-1">
+                <Image src={c.logoUrl} alt={c.altText || `${c.name} logo`} width={200} height={72} quality={95} sizes="200px" className="max-h-14 w-auto max-w-full object-contain" />
+              </li>
+            ))}
+          </ul>
         </Editable>
       )}
       {others.length > 0 && (
