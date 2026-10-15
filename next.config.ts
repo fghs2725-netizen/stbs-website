@@ -17,7 +17,21 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const nextConfig: NextConfig = {
-  outputFileTracingIncludes: { "/*": ["./node_modules/@sparticuz/chromium/bin/**"] },
+  // The 67 MB Chromium binary is needed only by the routes that render PDFs. Including it in "/*" put a copy
+  // in every serverless function of every deployment, which used up Vercel's 10 GB Function Storage allowance.
+  // Patterns use "*" for dynamic segments ("[id]"), which picomatch would otherwise read as a character class.
+  outputFileTracingIncludes: Object.fromEntries(
+    [
+      "/api/company-documents/bank-letter",
+      "/api/documents/*/pdf",
+      "/api/invoices/*/pdf",
+      "/api/portal/documents/*/pdf",
+      "/api/quotations/*/pdf",
+      "/api/quotations/pdf-self-test",
+      "/api/workers/*/statement",
+      "/api/workers/summary",
+    ].map((route) => [route, ["./node_modules/@sparticuz/chromium/bin/**"]]),
+  ),
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
