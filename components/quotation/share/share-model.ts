@@ -101,7 +101,8 @@ export function buildShareMessage(s: ShareSubject): string {
   const lines = [`Dear ${to},`, "", `Please find attached our ${noun}${s.reference ? ` ${s.reference}` : ""}${s.service ? ` for ${s.service}` : ""}.`];
 
   const facts: string[] = [];
-  if (s.total && s.total > 0) facts.push(`Total: ${formatINR(s.total)}`);
+  // A quotation goes out without its amount in the message (the PDF carries it); an invoice states what is owed.
+  if (isInvoice && s.total && s.total > 0) facts.push(`Total: ${formatINR(s.total)}`);
   if (isInvoice) {
     // An invoice that has had part payment should ask for what is left, not the whole total again.
     if (typeof s.balance === "number" && s.balance > 0 && s.balance !== s.total) facts.push(`Balance due: ${formatINR(s.balance)}`);
