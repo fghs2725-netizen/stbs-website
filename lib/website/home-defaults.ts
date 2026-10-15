@@ -6,7 +6,7 @@
  */
 export const HOME_HERO = {
   eyebrow: "Trusted since 1992",
-  heading: "Water infrastructure for industrial & commercial sites",
+  heading: "Water infrastructure for *industrial & commercial* sites",
   headingLine2: "",
   supportingText: "Water testing, borewell drilling, tubewell construction, material supply and rainwater recharge across Haryana & NCR.",
   primaryCtaText: "Get a site assessment",
@@ -42,12 +42,12 @@ export const HOME_SECTORS = {
 /** Services cards: icon + short title only. Titles/links come from lib/website/service-pages.ts. */
 export const HOME_SERVICES = {
   eyebrow: "Services",
-  heading: "What we deliver",
+  heading: "Five services, one job from survey to recharge",
 } as const;
 
 /** Closing CTA banner. The supporting line makes no promise about turnaround or price. */
 export const HOME_CTA = {
-  heading: "Planning a project?",
+  heading: "Planning a *project?*",
   text: "Share your site and scope. We will review it and send a written proposal.",
   ctaText: "Request a proposal",
   ctaUrl: "/quote",

@@ -65,8 +65,8 @@ export function FilmBand({ scene, label }: { scene: FilmSceneId; label?: string 
   };
 
   return (
-    <section className="film-band" aria-label={label ?? meta.label}>
-      <div className="film-band__inner container-x">
+    <section className={`film-band ${scene === "hook" ? "film-band--bleed" : ""}`} aria-label={label ?? meta.label}>
+      <div className={`film-band__inner ${scene === "hook" ? "" : "container-x"}`}>
         <div ref={wrap} className={`film-band__frame ${portrait ? "is-portrait" : ""}`}>
           {still ? (
             // eslint-disable-next-line @next/next/no-img-element

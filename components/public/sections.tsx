@@ -13,6 +13,8 @@ import { PagePhoto } from "@/components/public/photo";
 import { LogoMarquee } from "@/components/public/logo-marquee";
 import { formatIndianPhone, telHref } from "@/lib/phone";
 import { Reveal } from "@/components/reveal";
+import { Accent } from "@/components/public/accent";
+import { ServicesSequence } from "@/components/public/services-sequence";
 import { QuoteForm } from "@/components/quote-form";
 import type { SerializedSection } from "@/lib/website/action-types";
 import { useWebsiteEditor, type EditorSignal } from "@/lib/website/editor-context";
@@ -206,7 +208,7 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
         </Editable>
         <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
           <h1 className="t-h1 mt-u3 max-w-[1080px] animate-[fadeSlideUp_1s_cubic-bezier(0.28,0.11,0.32,1)_0.3s_both]">
-            {heading}
+            <Accent text={heading} className="t-serif !text-stbs-bronze-light" />
             {headingLine2 && <>{" "}<span className="block">{headingLine2}</span></>}
           </h1>
         </Editable>
@@ -338,71 +340,33 @@ const SERVICE_CARD_IMAGES: Record<string, { src: string; alt: string }> = {
   "borewell-material-supply": { src: "/services/material-supply-yard-stock.webp", alt: "uPVC and steel casing pipes, a submersible cable drum and a row of submersible pumps in a supply yard" },
 };
 
-export function ServicesSection({ owner, content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {
+/** Real job order: test the ground, drill, build the tubewell, supply the materials, recharge. */
+const SERVICE_FLOW = ["water-testing", "borewell-drilling", "tubewell-construction", "borewell-material-supply", "rainwater-harvesting"];
+const SERVICE_ACCENTS: Record<string, string> = {
+  "water-testing": "Survey up to 800 m before we drill.",
+  "borewell-drilling": "Own rigs. 150\u2013300 mm bores.",
+  "tubewell-construction": "Planned, cased and handed over.",
+  "borewell-material-supply": "uPVC pipes and submersible pumps.",
+  "rainwater-harvesting": "Recharge what the site sheds.",
+};
+
+export function ServicesSection({ content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {
   const eyebrow = str(content, "eyebrow", HOME_SERVICES.eyebrow);
   // Older content split the heading in two (heading + highlighted word); join them.
   const heading = [str(content, "heading", HOME_SERVICES.heading), str(content, "headingHighlight")].filter(Boolean).join(" ");
-  const target = asSection(owner);
   const cms = data.services;
-  const items = cms && cms.length > 0
-    ? cms.map((s) => ({ title: s.title, slug: s.slug }))
-    : SERVICE_PAGES.map((s) => ({ title: s.title, slug: s.slug }));
-
-  return (
-    <section className="theme-public band-alt section-y">
-      <div className="container-x">
-        <Reveal>
-          <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-            <p className="t-eyebrow">{eyebrow}</p>
-          </Editable>
-          <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-            <h2 className="t-h2 mt-u2 text-block">{heading}</h2>
-          </Editable>
-        </Reveal>
-        {/* Bento: the first service gets a full-height feature tile, the rest stack beside it. */}
-        <ul className="mt-u6 grid gap-u2 md:grid-cols-2 lg:grid-cols-3 lg:gap-u3">
-          {items.map((s, i) => {
-            const page = servicePageFor(s.slug);
-            const Icon = page ? SERVICE_ICONS[page.icon] : Droplets;
-            const photo = SERVICE_CARD_IMAGES[s.slug];
-            const feature = i === 0;
-            return (
-              <li key={`${s.slug}-${i}`} className={feature ? "lg:row-span-2" : undefined}>
-                <Reveal delay={i * 0.06} className="h-full">
-                  <Editable target={{ kind: "services" }} label="Edit service" className="block h-full">
-                    <Link href={serviceHref(s.slug)} className="hairline-card group relative flex h-full min-h-[280px] flex-col justify-end overflow-hidden lg:min-h-[320px]">
-                      {photo ? (
-                        <>
-                          <Image
-                            src={photo.src}
-                            alt={photo.alt}
-                            fill
-                            sizes={feature ? "(max-width:768px) 100vw, 33vw" : "(max-width:768px) 100vw, 33vw"}
-                            className="object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.28,0.11,0.32,1)] group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/10" />
-                        </>
-                      ) : (
-                        <span className="absolute left-u3 top-u3 text-stbs-brand-mid"><Icon size={32} strokeWidth={1.75} aria-hidden /></span>
-                      )}
-                      <div className={`relative p-u3 ${photo ? "text-white" : ""}`}>
-                        <h3 className={`font-semibold tracking-[-0.03em] ${feature ? "text-[2rem] leading-[1.08]" : "text-[1.5rem] leading-[1.15]"} ${photo ? "!text-white" : "text-stbs-ink"}`}>{s.title}</h3>
-                        {page?.summary && <p className={`mt-u1 max-w-[30rem] text-[0.9375rem] leading-[1.5] ${photo ? "text-white/75" : "text-stbs-muted"}`}>{page.summary}</p>}
-                        <span className={`mt-u2 inline-flex items-center gap-1 text-[0.9375rem] font-medium ${photo ? "text-stbs-bronze-light" : "text-stbs-brand-mid"}`}>
-                          Learn more
-                          <span aria-hidden className="text-[1.3em] leading-none transition-transform duration-300 ease-[cubic-bezier(0.28,0.11,0.32,1)] group-hover:translate-x-1">&#8250;</span>
-                        </span>
-                      </div>
-                    </Link>
-                  </Editable>
-                </Reveal>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </section>
-  );
+  const slugs = cms && cms.length > 0 ? cms.map((s) => s.slug) : SERVICE_PAGES.map((s) => s.slug);
+  const items = slugs
+    .map((slug) => {
+      const page = servicePageFor(slug);
+      const image = SERVICE_CARD_IMAGES[page?.slug ?? ""];
+      const title = cms?.find((c) => c.slug === slug)?.title ?? page?.title;
+      if (!page || !image || !title) return null;
+      return { slug: page.slug, href: page.href, title, summary: page.summary, accent: SERVICE_ACCENTS[page.slug] ?? "", image };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null)
+    .sort((x, y) => SERVICE_FLOW.indexOf(x.slug) - SERVICE_FLOW.indexOf(y.slug));
+  return <ServicesSequence eyebrow={eyebrow} heading={heading} items={items} />;
 }
 
 function TestimonialsSection({ owner, content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {
@@ -508,7 +472,7 @@ export function CtaSection({ owner, content }: { owner?: RenderableSection; cont
       <div className="container-x section-y">
         <Reveal className="mx-auto flex max-w-[52rem] flex-col items-center text-center">
           <Editable target={{ kind: "section", section: target }} label="CTA heading" className="max-w-fit">
-            <h2 className="t-h2">{heading}</h2>
+            <h2 className="t-h2"><Accent text={heading} className="t-serif !text-stbs-bronze-light" /></h2>
           </Editable>
           {text && <p className="t-body mt-u3 max-w-[38rem] text-white/70">{text}</p>}
           <Editable target={{ kind: "section", section: target }} label="CTA button" className="mt-u5">
