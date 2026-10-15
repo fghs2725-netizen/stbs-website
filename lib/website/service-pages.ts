@@ -40,3 +40,22 @@ export function servicePageFor(slug: string | null | undefined): ServicePage | u
 export function serviceHref(slug: string | null | undefined): string {
   return servicePageFor(slug)?.href ?? "/services";
 }
+
+export const SERVICE_CARD_IMAGES: Record<string, { src: string; alt: string }> = {
+  "water-testing": { src: "/services/water-testing-survey.webp", alt: "A surveyor with a resistivity meter and electrodes laid along a field, explaining the survey to a farmer" },
+  "borewell-drilling": { src: "/services/borewell-rig-factory-site.webp", alt: "Crew handling drill pipe beside a truck-mounted drilling rig at a factory under construction" },
+  "rainwater-harvesting": { src: "/services/rainwater-harvesting-recharge.webp", alt: "Precast concrete rings beside an excavated recharge pit at a commercial site" },
+  "tubewell-construction": { src: "/services/tubewell-rig-pipes.webp", alt: "A worker carrying white uPVC casing pipe past a drilling rig at an industrial site" },
+  "borewell-material-supply": { src: "/services/material-supply-yard-stock.webp", alt: "uPVC and steel casing pipes, a submersible cable drum and a row of submersible pumps in a supply yard" },
+};
+
+/** Real job order: test the ground, drill, build the tubewell, supply the materials, recharge. */
+export const SERVICE_FLOW = ["water-testing", "borewell-drilling", "tubewell-construction", "borewell-material-supply", "rainwater-harvesting"];
+export const SERVICE_ACCENTS: Record<string, string> = {
+  "water-testing": "Survey up to 800 m before we drill.",
+  "borewell-drilling": "Own rigs. 150\u2013300 mm bores.",
+  "tubewell-construction": "Planned, cased and handed over.",
+  "borewell-material-supply": "uPVC pipes and submersible pumps.",
+  "rainwater-harvesting": "Recharge what the site sheds.",
+};
+

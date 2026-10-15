@@ -41,10 +41,19 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # The public pages query the CMS tables while the build prerenders them, so the
+      # throwaway database needs the schema first (an empty database fails the build).
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          DATABASE_URL_UNPOOLED: postgresql://postgres:postgres@localhost:5432/test_db
+
       - name: Build
         run: npm run build
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          DATABASE_URL_UNPOOLED: postgresql://postgres:postgres@localhost:5432/test_db
           AUTH_SECRET: ci-test-secret-do-not-use-in-production
           NEXTAUTH_URL: http://localhost:3000
           ADMIN_EMAIL: admin@test.com
