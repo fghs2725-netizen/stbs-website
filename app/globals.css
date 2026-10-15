@@ -152,7 +152,7 @@
   .band-alt { background: var(--surface-alt); }
   .page-head { padding-block: var(--s8) var(--s7); }
   @media (min-width: 1024px) { .page-head { padding-block: var(--s13) var(--s10); } }
-  .band-deep { background: var(--brand-deep); background-image: radial-gradient(90% 55% at 78% -8%, rgba(210,166,90,.10), transparent 62%); color: var(--ink-on-dark); }
+  .band-deep { font-family: var(--font-text), system-ui, sans-serif; background: var(--brand-deep); background-image: radial-gradient(90% 55% at 78% -8%, rgba(210,166,90,.10), transparent 62%); color: var(--ink-on-dark); }
   .band-deep .t-h1, .band-deep .t-h2, .band-deep .t-h3 { color: var(--ink-on-dark); }
   .band-deep .t-eyebrow { color: var(--bronze-light); }
 

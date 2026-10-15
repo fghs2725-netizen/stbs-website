@@ -27,6 +27,21 @@ interface PageMetadataInput {
  * and `twitter` objects wholesale rather than merging them, so every page must
  * emit a complete set — otherwise og:title / og:description silently vanish.
  */
+/** Per-page social cards from scripts/generate-og.mjs, keyed by route. Anything else uses the site card. */
+const OG_BY_PATH: Record<string, string> = {
+  "/": "/og/home.jpg",
+  "/water-testing": "/og/water-testing.jpg",
+  "/borewell-drilling": "/og/borewell-drilling.jpg",
+  "/tubewell-construction": "/og/tubewell-construction.jpg",
+  "/borewell-material-supply": "/og/borewell-material-supply.jpg",
+  "/rainwater-harvesting": "/og/rainwater-harvesting.jpg",
+  "/projects": "/og/projects.jpg",
+  "/clients": "/og/clients.jpg",
+  "/about": "/og/about.jpg",
+  "/contact": "/og/contact.jpg",
+  "/quote": "/og/quote.jpg",
+};
+
 export function pageMetadata({ title, description, path, image, absoluteTitle, ogTitle: ogTitleOverride, ogDescription }: PageMetadataInput): Metadata {
   const url = absolutePath(path);
   // A CMS-authored title that already names the brand must not get the suffix twice.
@@ -36,7 +51,8 @@ export function pageMetadata({ title, description, path, image, absoluteTitle, o
   const fullTitle = absoluteTitle ? title : `${title} | ${TITLE_SUFFIX}`;
   const ogTitle = ogTitleOverride || fullTitle;
   const ogDesc = ogDescription || description;
-  const img = image ? (image.startsWith("http") ? image : absolutePath(image)) : SITE_OG_IMAGE;
+  const chosen = image || OG_BY_PATH[path];
+  const img = chosen ? (chosen.startsWith("http") ? chosen : absolutePath(chosen)) : SITE_OG_IMAGE;
   return {
     title: { absolute: fullTitle },
     description,
