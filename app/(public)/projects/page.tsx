@@ -4,6 +4,7 @@ import { pageMetadata } from "@/lib/page-metadata";
 import { SEO } from "@/lib/website/seo-copy";
 import { resolveProjects } from "@/lib/website/projects-data";
 import { getPublishedPage } from "@/lib/website/queries";
+import { getPublishedProjects } from "@/lib/website-projects";
 
 export const revalidate = 86400;
 
@@ -17,7 +18,7 @@ export const metadata: Metadata = pageMetadata({ ...SEO.projects, path: "/projec
 export default async function ProjectsPage() {
   const home = await getPublishedPage("home");
   const section = home?.sections.find((s) => s.type === "case_studies");
-  const projects = resolveProjects((section?.content as Record<string, unknown> | undefined)?.projects);
+  const projects = (await getPublishedProjects()) ?? resolveProjects((section?.content as Record<string, unknown> | undefined)?.projects);
 
   return (
     <div className="theme-public">
@@ -26,14 +27,14 @@ export default async function ProjectsPage() {
           <p className="t-eyebrow">Projects</p>
           <h1 className="t-h2 mt-u2 text-block">Selected projects</h1>
           <p className="t-body measure mt-u3">
-            Rainwater harvesting and groundwater recharge work for industrial, institutional and commercial sites in Sonipat and Kundli, Haryana.
+            Borewell, tubewell and rainwater harvesting work for industrial, institutional and commercial sites in Haryana.
           </p>
           </div>
       </section>
       <section className="pb-u7">
         <div className="container-x">
           <div>
-            <ProjectsList projects={projects} />
+            {projects.length > 0 ? <ProjectsList projects={projects} /> : <p className="t-body text-stbs-muted">Projects will be listed here soon.</p>}
           </div>
           <p className="mt-u4 text-sm text-stbs-muted measure">Scope is shown as ordered by the client; figures come from the work order or purchase order.</p>
         </div>

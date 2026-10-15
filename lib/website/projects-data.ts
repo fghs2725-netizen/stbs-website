@@ -27,6 +27,8 @@ export interface ProjectCase {
   output?: string;
   /** Optional year the work was ORDERED (the documents give order dates, not completion dates). */
   year?: string;
+  /** Photos of the job, uploaded in Admin -> Website projects. The first is the cover. */
+  images?: Array<{ src: string; alt: string }>;
 }
 
 export const PROJECTS: ReadonlyArray<ProjectCase> = [
