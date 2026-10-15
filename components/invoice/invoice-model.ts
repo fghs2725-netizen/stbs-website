@@ -83,6 +83,8 @@ export type InvoiceState = {
   templateId?: string;
   /** Segments added or removed for this invoice alone; anything absent follows the global settings. */
   settingsOverride?: InvoiceSettingsOverride;
+  /** Set while the invoice sits in the Deleted list; it can be restored or deleted for good from there. */
+  deletedAt?: string;
 };
 
 export const emptyParty = (): InvoiceParty => ({

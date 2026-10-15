@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
   cancelInvoice, convertQuotationToInvoice, createCreditNote, deleteInvoice, deletePayment,
-  duplicateInvoice, issueInvoice, recordPayment, saveInvoice, saveInvoiceConfig, saveInvoiceSegments,
+  duplicateInvoice, issueInvoice, purgeInvoice, recordPayment, restoreInvoice, saveInvoice, saveInvoiceConfig, saveInvoiceSegments,
   type InvoiceConfig,
 } from "@/lib/invoice-management";
 import type { InvoiceState } from "@/components/invoice/invoice-model";
@@ -94,7 +94,23 @@ export async function duplicateInvoiceAction(id: string) {
 
 export async function deleteInvoiceAction(id: string) {
   await deleteInvoice(id);
-  revalidatePath("/admin/invoices");
+  refresh(id);
+  revalidatePath("/admin/invoices/analytics");
+  redirect("/admin/invoices");
+}
+
+export async function restoreInvoiceAction(id: string) {
+  await restoreInvoice(id);
+  refresh(id);
+  revalidatePath("/admin/invoices/analytics");
+  redirect(`/admin/invoices/${id}`);
+}
+
+export async function purgeInvoiceAction(id: string) {
+  await purgeInvoice(id);
+  refresh();
+  revalidatePath("/admin/invoices/analytics");
+  redirect("/admin/invoices?status=DELETED");
 }
 
 export async function saveInvoiceConfigAction(config: Partial<InvoiceConfig>) {

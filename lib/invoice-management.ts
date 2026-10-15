@@ -108,6 +108,7 @@ function toState(x: Row): InvoiceState {
     discountType: string | null; discountValue: unknown; gstEnabled: boolean; gstMode: string; gstRate: unknown;
     quotationId: string | null; quotationReference: string | null; templateId: string | null;
     settingsOverride?: unknown;
+    deletedAt?: Date | null;
     items?: Array<{ id: string; description: string; unit: string; quantity: unknown; rate: unknown; hsn: string | null; discountPercent: unknown; gstRate: unknown }>;
     payments?: Array<{ id: string; date: string; amount: unknown; method: string | null; note: string | null }>;
   };
@@ -162,6 +163,7 @@ function toState(x: Row): InvoiceState {
     quotationReference: r.quotationReference ?? undefined,
     templateId: r.templateId ?? undefined,
     settingsOverride: sanitizeOverride(r.settingsOverride),
+    ...(r.deletedAt ? { deletedAt: r.deletedAt.toISOString() } : {}),
     payments: (r.payments ?? []).map((p) => ({
       id: p.id, date: p.date, amount: Number(p.amount),
       method: p.method ?? undefined, note: p.note ?? undefined,
@@ -267,8 +269,9 @@ const isoDay = (v?: string) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefin
 export async function listInvoices(search = "", status = "ALL", page = 1, pageSize = 20, opts: InvoiceListOptions = {}) {
   await requireAdmin();
   const settings = (await getInvoiceConfig()).settings;
-  const where: Record<string, unknown> = { deletedAt: null };
-  if (status !== "ALL") where.status = status;
+  // "DELETED" is the bin, not a status: every other filter only ever sees live invoices.
+  const where: Record<string, unknown> = status === "DELETED" ? { deletedAt: { not: null } } : { deletedAt: null };
+  if (status !== "ALL" && status !== "DELETED") where.status = status;
   if (search) {
     const asNumber = Number(search.trim());
     where.OR = [
@@ -296,7 +299,8 @@ export async function listInvoices(search = "", status = "ALL", page = 1, pageSi
   return {
     rows: rows.map((x) => {
       const inv = toState(x as never);
-      const totals = calcInvoiceTotals(inv, settings);
+      // Each invoice is totalled with its own switches, as its page and PDF do, or the list disagrees with them.
+      const totals = calcInvoiceTotals(inv, effectiveInvoiceSettings(settings, inv.settingsOverride));
       return {
         ...inv,
         createdAt: (x as { createdAt: Date }).createdAt.toISOString(),
@@ -454,13 +458,43 @@ export async function cancelInvoice(id: string, reason: string) {
   return toState(x as never);
 }
 
-/** Soft delete, so a mistake is recoverable. An issued invoice is never removed from the list this way. */
+/**
+ * Moves any invoice to the Deleted list (the owner's choice, 2026-10-15). Nothing is removed, so a
+ * mistake is undone with Restore; its number shows as missing from the series until then.
+ */
 export async function deleteInvoice(id: string) {
   await requireAdmin();
-  const row = await prisma.invoice.findUnique({ where: { id }, select: { status: true } });
+  const row = await prisma.invoice.findUnique({ where: { id }, select: { status: true, deletedAt: true } });
   if (!row) throw new Error("NOT_FOUND");
-  if (row.status !== "DRAFT") throw new Error("ONLY_DRAFTS_DELETABLE");
-  await prisma.invoice.update({ where: { id }, data: { deletedAt: new Date() } });
+  if (row.deletedAt) return;
+  await prisma.invoice.update({
+    where: { id },
+    data: { deletedAt: new Date(), ...(row.status !== "DRAFT" ? { edits: { create: { field: "deleted", oldValue: row.status, newValue: "moved to Deleted" } } } : {}) },
+  });
+}
+
+/** Brings a deleted invoice back exactly as it was, number included. */
+export async function restoreInvoice(id: string) {
+  await requireAdmin();
+  const row = await prisma.invoice.findUnique({ where: { id }, select: { status: true, deletedAt: true } });
+  if (!row) throw new Error("NOT_FOUND");
+  if (!row.deletedAt) return;
+  await prisma.invoice.update({
+    where: { id },
+    data: { deletedAt: null, ...(row.status !== "DRAFT" ? { edits: { create: { field: "restored", oldValue: "Deleted", newValue: row.status } } } : {}) },
+  });
+}
+
+/**
+ * Removes an invoice for good, with its items, payments, credit notes and history. Only from the
+ * Deleted list, so nothing live can be lost in one step.
+ */
+export async function purgeInvoice(id: string) {
+  await requireAdmin();
+  const row = await prisma.invoice.findUnique({ where: { id }, select: { deletedAt: true } });
+  if (!row) return;
+  if (!row.deletedAt) throw new Error("NOT_DELETED");
+  await prisma.invoice.delete({ where: { id } });
 }
 
 /* ────────────────────────── payments ────────────────────────── */

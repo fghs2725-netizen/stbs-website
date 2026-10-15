@@ -11,11 +11,12 @@ import { InvoiceSegmentsButton } from "@/components/invoice/segments/InvoiceSegm
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Pill } from "@/components/admin/shell/ui";
 import { Button } from "@/components/ui/button";
+import { ConfirmSubmit } from "@/components/admin/ConfirmSubmit";
 import { InvoicePdfActions } from "@/components/invoice/share/InvoicePdfActions";
 import { shareSubjectFromInvoice } from "@/components/invoice/share/invoice-share";
 import {
-  cancelInvoiceAction, createCreditNoteAction, deletePaymentAction, duplicateInvoiceAction, issueInvoiceAction, recordPaymentAction,
-  saveSegmentsAction,
+  cancelInvoiceAction, createCreditNoteAction, deleteInvoiceAction, deletePaymentAction, duplicateInvoiceAction, issueInvoiceAction,
+  purgeInvoiceAction, recordPaymentAction, restoreInvoiceAction, saveSegmentsAction,
 } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -53,7 +54,9 @@ export default async function InvoiceDetailPage({
   const missing = whatIsMissing(invoice, effective);
   const late = overdueBy(invoice);
   const edits = invoice.status === "DRAFT" ? [] : await invoiceEditLog(id);
-  const canTakePayment = invoice.status !== "DRAFT" && invoice.status !== "CANCELLED" && totals.balance > 0;
+  // A deleted invoice is shown read-only until it is restored.
+  const deleted = Boolean(invoice.deletedAt);
+  const canTakePayment = !deleted && invoice.status !== "DRAFT" && invoice.status !== "CANCELLED" && totals.balance > 0;
   // Credit notes reduce what is owed, but never the invoice as printed: that document has gone out.
   const credits = invoice.status === "DRAFT" ? { list: [], total: 0 } : await creditNotesFor(id);
   const uncredited = Math.max(0, Math.round((totals.grandTotal - credits.total) * 100) / 100);
@@ -68,7 +71,7 @@ export default async function InvoiceDetailPage({
         action={
           <span className="hidden items-center gap-2 lg:flex">
             <Link href="/admin/invoices" className="a-btn">All invoices</Link>
-            {invoice.status !== "CANCELLED" && (
+            {!deleted && invoice.status !== "CANCELLED" && (
               <Link href={`/admin/invoices/${id}/edit`} className="a-btn a-btn-primary">Edit</Link>
             )}
           </span>
@@ -77,6 +80,7 @@ export default async function InvoiceDetailPage({
 
       <div className="flex flex-wrap items-center gap-2">
         <Pill tone={TONE[invoice.status]}>{LABEL[invoice.status]}</Pill>
+        {deleted && <Pill tone="warn">Deleted</Pill>}
         {late > 0 && <Pill tone="warn">{late} day{late === 1 ? "" : "s"} overdue</Pill>}
         {invoice.quotationReference && (
           <span className="text-[0.8125rem]" style={{ color: "var(--a-faint)" }}>
@@ -95,7 +99,29 @@ export default async function InvoiceDetailPage({
         </div>
       )}
 
-      <div className="a-card flex flex-wrap items-center gap-2 p-4">
+      {deleted && (
+        <div className="a-card flex flex-col gap-3 p-4">
+          <div>
+            <p className="text-[0.9375rem] font-semibold" style={{ color: "var(--a-ink)" }}>This invoice is in Deleted</p>
+            <p className="mt-1 text-[0.875rem]" style={{ color: "var(--a-body)" }}>
+              It is left out of every list and total{invoice.number ? `, and number ${formatInvoiceNumber(invoice.number)} shows as missing from the series` : ""}.
+              Restore brings it back exactly as it was.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <form action={restoreInvoiceAction.bind(null, id)}>
+              <Button type="submit" size="sm">Restore</Button>
+            </form>
+            <form action={purgeInvoiceAction.bind(null, id)}>
+              <ConfirmSubmit variant="destructive" message="Delete this invoice permanently? Its items, payments and history are removed and this cannot be undone.">
+                Delete permanently
+              </ConfirmSubmit>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {!deleted && <div className="a-card flex flex-wrap items-center gap-2 p-4">
         {invoice.status === "DRAFT" && (
           <form action={issueInvoiceAction.bind(null, id)}>
             <Button type="submit" disabled={missing.length > 0}>
@@ -110,7 +136,7 @@ export default async function InvoiceDetailPage({
         <form action={duplicateInvoiceAction.bind(null, id)}>
           <Button type="submit" variant="secondary">Duplicate</Button>
         </form>
-      </div>
+      </div>}
 
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="a-card overflow-hidden p-0">
@@ -142,9 +168,11 @@ export default async function InvoiceDetailPage({
                   <li key={p.id} className="flex items-center justify-between gap-3 py-2 text-[0.875rem]">
                     <span style={{ color: "var(--a-body)" }}>{day(p.date)}{p.method ? ` · ${p.method}` : ""}</span>
                     <span className="a-num" style={{ color: "var(--a-ink)" }}>{formatINR(p.amount)}</span>
-                    <form action={deletePaymentAction.bind(null, p.id, id)}>
-                      <button type="submit" className="a-link text-[0.8125rem]">Remove</button>
-                    </form>
+                    {!deleted && (
+                      <form action={deletePaymentAction.bind(null, p.id, id)}>
+                        <button type="submit" className="a-link text-[0.8125rem]">Remove</button>
+                      </form>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -201,7 +229,7 @@ export default async function InvoiceDetailPage({
                 </p>
               )}
 
-              {invoice.status !== "CANCELLED" && uncredited > 0 && (
+              {!deleted && invoice.status !== "CANCELLED" && uncredited > 0 && (
                 <form action={createCreditNoteAction.bind(null, id)} data-testid="credit-note-form" className="mt-3 flex flex-col gap-2">
                   <label className="a-label">Date
                     <input type="date" name="date" defaultValue={new Date().toISOString().slice(0, 10)} className="a-input mt-1" required />
@@ -218,7 +246,7 @@ export default async function InvoiceDetailPage({
             </div>
           )}
 
-          {invoice.status !== "DRAFT" && invoice.status !== "CANCELLED" && (
+          {!deleted && invoice.status !== "DRAFT" && invoice.status !== "CANCELLED" && (
             <form action={cancelInvoiceAction.bind(null, id)} className="a-card flex flex-col gap-2 p-4">
               <h2 className="text-[0.9375rem] font-semibold" style={{ color: "var(--a-ink)" }}>Cancel this invoice</h2>
               <p className="text-[0.8125rem]" style={{ color: "var(--a-faint)" }}>
@@ -226,6 +254,19 @@ export default async function InvoiceDetailPage({
               </p>
               <input type="text" name="reason" placeholder="Reason" className="a-input" required />
               <Button type="submit" size="sm" variant="secondary">Cancel invoice</Button>
+            </form>
+          )}
+
+          {!deleted && (
+            <form action={deleteInvoiceAction.bind(null, id)} className="a-card flex flex-col gap-2 p-4">
+              <h2 className="text-[0.9375rem] font-semibold" style={{ color: "var(--a-ink)" }}>Delete this invoice</h2>
+              <p className="text-[0.8125rem]" style={{ color: "var(--a-faint)" }}>
+                Moves it to Deleted, where it can be restored or removed for good.
+                {invoice.number ? " Its number shows as missing from the series meanwhile." : ""}
+              </p>
+              <ConfirmSubmit variant="destructive" message="Move this invoice to Deleted? You can restore it from the Deleted list.">
+                Delete invoice
+              </ConfirmSubmit>
             </form>
           )}
 
