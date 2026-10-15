@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
-import { FilmBand } from "@/components/public/film-band";
 import { CtaSection } from "@/components/public/sections";
 import { pageMetadata } from "@/lib/page-metadata";
 import { SEO } from "@/lib/website/seo-copy";
@@ -23,7 +22,6 @@ export default function Services() {
         image={SERVICE_CARD_IMAGES["borewell-drilling"].src}
         imageAlt={SERVICE_CARD_IMAGES["borewell-drilling"].alt}
       />
-      <FilmBand scene="intro5" />
       <section className="theme-public section-y">
         <div className="container-x">
           <ol className="grid gap-u3 md:grid-cols-6">

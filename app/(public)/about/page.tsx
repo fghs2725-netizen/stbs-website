@@ -18,8 +18,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function About() {
   const cmsPage = await getPublishedPage(SLUG);
   if (cmsPage && cmsPage.sections.length > 0) {
-    return <PageRenderer films={[{ afterType: "page_hero", scene: "timeline" }]} sections={cmsPage.sections.map((s) => ({ type: s.type, content: s.content as Record<string, unknown> }))} />;
+    return <PageRenderer sections={cmsPage.sections.map((s) => ({ type: s.type, content: s.content as Record<string, unknown> }))} />;
   }
   // Same section renderers as the CMS, fed the built-in defaults.
-  return <PageRenderer films={[{ afterType: "page_hero", scene: "timeline" }]} sections={ABOUT_SECTIONS} />;
+  return <PageRenderer sections={ABOUT_SECTIONS} />;
 }
