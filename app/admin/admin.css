@@ -173,6 +173,18 @@
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
+/* The phone tab bar. iOS can draw a fixed element that has a backdrop-filter in the wrong place while the
+   page scrolls (it jumps up the screen until the scroll settles), so this bar is opaque, with no blur, and
+   sits on its own compositing layer. The page also stops rubber-banding, which is what drags fixed bars. */
+.theme-admin nav.a-bar {
+  background: var(--a-surface, #fff);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transform: translateZ(0);
+  will-change: transform;
+}
+:root:has(.theme-admin) { overscroll-behavior-y: none; }
+
 /* ---- focus ---- */
 .theme-admin :focus-visible { outline: 2px solid var(--a-brand); outline-offset: 2px; border-radius: 4px; }
 
