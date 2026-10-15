@@ -13,6 +13,7 @@ import { PagePhoto } from "@/components/public/photo";
 import { formatIndianPhone, telHref } from "@/lib/phone";
 import { Reveal } from "@/components/reveal";
 import { Accent } from "@/components/public/accent";
+import { SERVICE_ACCENTS, SERVICE_CARD_IMAGES, SERVICE_FLOW } from "@/lib/website/service-pages";
 import { ServicesSequence } from "@/components/public/services-sequence";
 import { QuoteForm } from "@/components/quote-form";
 import type { SerializedSection } from "@/lib/website/action-types";
@@ -331,24 +332,6 @@ function ProcessSection({ owner, content }: { owner?: RenderableSection; content
 }
 
 /** Home-page photography for each service card. Falls back to the icon tile when a slug has no photo. */
-const SERVICE_CARD_IMAGES: Record<string, { src: string; alt: string }> = {
-  "water-testing": { src: "/services/water-testing-survey.webp", alt: "A surveyor with a resistivity meter and electrodes laid along a field, explaining the survey to a farmer" },
-  "borewell-drilling": { src: "/services/borewell-rig-factory-site.webp", alt: "Crew handling drill pipe beside a truck-mounted drilling rig at a factory under construction" },
-  "rainwater-harvesting": { src: "/services/rainwater-harvesting-recharge.webp", alt: "Precast concrete rings beside an excavated recharge pit at a commercial site" },
-  "tubewell-construction": { src: "/services/tubewell-rig-pipes.webp", alt: "A worker carrying white uPVC casing pipe past a drilling rig at an industrial site" },
-  "borewell-material-supply": { src: "/services/material-supply-yard-stock.webp", alt: "uPVC and steel casing pipes, a submersible cable drum and a row of submersible pumps in a supply yard" },
-};
-
-/** Real job order: test the ground, drill, build the tubewell, supply the materials, recharge. */
-const SERVICE_FLOW = ["water-testing", "borewell-drilling", "tubewell-construction", "borewell-material-supply", "rainwater-harvesting"];
-const SERVICE_ACCENTS: Record<string, string> = {
-  "water-testing": "Survey up to 800 m before we drill.",
-  "borewell-drilling": "Own rigs. 150\u2013300 mm bores.",
-  "tubewell-construction": "Planned, cased and handed over.",
-  "borewell-material-supply": "uPVC pipes and submersible pumps.",
-  "rainwater-harvesting": "Recharge what the site sheds.",
-};
-
 export function ServicesSection({ content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {
   const eyebrow = str(content, "eyebrow", HOME_SERVICES.eyebrow);
   // Older content split the heading in two (heading + highlighted word); join them.
