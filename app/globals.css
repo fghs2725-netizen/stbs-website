@@ -130,14 +130,14 @@
 
 @layer components {
   /* ---- type scale (fluid between 375px and 1280px viewports) ---- */
-  .t-h1 { font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; font-size: clamp(2.75rem, calc(1rem + 7.2vw), 6.25rem); line-height: 1.02; letter-spacing: -.045em; color: var(--ink); text-wrap: balance; }
-  .t-h2 { font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; font-size: clamp(2rem, calc(.9rem + 4.4vw), 4.5rem); line-height: 1.05; letter-spacing: -.035em; color: var(--ink); text-wrap: balance; }
-  .t-h3 { font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; font-size: clamp(1.25rem, calc(1rem + .9vw), 1.75rem); line-height: 1.2; letter-spacing: -.02em; color: var(--ink); }
+  .t-h1 { font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; font-size: clamp(2.75rem, calc(1rem + 7.2vw), 6.25rem); line-height: 1.02; letter-spacing: -.025em; word-spacing: .12em; color: var(--ink); text-wrap: balance; }
+  .t-h2 { font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; font-size: clamp(2rem, calc(.9rem + 4.4vw), 4.5rem); line-height: 1.05; letter-spacing: -.02em; word-spacing: .12em; color: var(--ink); text-wrap: balance; }
+  .t-h3 { font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; font-size: clamp(1.25rem, calc(1rem + .9vw), 1.75rem); line-height: 1.2; letter-spacing: -.01em; word-spacing: .08em; color: var(--ink); }
   .t-body { font-size: clamp(1.0625rem, calc(1rem + .3vw), 1.3125rem); line-height: 1.5; letter-spacing: -.011em; }
   .t-eyebrow { font-family: var(--font-text), system-ui, sans-serif; font-weight: 700; font-size: .75rem; line-height: 1.2; letter-spacing: .18em; text-transform: uppercase; color: var(--brand-mid); }
   .t-serif { font-family: var(--font-serif), Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: -.01em; color: var(--brand-mid); }
   .band-deep .t-serif { color: var(--bronze-light); }
-  .t-stat { font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; font-size: clamp(2.5rem, calc(1.4rem + 3.4vw), 4.5rem); line-height: 1; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+  .t-stat { font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; font-size: clamp(2.5rem, calc(1.4rem + 3.4vw), 4.5rem); line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
   .tabular { font-variant-numeric: tabular-nums; }
 
   /* ---- layout ---- */
