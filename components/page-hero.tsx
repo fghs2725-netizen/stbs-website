@@ -11,7 +11,7 @@ export function PageHero({ eyebrow, title, text, image, imageAlt }: { eyebrow: s
   if (image) {
     return (
       <section className="theme-public band-deep relative isolate flex min-h-[min(78svh,720px)] items-end overflow-hidden">
-        <Image src={image} alt={imageAlt ?? ""} fill priority sizes="100vw" className="-z-20 object-cover" />
+        <Image src={image} alt={imageAlt ?? ""} fill priority sizes="100vw" className="-z-20 object-cover object-[50%_15%]" />
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#131819] via-[#131819]/70 to-[#131819]/25" />
         <div className="container-x pb-[clamp(48px,7vw,96px)] pt-[clamp(120px,16vw,200px)]">
           {eyebrow && <p className="t-eyebrow !text-stbs-bronze-light">{eyebrow}</p>}
