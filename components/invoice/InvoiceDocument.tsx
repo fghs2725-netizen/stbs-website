@@ -92,7 +92,9 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
   const showShipTo = blocks.shipTo && Boolean(ship) && !ship?.sameAsBilling && Boolean(ship?.companyName || ship?.addressLine1);
 
   const gstLabel = (rate: number) => `${Number(rate.toFixed(2))}%`;
-  const number = invoice.number ? formatInvoiceNumber(invoice.number) : "Draft";
+  // A cash invoice carries no number once issued, so the row is left out rather than printed empty.
+  const number = invoice.number ? formatInvoiceNumber(invoice.number) : invoice.status === "DRAFT" ? "Draft" : null;
+  const title = invoice.isCash ? "Cash Invoice" : t.title;
 
   return (
     <div className="inv-document" style={{ ["--inv-pages" as string]: totalPages }}>
@@ -124,7 +126,7 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
                 </div>
                 {isFirst && (
                   <div className="inv-title">
-                    <h1>{t.title}</h1>
+                    <h1>{title}</h1>
                     {blocks.originalMarker && t.copyMarker && <span className="inv-sub">{t.copyMarker}</span>}
                   </div>
                 )}
@@ -159,7 +161,7 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
                   </div>
 
                   <div className="inv-facts">
-                    <div><dt>Invoice #</dt><dd>{number}</dd></div>
+                    {number && <div><dt>Invoice #</dt><dd>{number}</dd></div>}
                     <div><dt>Invoice date</dt><dd>{showDate(invoice.date)}</dd></div>
                     {blocks.dueDate && invoice.dueDate && <div><dt>Due date</dt><dd>{showDate(invoice.dueDate)}</dd></div>}
                     {blocks.placeOfSupply && supply && <div><dt>Place of supply</dt><dd>{supply}</dd></div>}
@@ -175,7 +177,7 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
               </>
             ) : (
               <p className="inv-continued">
-                {t.title} {invoice.number ? number : ""} · continued from page {pageIndex} of {totalPages}
+                {title} {invoice.number ? number : ""} · continued from page {pageIndex} of {totalPages}
               </p>
             )}
 

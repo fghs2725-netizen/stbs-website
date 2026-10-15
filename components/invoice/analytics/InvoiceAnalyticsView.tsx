@@ -44,7 +44,7 @@ export function InvoiceAnalyticsView({ a }: { a: InvoiceAnalytics }) {
       />
       <StatTiles
         stats={[
-          { label: "Invoices", value: String(a.current.count), hint: a.drafts ? `${a.drafts} draft${a.drafts === 1 ? "" : "s"} not counted` : "Issued, part paid and paid" },
+          { label: "Invoices", value: String(a.current.count), hint: a.current.cash.count ? `${a.current.count - a.current.cash.count} tax, ${a.current.cash.count} cash (${formatINR(a.current.cash.billed)})` : a.drafts ? `${a.drafts} draft${a.drafts === 1 ? "" : "s"} not counted` : "Issued, part paid and paid" },
           { label: "Clients billed", value: String(a.current.clients) },
           { label: "Average invoice", value: tile(a.current.average), hint: formatINR(a.current.average) },
           { label: "Outstanding (all years)", value: tile(a.outstanding.total), hint: `${a.outstanding.overdueCount} overdue, ${formatINR(a.outstanding.overdueTotal)}` },

@@ -4,7 +4,8 @@ import { auth } from "@/auth";
 import { getInvoiceConfig, gstModeForClient, listCustomUnits, saveCustomUnit } from "@/lib/invoice-management";
 import { resolveInvoiceTemplate } from "@/lib/invoice-templates";
 import { buildDraft } from "@/components/invoice/invoice-model";
-import { InvoiceEditor } from "@/components/invoice/editor/InvoiceEditor";
+import { NewInvoiceFlow } from "@/components/invoice/presets/NewInvoiceFlow";
+import { listPresets } from "@/lib/quotation-preset-store";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { saveInvoiceAction } from "../actions";
 import { mergeUnits } from "@/lib/units";
@@ -26,7 +27,7 @@ export default async function NewInvoicePage() {
   if (!session?.user) redirect("/admin/login");
 
   const { settings, business } = await getInvoiceConfig();
-  const units = mergeUnits(await listCustomUnits());
+  const [units, presets] = await Promise.all([listCustomUnits().then(mergeUnits), listPresets()]);
   const draft = buildDraft(settings, new Date().toISOString().slice(0, 10));
   // A brand-new draft has no id to resolve a template by, but it does carry the same
   // templateId/status shape resolveInvoiceTemplate expects.
@@ -37,10 +38,11 @@ export default async function NewInvoicePage() {
       <PageHeader
         eyebrow="Invoices"
         title="New invoice"
-        description="A fresh invoice with no quotation behind it. It takes a number only when you issue it."
+        description="Start from a rainwater harvesting or borewell job, or a blank invoice. A tax invoice takes a number only when you issue it; a cash invoice takes none."
         action={<span className="hidden lg:block"><Link href="/admin/invoices" className="a-btn">All invoices</Link></span>}
       />
-      <InvoiceEditor
+      <NewInvoiceFlow
+        presets={presets}
         initial={draft} settings={settings} business={business} template={template}
         units={units} onCreateUnit={createUnitAction}
         save={saveInvoiceAction} gstModeFor={gstModeAction}
