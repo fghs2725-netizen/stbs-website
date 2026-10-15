@@ -7,12 +7,13 @@ import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain
 import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "@/lib/website/home-defaults";
 import { SERVICE_PAGES, serviceHref, servicePageFor } from "@/lib/website/service-pages";
 import { SERVICE_ICONS } from "@/components/public/service-icons";
-import { HOME_PROJECTS, resolveProjects } from "@/lib/website/projects-data";
+import { HOME_PROJECTS, projectPhoto, resolveProjects } from "@/lib/website/projects-data";
 import { StatsStrip } from "@/components/public/stats-strip";
 import { PagePhoto } from "@/components/public/photo";
-import { LogoMarquee } from "@/components/public/logo-marquee";
 import { formatIndianPhone, telHref } from "@/lib/phone";
 import { Reveal } from "@/components/reveal";
+import { Accent } from "@/components/public/accent";
+import { ServicesSequence } from "@/components/public/services-sequence";
 import { QuoteForm } from "@/components/quote-form";
 import type { SerializedSection } from "@/lib/website/action-types";
 import { useWebsiteEditor, type EditorSignal } from "@/lib/website/editor-context";
@@ -201,12 +202,12 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
       <div className="container-x relative z-10 flex w-full flex-1 flex-col items-center justify-center py-u10 text-center">
         <Editable target={{ kind: "section", section: target }} label="Badge" className="max-w-fit">
           <p className="inline-flex items-center gap-u1 rounded-full border border-white/20 bg-white/10 px-u2 py-[7px] text-[0.9375rem] font-medium text-white backdrop-blur-md animate-[fadeSlideUp_0.9s_cubic-bezier(0.28,0.11,0.32,1)_0.15s_both]">
-            <BadgeCheck size={16} strokeWidth={1.75} className="text-[#5bd18a]" aria-hidden />{eyebrow}
+            <BadgeCheck size={16} strokeWidth={1.75} className="text-[#D2A65A]" aria-hidden />{eyebrow}
           </p>
         </Editable>
         <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
           <h1 className="t-h1 mt-u3 max-w-[1080px] animate-[fadeSlideUp_1s_cubic-bezier(0.28,0.11,0.32,1)_0.3s_both]">
-            {heading}
+            <Accent text={heading} className="t-serif !text-stbs-bronze-light" />
             {headingLine2 && <>{" "}<span className="block">{headingLine2}</span></>}
           </h1>
         </Editable>
@@ -222,7 +223,7 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
               <CtaLink href={secondaryCtaUrl} className="btn btn-secondary-dark"><Download size={18} strokeWidth={1.75} aria-hidden />{secondaryCtaText}</CtaLink>
             </Editable>
           ) : (
-            <CtaLink href="/services" className="link-arrow inline-flex min-h-[44px] items-center !text-[#2997ff]">Explore our services</CtaLink>
+            <CtaLink href="/services" className="link-arrow inline-flex min-h-[44px] items-center !text-stbs-bronze-light">Explore our services</CtaLink>
           )}
         </div>
       </div>
@@ -338,71 +339,33 @@ const SERVICE_CARD_IMAGES: Record<string, { src: string; alt: string }> = {
   "borewell-material-supply": { src: "/services/material-supply-yard-stock.webp", alt: "uPVC and steel casing pipes, a submersible cable drum and a row of submersible pumps in a supply yard" },
 };
 
-export function ServicesSection({ owner, content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {
+/** Real job order: test the ground, drill, build the tubewell, supply the materials, recharge. */
+const SERVICE_FLOW = ["water-testing", "borewell-drilling", "tubewell-construction", "borewell-material-supply", "rainwater-harvesting"];
+const SERVICE_ACCENTS: Record<string, string> = {
+  "water-testing": "Survey up to 800 m before we drill.",
+  "borewell-drilling": "Own rigs. 150\u2013300 mm bores.",
+  "tubewell-construction": "Planned, cased and handed over.",
+  "borewell-material-supply": "uPVC pipes and submersible pumps.",
+  "rainwater-harvesting": "Recharge what the site sheds.",
+};
+
+export function ServicesSection({ content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {
   const eyebrow = str(content, "eyebrow", HOME_SERVICES.eyebrow);
   // Older content split the heading in two (heading + highlighted word); join them.
   const heading = [str(content, "heading", HOME_SERVICES.heading), str(content, "headingHighlight")].filter(Boolean).join(" ");
-  const target = asSection(owner);
   const cms = data.services;
-  const items = cms && cms.length > 0
-    ? cms.map((s) => ({ title: s.title, slug: s.slug }))
-    : SERVICE_PAGES.map((s) => ({ title: s.title, slug: s.slug }));
-
-  return (
-    <section className="theme-public band-alt section-y">
-      <div className="container-x">
-        <Reveal>
-          <Editable target={{ kind: "section", section: target }} label="Eyebrow" className="max-w-fit">
-            <p className="t-eyebrow">{eyebrow}</p>
-          </Editable>
-          <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-            <h2 className="t-h2 mt-u2 text-block">{heading}</h2>
-          </Editable>
-        </Reveal>
-        {/* Bento: the first service gets a full-height feature tile, the rest stack beside it. */}
-        <ul className="mt-u6 grid gap-u2 md:grid-cols-2 lg:grid-cols-3 lg:gap-u3">
-          {items.map((s, i) => {
-            const page = servicePageFor(s.slug);
-            const Icon = page ? SERVICE_ICONS[page.icon] : Droplets;
-            const photo = SERVICE_CARD_IMAGES[s.slug];
-            const feature = i === 0;
-            return (
-              <li key={`${s.slug}-${i}`} className={feature ? "lg:row-span-2" : undefined}>
-                <Reveal delay={i * 0.06} className="h-full">
-                  <Editable target={{ kind: "services" }} label="Edit service" className="block h-full">
-                    <Link href={serviceHref(s.slug)} className="hairline-card group relative flex h-full min-h-[280px] flex-col justify-end overflow-hidden lg:min-h-[320px]">
-                      {photo ? (
-                        <>
-                          <Image
-                            src={photo.src}
-                            alt={photo.alt}
-                            fill
-                            sizes={feature ? "(max-width:768px) 100vw, 33vw" : "(max-width:768px) 100vw, 33vw"}
-                            className="object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.28,0.11,0.32,1)] group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/10" />
-                        </>
-                      ) : (
-                        <span className="absolute left-u3 top-u3 text-stbs-brand-mid"><Icon size={32} strokeWidth={1.75} aria-hidden /></span>
-                      )}
-                      <div className={`relative p-u3 ${photo ? "text-white" : ""}`}>
-                        <h3 className={`font-semibold tracking-[-0.03em] ${feature ? "text-[2rem] leading-[1.08]" : "text-[1.5rem] leading-[1.15]"} ${photo ? "!text-white" : "text-stbs-ink"}`}>{s.title}</h3>
-                        {page?.summary && <p className={`mt-u1 max-w-[30rem] text-[0.9375rem] leading-[1.5] ${photo ? "text-white/75" : "text-stbs-muted"}`}>{page.summary}</p>}
-                        <span className={`mt-u2 inline-flex items-center gap-1 text-[0.9375rem] font-medium ${photo ? "text-[#2997ff]" : "text-stbs-brand-mid"}`}>
-                          Learn more
-                          <span aria-hidden className="text-[1.3em] leading-none transition-transform duration-300 ease-[cubic-bezier(0.28,0.11,0.32,1)] group-hover:translate-x-1">&#8250;</span>
-                        </span>
-                      </div>
-                    </Link>
-                  </Editable>
-                </Reveal>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </section>
-  );
+  const slugs = cms && cms.length > 0 ? cms.map((s) => s.slug) : SERVICE_PAGES.map((s) => s.slug);
+  const items = slugs
+    .map((slug) => {
+      const page = servicePageFor(slug);
+      const image = SERVICE_CARD_IMAGES[page?.slug ?? ""];
+      const title = cms?.find((c) => c.slug === slug)?.title ?? page?.title;
+      if (!page || !image || !title) return null;
+      return { slug: page.slug, href: page.href, title, summary: page.summary, accent: SERVICE_ACCENTS[page.slug] ?? "", image };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null)
+    .sort((x, y) => SERVICE_FLOW.indexOf(x.slug) - SERVICE_FLOW.indexOf(y.slug));
+  return <ServicesSequence eyebrow={eyebrow} heading={heading} items={items} />;
 }
 
 function TestimonialsSection({ owner, content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {
@@ -437,7 +400,7 @@ function TestimonialsSection({ owner, content, data }: { owner?: RenderableSecti
               <Reveal delay={i * 0.05} className="h-full">
                 <Editable target={{ kind: "testimonials" }} label="Edit Testimonial" className="block h-full">
                   <figure className="tile m-0 flex h-full flex-col gap-u3 p-u3">
-                    <blockquote className="t-body m-0">&ldquo;{t.quote}&rdquo;</blockquote>
+                    <blockquote className="t-serif m-0 text-[1.5rem] leading-[1.3]">&ldquo;{t.quote}&rdquo;</blockquote>
                     <figcaption className="mt-auto">
                       {t.photo && <Image src={t.photo} alt={t.name} width={48} height={48} className="mb-u1 size-12 rounded-[4px] object-cover" />}
                       <p className="font-medium text-stbs-ink">{t.name}</p>
@@ -508,7 +471,7 @@ export function CtaSection({ owner, content }: { owner?: RenderableSection; cont
       <div className="container-x section-y">
         <Reveal className="mx-auto flex max-w-[52rem] flex-col items-center text-center">
           <Editable target={{ kind: "section", section: target }} label="CTA heading" className="max-w-fit">
-            <h2 className="t-h2">{heading}</h2>
+            <h2 className="t-h2"><Accent text={heading} className="t-serif !text-stbs-bronze-light" /></h2>
           </Editable>
           {text && <p className="t-body mt-u3 max-w-[38rem] text-white/70">{text}</p>}
           <Editable target={{ kind: "section", section: target }} label="CTA button" className="mt-u5">
@@ -540,7 +503,7 @@ function TextImageSection({ owner, content }: { owner?: RenderableSection; conte
       </Editable>
       {badgeText && (
         <p className="mt-u2 flex items-baseline gap-u1">
-          <span className="font-heading text-2xl font-bold tabular-nums text-stbs-ink">{badgeText}</span>
+          <span className="font-brand text-2xl font-bold tabular-nums text-stbs-ink">{badgeText}</span>
           {badgeSubtext && <span className="t-eyebrow">{badgeSubtext}</span>}
         </p>
       )}
@@ -619,7 +582,7 @@ function FounderSection({ owner, content, data }: { owner?: RenderableSection; c
           <Editable target={{ kind: "section-field", section: target, fieldKey: "photo" }} label="Edit Image" className="block">
             <PagePhoto src={photo} alt={`${name}, ${title}`} sizes="(max-width:1024px) 100vw, 40vw" position="top" />
           </Editable>
-          <p className="mt-u2 font-heading text-lg font-bold text-stbs-ink">{name}</p>
+          <p className="mt-u2 font-brand text-lg font-bold text-stbs-ink">{name}</p>
           <p className="t-eyebrow mt-u1">{title}</p>
         </Reveal>
         <Reveal delay={0.1}>
@@ -712,7 +675,7 @@ function ExperienceCultureSection({ owner, content }: { owner?: RenderableSectio
           </Editable>
           {badgeText && (
             <p className="mt-u2 flex items-baseline gap-u1">
-              <span className="font-heading text-2xl font-bold tabular-nums text-stbs-ink">{badgeText}</span>
+              <span className="font-brand text-2xl font-bold tabular-nums text-stbs-ink">{badgeText}</span>
               {badgeSubtext && <span className="t-eyebrow">{badgeSubtext}</span>}
             </p>
           )}
@@ -801,24 +764,32 @@ export function CaseStudiesSection({ owner, content }: { owner?: RenderableSecti
           </div>
           {ctaText && ctaUrl && <Link href={ctaUrl} className="link-arrow hidden shrink-0 md:inline-flex">{ctaText}</Link>}
         </Reveal>
-        <ul className="mt-u6 grid auto-rows-fr gap-u2 lg:grid-cols-3 lg:gap-u3">
-          {projects.map((p, i) => (
-            <li key={`${p.title}-${i}`}>
-              <Reveal delay={i * 0.06} className="h-full">
-                <Editable target={{ kind: "section", section: target }} label="Edit projects" className="block h-full">
-                  <article className="hairline-card flex h-full flex-col p-u4">
-                    {p.sector && <span className="inline-flex w-fit rounded-full bg-stbs-brand-mid/10 px-u2 py-[5px] text-[0.8125rem] font-medium text-stbs-brand-mid">{p.sector}</span>}
-                    <h3 className="mt-u3 text-[1.5rem] font-semibold leading-[1.15] tracking-[-0.025em] text-stbs-ink">{p.title}</h3>
-                    {p.summary && <p className="mt-u2 text-[1.0625rem] leading-[1.5] text-stbs-body">{p.summary}</p>}
-                    <p className="mt-auto flex items-center gap-u1 pt-u3 text-[0.9375rem] text-stbs-muted">
-                      <MapPin size={16} strokeWidth={1.75} className="shrink-0" aria-hidden />
-                      {p.location}
-                    </p>
-                  </article>
-                </Editable>
-              </Reveal>
-            </li>
-          ))}
+        <ul className="mt-u6 grid auto-rows-fr gap-u3 lg:grid-cols-3">
+          {projects.map((p, i) => {
+            const photo = projectPhoto(i);
+            return (
+              <li key={`${p.title}-${i}`}>
+                <Reveal delay={i * 0.06} className="h-full">
+                  <Editable target={{ kind: "section", section: target }} label="Edit projects" className="block h-full">
+                    <Link href={ctaUrl || "/projects"} className="group flex h-full flex-col overflow-hidden rounded-[18px] bg-[var(--card)] shadow-[0_1px_0_rgba(19,24,25,.06)] transition-shadow duration-500 hover:shadow-[0_30px_60px_-40px_rgba(19,24,25,.55)]">
+                      <div className="relative aspect-[4/3] overflow-hidden">
+                        <Image src={photo.src} alt={photo.alt} fill sizes="(max-width:1024px) 100vw, 33vw" className="object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.28,0.11,0.32,1)] group-hover:scale-105 motion-reduce:transition-none" />
+                        {p.sector && <span className="absolute left-u2 top-u2 rounded-full bg-stbs-ink/75 px-3 py-[6px] text-[.75rem] font-bold uppercase tracking-[.12em] text-white backdrop-blur">{p.sector}</span>}
+                      </div>
+                      <div className="flex flex-1 flex-col p-u3">
+                        <h3 className="t-h3">{p.title}</h3>
+                        {p.summary && <p className="mt-u1 text-[1rem] leading-[1.5] text-stbs-body">{p.summary}</p>}
+                        <p className="mt-auto flex items-center gap-u1 pt-u3 text-[0.9375rem] text-stbs-muted">
+                          <MapPin size={16} strokeWidth={1.75} className="shrink-0 text-stbs-brand-mid" aria-hidden />
+                          {p.location}
+                        </p>
+                      </div>
+                    </Link>
+                  </Editable>
+                </Reveal>
+              </li>
+            );
+          })}
         </ul>
         {ctaText && ctaUrl && <Link href={ctaUrl} className="btn btn-secondary mt-u5 w-full md:hidden">{ctaText}</Link>}
       </div>
@@ -851,9 +822,13 @@ function FeaturedClientsSection({ owner, content, data }: { owner?: RenderableSe
       </div>
       {withLogo.length > 0 && (
         <Editable target={{ kind: "clients" }} label="Edit Logos">
-          <div className="marquee-mask mt-u6">
-            <LogoMarquee logos={withLogo} />
-          </div>
+          <ul className="container-x mt-u6 grid grid-cols-2 gap-u2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+            {withLogo.map((c) => (
+              <li key={c.id} className="flex aspect-[3/2] items-center justify-center rounded-[14px] bg-white p-u3 shadow-[0_1px_0_rgba(19,24,25,.06)] transition-transform duration-500 ease-[cubic-bezier(0.28,0.11,0.32,1)] hover:-translate-y-1">
+                <Image src={c.logoUrl} alt={c.altText || `${c.name} logo`} width={200} height={72} quality={95} sizes="200px" className="max-h-14 w-auto max-w-full object-contain" />
+              </li>
+            ))}
+          </ul>
         </Editable>
       )}
       {others.length > 0 && (
@@ -999,7 +974,7 @@ function QuoteIntroSection({ owner, content }: { owner?: RenderableSection; cont
           <ol className="border-b border-stbs-hairline">
             {displaySteps.map((step, i) => (
               <li key={i} className="rule flex items-baseline gap-u3 py-u2">
-                <span className="font-heading text-lg font-bold tabular-nums text-stbs-brand-mid">0{i + 1}</span>
+                <span className="font-brand text-lg font-bold tabular-nums text-stbs-brand-mid">0{i + 1}</span>
                 <span className="t-body">{step}</span>
               </li>
             ))}

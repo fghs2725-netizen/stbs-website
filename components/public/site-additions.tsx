@@ -32,4 +32,4 @@ export function ProcessSteps() {
   return <ProcessStory eyebrow="Our process" heading="From surface conditions to working water infrastructure" steps={processSteps} />;
 }
 
-export function TrustMark() { return <ShieldCheck className="text-signal" aria-hidden="true" />; }
+export function TrustMark() { return <ShieldCheck className="text-stbs-brand-mid" aria-hidden="true" />; }

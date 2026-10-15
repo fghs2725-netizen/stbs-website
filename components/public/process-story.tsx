@@ -47,7 +47,7 @@ export function ProcessStory({ eyebrow, heading, steps }: { eyebrow: string; hea
                 alt={s.imageAlt}
                 fill
                 sizes="(min-width:1280px) 600px, 50vw"
-                className={`object-cover transition-[opacity,transform] duration-[1100ms] ease-[cubic-bezier(0.28,0.11,0.32,1)] motion-reduce:transition-none ${i === active ? "scale-100 opacity-100" : "scale-[1.08] opacity-0"}`}
+                className={`object-cover transition-[opacity,transform] duration-[1100ms] ease-[cubic-bezier(0.28,0.11,0.32,1)] motion-reduce:transition-none ${i === active ? "scale-100 opacity-100" : "scale-[1.08] opacity-0 motion-reduce:scale-100"}`}
                 priority={i === 0}
               />
             ))}
@@ -59,7 +59,7 @@ export function ProcessStory({ eyebrow, heading, steps }: { eyebrow: string; hea
               </span>
               <span className="flex gap-[6px]" aria-hidden>
                 {steps.map((s, i) => (
-                  <span key={s.step} className={`h-[6px] rounded-full bg-white transition-all duration-500 ${i === active ? "w-6 opacity-100" : "w-[6px] opacity-35"}`} />
+                  <span key={s.step} className={`h-[6px] rounded-full bg-white transition-all duration-500 motion-reduce:transition-none ${i === active ? "w-6 opacity-100" : "w-[6px] opacity-35"}`} />
                 ))}
               </span>
             </div>
@@ -72,7 +72,7 @@ export function ProcessStory({ eyebrow, heading, steps }: { eyebrow: string; hea
               key={s.step}
               data-index={i}
               ref={(el) => { refs.current[i] = el; }}
-              className={`flex min-h-[78svh] flex-col justify-center transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.28,0.11,0.32,1)] motion-reduce:transition-none ${i === active ? "translate-x-0 opacity-100" : "translate-x-3 opacity-25"}`}
+              className={`flex min-h-[78svh] flex-col justify-center transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.28,0.11,0.32,1)] motion-reduce:transition-none ${i === active ? "translate-x-0 opacity-100" : "translate-x-3 opacity-25 motion-reduce:translate-x-0 motion-reduce:opacity-100"}`}
             >
               <span className="t-stat text-white/25">{s.step}</span>
               <h3 className="t-h2 mt-u2">{s.title}</h3>

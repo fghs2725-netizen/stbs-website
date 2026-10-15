@@ -1,4 +1,4 @@
-import Image from "next/image";
+import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Check } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
@@ -6,17 +6,7 @@ import { CtaSection } from "@/components/public/sections";
 import { Faq, ProcessSteps } from "@/components/public/site-additions";
 import { FilmBand } from "@/components/public/film-band";
 import type { FilmSceneId } from "@/lib/website/film-scenes";
-
-/* FAQ answers are intentionally generic until the business owner confirms
-   exact depth ranges, turnaround commitments, licensing scope and warranty
-   terms.  Do NOT insert specific figures without owner sign-off. */
-const sharedFaq: Array<[string, string]> = [
-  ["What depth can you support?", "Depth capacity depends on the ground conditions at your site. We assess this during the initial site visit and recommend the most practical approach."],
-  ["How long will the work take?", "Turnaround varies with access, ground conditions and scope. We share a realistic timeline after reviewing your site."],
-  ["Do you handle permissions or licensing?", "We can advise on what's typically required. Discuss your specific situation with us during the planning stage."],
-  ["What warranty terms apply?", "Warranty coverage depends on the work and materials involved. We'll outline the applicable terms as part of your quotation."],
-  ["Which areas do you serve?", "Sonipat, Panipat, Kundli, Rohtak, Haryana and Delhi NCR."],
-];
+import { SERVICE_FAQS } from "@/lib/website/service-faqs";
 
 /** FAQPage structured data built from the exact visible FAQ text. */
 function faqJsonLd(items: Array<[string, string]>) {
@@ -31,11 +21,12 @@ function faqJsonLd(items: Array<[string, string]>) {
  * `image` is illustrative site photography, not a record of a specific job, so it carries no
  * caption tying it to a client or project. Pass `imageAlt` describing only what is visible.
  */
-export function ServiceDetailPage({ eyebrow, title, intro, icon: Icon, bullets, specs, process, segments, image, imageAlt, films, specsTitle = "Planning specifications" }: { eyebrow: string; title: string; intro: string; icon: LucideIcon; bullets: string[]; specs?: string[]; process?: boolean; segments?: string[]; image?: string; imageAlt?: string; films?: FilmSceneId[]; specsTitle?: string }) {
+export function ServiceDetailPage({ slug, eyebrow, title, intro, icon: Icon, bullets, specs, process, segments, image, imageAlt, films, diagram, diagramTitle = "How it works", table, specsTitle = "Planning specifications" }: { slug: string; diagram?: ReactNode; diagramTitle?: string; table?: { head: string[]; rows: string[][] }; eyebrow: string; title: string; intro: string; icon: LucideIcon; bullets: string[]; specs?: string[]; process?: boolean; segments?: string[]; image?: string; imageAlt?: string; films?: FilmSceneId[]; specsTitle?: string }) {
+  const faqs = SERVICE_FAQS[slug] ?? [];
   const hasAside = Boolean(specs?.length || segments?.length);
   return (
     <>
-      <PageHero eyebrow={eyebrow} title={title} text={intro} />
+      <PageHero eyebrow={eyebrow} title={title} text={intro} image={image} imageAlt={imageAlt} />
       {films?.map((f) => <FilmBand key={f} scene={f} />)}
 
       <section className="theme-public section-y">
@@ -80,19 +71,44 @@ export function ServiceDetailPage({ eyebrow, title, intro, icon: Icon, bullets, 
         </div>
       </section>
 
-      {image && imageAlt && (
-        <section className="theme-public pb-u7">
+      {diagram && (
+        <section className="band-deep section-y">
           <div className="container-x">
-            <div className="relative aspect-[16/9] w-full overflow-hidden border border-stbs-hairline sm:aspect-[21/9]">
-              <Image src={image} alt={imageAlt} fill className="object-cover" sizes="(max-width:1280px) 100vw, 1280px" />
+            <p className="t-eyebrow !text-stbs-bronze-light">{diagramTitle}</p>
+            <div className="mt-u5 overflow-hidden rounded-[18px] border border-white/10 bg-[#0e1213] p-[clamp(12px,3vw,40px)]"><div className="overflow-x-auto"><div className="min-w-[720px]">{diagram}</div></div></div>
+            <p className="mt-u2 text-[.8125rem] text-white/45">Schematic illustration. Actual design depends on the site survey.</p>
+          </div>
+        </section>
+      )}
+
+      {table && (
+        <section className="theme-public section-y">
+          <div className="container-x">
+            <p className="t-eyebrow">What we supply</p>
+            <h2 className="t-h2 mt-u2 text-block">Ranges and brands</h2>
+            <div className="mt-u5 overflow-x-auto rounded-[18px] border border-stbs-hairline bg-[var(--card)]">
+              <table className="w-full min-w-[640px] border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-stbs-hairline">
+                    {table.head.map((h) => <th key={h} scope="col" className="t-eyebrow px-u3 py-u2 !text-[.75rem]">{h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {table.rows.map((r) => (
+                    <tr key={r[0]} className="border-b border-stbs-hairline last:border-0">
+                      {r.map((c, i) => <td key={i} className={`px-u3 py-u2 align-top ${i === 0 ? "font-semibold text-stbs-ink" : i === 1 ? "tabular-nums text-stbs-ink" : "text-stbs-muted"}`}>{c}</td>)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
       )}
 
       {process && <ProcessSteps />}
-      <Faq items={sharedFaq} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(sharedFaq)) }} />
+      {faqs.length > 0 && <Faq items={faqs} />}
+      {faqs.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(faqs)) }} />}
       <CtaSection content={{}} />
     </>
   );
