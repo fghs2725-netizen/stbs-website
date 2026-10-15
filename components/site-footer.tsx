@@ -7,7 +7,6 @@ import { businessInfo, company } from "@/lib/company";
 import { formatIndianPhone, telHref } from "@/lib/phone";
 import { useWebsiteEditor } from "@/lib/website/editor-context";
 import { DEFAULT_NAV_LINKS, ensureAboutLink, FOOTER_ONLY_LINKS, isPublicNavLink } from "@/lib/website/nav-defaults";
-import { AREAS } from "@/lib/website/areas";
 import { SERVICE_PAGES } from "@/lib/website/service-pages";
 
 type FooterSettings = Pick<CmsSettings, "businessName" | "shortDescription" | "phone" | "phone2" | "email" | "address" | "whatsapp" | "primaryLogoUrl" | "lightLogoUrl" | "darkLogoUrl" | "logoUrl">;
@@ -110,17 +109,7 @@ export function SiteFooter({ settings, navLinks }: { settings?: FooterSettings |
             </div>
             <div>
               <dt className="text-sm text-stbs-ink-on-dark">Service area</dt>
-              <dd className="m-0 mt-[2px]">
-                {businessInfo.serviceAreas.map((a, i) => {
-                  const area = AREAS.find((x) => x.name === a);
-                  return (
-                    <span key={a}>
-                      {i > 0 && " · "}
-                      {area ? <Link href={`/areas/${area.slug}`} className="underline-offset-2 hover:underline">{a}</Link> : a}
-                    </span>
-                  );
-                })}
-              </dd>
+              <dd className="m-0 mt-[2px]">{businessInfo.serviceAreas.join(" · ")}</dd>
             </div>
           </dl>
           <a href={businessInfo.mapsUrl} target="_blank" rel="noopener noreferrer" className={`${LINK} mt-u1 text-stbs-ink-on-dark underline underline-offset-4`}>Open in Google Maps</a>

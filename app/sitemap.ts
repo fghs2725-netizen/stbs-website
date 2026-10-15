@@ -1,11 +1,10 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { canonicalSiteUrl } from "@/lib/site-url";
-import { AREAS } from "@/lib/website/areas";
 
 export const revalidate = 86400;
 
-const ROUTES = ["", "/about", "/services", "/water-testing", "/borewell-drilling", "/rainwater-harvesting", "/borewell-material-supply", "/tubewell-construction", "/projects", "/clients", "/areas", ...AREAS.map((a) => `/areas/${a.slug}`), "/contact", "/quote"];
+const ROUTES = ["", "/about", "/services", "/water-testing", "/borewell-drilling", "/rainwater-harvesting", "/borewell-material-supply", "/tubewell-construction", "/projects", "/clients", "/contact", "/quote"];
 
 // lastmod is the last time a page's live content was published. Code-only pages carry none rather than
 // claiming "now" on every request, which teaches Google to ignore the dates altogether.
