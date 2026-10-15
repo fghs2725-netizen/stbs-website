@@ -13,14 +13,14 @@ const CHROME = process.env.CHROME_PATH ?? "/opt/pw-browsers/chromium";
 const PAGES = [
   ["home", "Trusted since 1992", "Water infrastructure for *industrial & commercial* sites", "/hero/stbs-water-outlets-wide.webp"],
   ["water-testing", "Water testing", "Know the ground before you *drill*", "/services/water-testing-survey.webp"],
-  ["borewell-drilling", "Borewell drilling", "Borewell drilling, planned around *your site*", "/services/borewell-rig-factory-site.webp"],
+  ["borewell-drilling", "Borewell drilling", "Borewell drilling, planned around *your site*", "/services/borewell-drilling-rods.webp"],
   ["tubewell-construction", "Tubewell construction", "End-to-end *tubewell* construction", "/services/tubewell-rig-pipes.webp"],
   ["borewell-material-supply", "Material supply", "Borewell material you can *rely on*", "/services/material-supply-yard-stock.webp"],
   ["rainwater-harvesting", "Rainwater harvesting", "Rainwater harvesting & *groundwater recharge*", "/services/rainwater-harvesting-recharge.webp"],
   ["projects", "Projects", "Selected *projects*", "/services/rainwater-harvesting-recharge.webp"],
-  ["clients", "Clients", "Trusted on *demanding sites*", "/services/borewell-rig-factory-site.webp"],
+  ["clients", "Clients", "Trusted on *demanding sites*", "/services/borewell-drilling-rods.webp"],
   ["about", "About STBS", "Built from the *ground down*", "/services/tubewell-rig-pipes.webp"],
-  ["contact", "Contact", "Start with the *requirement*", "/services/borewell-rig-factory-site.webp"],
+  ["contact", "Contact", "Start with the *requirement*", "/services/borewell-drilling-rods.webp"],
   ["quote", "Request a proposal", "Share your site and *scope*", "/services/tubewell-rig-pipes.webp"],
 ];
 

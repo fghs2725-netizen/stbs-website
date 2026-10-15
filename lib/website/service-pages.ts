@@ -43,7 +43,7 @@ export function serviceHref(slug: string | null | undefined): string {
 
 export const SERVICE_CARD_IMAGES: Record<string, { src: string; alt: string }> = {
   "water-testing": { src: "/services/water-testing-survey.webp", alt: "A surveyor with a resistivity meter and electrodes laid along a field, explaining the survey to a farmer" },
-  "borewell-drilling": { src: "/services/borewell-rig-factory-site.webp", alt: "Crew handling drill pipe beside a truck-mounted drilling rig at a factory under construction" },
+  "borewell-drilling": { src: "/services/borewell-drilling-rods.webp", alt: "Two crew members in hard hats and orange vests guiding a drill rod at a borewell rig" },
   "rainwater-harvesting": { src: "/services/rainwater-harvesting-recharge.webp", alt: "Precast concrete rings beside an excavated recharge pit at a commercial site" },
   "tubewell-construction": { src: "/services/tubewell-rig-pipes.webp", alt: "A worker carrying white uPVC casing pipe past a drilling rig at an industrial site" },
   "borewell-material-supply": { src: "/services/material-supply-yard-stock.webp", alt: "uPVC and steel casing pipes, a submersible cable drum and a row of submersible pumps in a supply yard" },

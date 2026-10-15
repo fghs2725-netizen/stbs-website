@@ -90,8 +90,8 @@ export const ABOUT_SECTIONS: DefaultSection[] = [
     content: {
       heading: "34 years",
       headingLine2: "of expertise.",
-      image: "/services/borewell-rig-factory-site.webp",
-      imageAlt: "Crew handling drill pipe beside a truck-mounted drilling rig at a factory under construction",
+      image: "/services/borewell-drilling-rods.webp",
+      imageAlt: "Two crew members in hard hats and orange vests guiding a drill rod at a borewell rig",
       badgeText: "1992",
       badgeSubtext: "Established",
       sections: [

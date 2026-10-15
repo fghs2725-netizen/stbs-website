@@ -7,7 +7,7 @@ import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain
 import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "@/lib/website/home-defaults";
 import { SERVICE_PAGES, serviceHref, servicePageFor } from "@/lib/website/service-pages";
 import { SERVICE_ICONS } from "@/components/public/service-icons";
-import { HOME_PROJECTS, projectPhoto, resolveProjects } from "@/lib/website/projects-data";
+import { HOME_PROJECTS, resolveProjects } from "@/lib/website/projects-data";
 import { StatsStrip } from "@/components/public/stats-strip";
 import { PagePhoto } from "@/components/public/photo";
 import { formatIndianPhone, telHref } from "@/lib/phone";
@@ -748,31 +748,23 @@ export function CaseStudiesSection({ owner, content }: { owner?: RenderableSecti
           {ctaText && ctaUrl && <Link href={ctaUrl} className="link-arrow hidden shrink-0 md:inline-flex">{ctaText}</Link>}
         </Reveal>
         <ul className="mt-u6 grid auto-rows-fr gap-u3 lg:grid-cols-3">
-          {projects.map((p, i) => {
-            const photo = projectPhoto(i);
-            return (
-              <li key={`${p.title}-${i}`}>
-                <Reveal delay={i * 0.06} className="h-full">
-                  <Editable target={{ kind: "section", section: target }} label="Edit projects" className="block h-full">
-                    <Link href={ctaUrl || "/projects"} className="group flex h-full flex-col overflow-hidden rounded-[18px] bg-[var(--card)] shadow-[0_1px_0_rgba(19,24,25,.06)] transition-shadow duration-500 hover:shadow-[0_30px_60px_-40px_rgba(19,24,25,.55)]">
-                      <div className="relative aspect-[4/3] overflow-hidden">
-                        <Image src={photo.src} alt={photo.alt} fill sizes="(max-width:1024px) 100vw, 33vw" className="object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.28,0.11,0.32,1)] group-hover:scale-105 motion-reduce:transition-none" />
-                        {p.sector && <span className="absolute left-u2 top-u2 rounded-full bg-stbs-ink/75 px-3 py-[6px] text-[.75rem] font-bold uppercase tracking-[.12em] text-white backdrop-blur">{p.sector}</span>}
-                      </div>
-                      <div className="flex flex-1 flex-col p-u3">
-                        <h3 className="t-h3">{p.title}</h3>
-                        {p.summary && <p className="mt-u1 text-[1rem] leading-[1.5] text-stbs-body">{p.summary}</p>}
-                        <p className="mt-auto flex items-center gap-u1 pt-u3 text-[0.9375rem] text-stbs-muted">
-                          <MapPin size={16} strokeWidth={1.75} className="shrink-0 text-stbs-brand-mid" aria-hidden />
-                          {p.location}
-                        </p>
-                      </div>
-                    </Link>
-                  </Editable>
-                </Reveal>
-              </li>
-            );
-          })}
+          {projects.map((p, i) => (
+            <li key={`${p.title}-${i}`}>
+              <Reveal delay={i * 0.06} className="h-full">
+                <Editable target={{ kind: "section", section: target }} label="Edit projects" className="block h-full">
+                  <article className="flex h-full flex-col rounded-[18px] bg-[var(--card)] p-u4 shadow-[0_1px_0_rgba(19,24,25,.06)]">
+                    {p.sector && <span className="t-eyebrow">{p.sector}</span>}
+                    <h3 className="t-h3 mt-u2">{p.title}</h3>
+                    {p.summary && <p className="mt-u2 text-[1.0625rem] leading-[1.5] text-stbs-body">{p.summary}</p>}
+                    <p className="mt-auto flex items-center gap-u1 pt-u4 text-[0.9375rem] text-stbs-muted">
+                      <MapPin size={16} strokeWidth={1.75} className="shrink-0 text-stbs-brand-mid" aria-hidden />
+                      {p.location}
+                    </p>
+                  </article>
+                </Editable>
+              </Reveal>
+            </li>
+          ))}
         </ul>
         {ctaText && ctaUrl && <Link href={ctaUrl} className="btn btn-secondary mt-u5 w-full md:hidden">{ctaText}</Link>}
       </div>
