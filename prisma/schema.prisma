@@ -1106,6 +1106,8 @@ model Invoice {
   reverseCharge Boolean       @default(false)
   // A cash invoice is issued without a number, so it never takes a place in the GST series.
   isCash        Boolean       @default(false)
+  // When the bill was handed to the accountant (CA). Null means not sent yet.
+  sentToCaAt    DateTime?
 
   clientId            String?
   client              Client? @relation(fields: [clientId], references: [id])
