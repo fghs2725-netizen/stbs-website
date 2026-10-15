@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Download } from "lucide-react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getInvoiceAnalytics } from "@/lib/invoice-analytics";
@@ -25,7 +26,16 @@ export default async function InvoiceAnalyticsPage({ searchParams }: { searchPar
         eyebrow="Invoices"
         title="Analytics"
         description="Billing, payments, GST and clients by financial year (April to March)."
-        action={<Link href="/admin/invoices" className="a-btn hidden lg:inline-flex">All invoices</Link>}
+        action={
+          <span className="flex items-center gap-2">
+            {/* A plain link, so the browser handles the download; the route sets the filename. */}
+            <a href="/api/invoices/export" className="a-btn a-btn-primary" download>
+              <Download size={16} strokeWidth={1.75} aria-hidden />
+              Download Excel
+            </a>
+            <Link href="/admin/invoices" className="a-btn hidden lg:inline-flex">All invoices</Link>
+          </span>
+        }
       />
 
       {!a ? (

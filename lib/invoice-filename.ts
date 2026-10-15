@@ -8,9 +8,11 @@ import { clientSlug } from "@/lib/quotation-filename";
 import { formatInvoiceNumber } from "@/lib/invoice-numbering";
 
 export function invoiceFilename(
-  invoice: { number?: number; client: { companyName: string } },
+  invoice: { number?: number; isCash?: boolean; status?: string; date?: string; client: { companyName: string } },
   ext: "pdf" = "pdf",
 ): string {
-  const number = invoice.number ? formatInvoiceNumber(invoice.number) : "draft";
+  const number = invoice.number ? formatInvoiceNumber(invoice.number)
+    : invoice.isCash && invoice.status !== "DRAFT" ? `cash-${invoice.date ?? ""}`.replace(/-$/, "")
+    : "draft";
   return `STBS-Invoice-${number}-${clientSlug(invoice.client.companyName)}.${ext}`;
 }

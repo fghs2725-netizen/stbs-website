@@ -137,8 +137,8 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, t
   const beforePdf = useCallback(async () => { if (dirty) await persist(); }, [dirty, persist]);
 
   const pageCount = useMemo(() => invoicePageCount(inv, effective), [inv, effective]);
-  // A draft has no number, and `GET /api/invoices/[id]/pdf` refuses one.
-  const canExport = Boolean(inv.id && inv.number);
+  // Any saved invoice can be exported, a draft included: it prints "Draft" where the number goes.
+  const canExport = Boolean(inv.id);
   const shareSubject = useMemo(
     () => shareSubjectFromInvoice(inv, effective, { grandTotal: totals.grandTotal, balance: totals.balance }),
     [inv, effective, totals.grandTotal, totals.balance],
@@ -160,9 +160,28 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, t
 
       {issued && (
         <p className="a-card p-4 text-[0.875rem]" style={{ color: "var(--a-body)" }}>
-          This invoice has been issued as number {inv.number}. You can still change it, and every change
-          is recorded in its edit history.
+          This invoice has been issued {inv.isCash ? "as a cash invoice, without a number" : `as number ${inv.number}`}. You can
+          still change it, and every change is recorded in its edit history.
         </p>
+      )}
+
+      {inv.status === "DRAFT" && (
+        <section className="a-card p-4" aria-labelledby="invoice-kind">
+          <h2 id="invoice-kind" className="a-h2">Invoice type</h2>
+          <div className="a-segment mt-3" role="radiogroup" aria-label="Invoice type">
+            <button type="button" role="radio" aria-checked={!inv.isCash} data-active={!inv.isCash} onClick={() => patch({ isCash: false })}>
+              Tax invoice
+            </button>
+            <button type="button" role="radio" aria-checked={Boolean(inv.isCash)} data-active={Boolean(inv.isCash)} onClick={() => patch({ isCash: true })}>
+              Cash invoice
+            </button>
+          </div>
+          <p className="mt-2 text-[0.8125rem]" style={{ color: "var(--a-faint)" }}>
+            {inv.isCash
+              ? "Issued without a bill number, so the numbered series is not broken. Prints as Cash Invoice."
+              : "Takes the next bill number when you issue it."}
+          </p>
+        </section>
       )}
 
       <section className="a-card p-4">
@@ -385,7 +404,7 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, t
             </span>
             <div className="inv-overlay-actions">
               {!canExport && (
-                <span className="inv-overlay-note">Issue this invoice to export a PDF</span>
+                <span className="inv-overlay-note">Save this invoice to export a PDF</span>
               )}
               <InvoicePdfActions
                 id={inv.id ?? ""}
@@ -393,7 +412,7 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, t
                 beforePdf={beforePdf}
                 saveLabel="Save PDF"
                 disabled={!canExport}
-                disabledReason="Issue this invoice to export a PDF"
+                disabledReason="Save this invoice to export a PDF"
               />
               <button type="button" className="inv-overlay-close" onClick={() => setSegments(true)}>
                 <SlidersHorizontal size={15} aria-hidden /> Segments

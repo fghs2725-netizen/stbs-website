@@ -207,10 +207,11 @@ export default async function InvoicesPage({
                           {inv.client.companyName || "Unnamed client"}
                         </Link>
                         <Pill tone={TONE[inv.status]}>{LABEL[inv.status]}</Pill>
+                        {inv.isCash && <Pill tone="neutral">Cash</Pill>}
                         {late > 0 && <Pill tone="warn">{late} day{late === 1 ? "" : "s"} overdue</Pill>}
                       </div>
                       <p className="a-num mt-[3px] truncate text-[0.8125rem]" style={{ color: "var(--a-faint)" }}>
-                        {inv.number ? `Invoice ${formatInvoiceNumber(inv.number)}` : "No number yet"} · {day(inv.createdAt)} · {inv.itemCount} item{inv.itemCount === 1 ? "" : "s"}
+                        {inv.number ? `Invoice ${formatInvoiceNumber(inv.number)}` : inv.isCash && inv.status !== "DRAFT" ? "Cash invoice" : "No number yet"} · {day(inv.createdAt)} · {inv.itemCount} item{inv.itemCount === 1 ? "" : "s"}
                         {inv.quotationReference ? ` · from ${inv.quotationReference}` : ""}
                       </p>
                     </div>
@@ -243,7 +244,7 @@ export default async function InvoicesPage({
                     {!inDeleted && inv.status !== "CANCELLED" && (
                       <Button asChild variant="secondary" size="sm"><Link href={`/admin/invoices/${inv.id}/edit`}>Edit</Link></Button>
                     )}
-                    {!inDeleted && inv.number && (
+                    {!inDeleted && (
                       <InvoicePdfActions
                         id={inv.id!}
                         subject={shareSubjectFromInvoice(inv, settings, { grandTotal: inv.grandTotal, balance: inv.balance })}

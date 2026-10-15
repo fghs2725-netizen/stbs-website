@@ -98,7 +98,7 @@ type Row = Record<string, unknown> & { items?: unknown[]; payments?: unknown[] }
 function toState(x: Row): InvoiceState {
   const r = x as never as {
     id: string; number: number | null; date: string; dueDate: string | null; status: InvoiceStatus;
-    subject: string | null; purchaseOrder: string | null; reverseCharge: boolean; clientId: string | null;
+    subject: string | null; purchaseOrder: string | null; reverseCharge: boolean; isCash?: boolean; clientId: string | null;
     clientCompanyName: string; clientContactPerson: string | null; clientAddressLine1: string | null;
     clientAddressLine2: string | null; clientCity: string | null; clientState: string | null;
     clientPinCode: string | null; clientPhone: string | null; clientEmail: string | null; clientGstin: string | null;
@@ -121,6 +121,7 @@ function toState(x: Row): InvoiceState {
     subject: r.subject ?? undefined,
     purchaseOrder: r.purchaseOrder ?? undefined,
     reverseCharge: Boolean(r.reverseCharge),
+    isCash: Boolean(r.isCash),
     client: {
       ...emptyParty(),
       companyName: r.clientCompanyName,
@@ -201,6 +202,7 @@ function toInput(inv: InvoiceState) {
     subject: inv.subject || null,
     purchaseOrder: inv.purchaseOrder || null,
     reverseCharge: Boolean(inv.reverseCharge),
+    isCash: Boolean(inv.isCash),
     clientCompanyName: inv.client.companyName,
     clientContactPerson: inv.client.contactPerson || null,
     clientAddressLine1: inv.client.addressLine1 || null,
@@ -382,6 +384,9 @@ export async function saveInvoice(inv: InvoiceState, editedBy?: string): Promise
       if (!old) throw new Error("NOT_FOUND");
       if (old.status === "CANCELLED") throw new Error("CANCELLED_READ_ONLY");
       if (old.status !== "DRAFT") await logEdits(tx as never, inv.id, old as never, data as never, editedBy);
+      // Cash or numbered is settled when the invoice is issued: switching later would either leave a
+      // numbered invoice without its number or hand a cash one a place in the series after the fact.
+      if (old.status !== "DRAFT") data.isCash = old.isCash;
       const updated = await tx.invoice.update({
         where: { id: inv.id },
         data: { ...data, items: { deleteMany: {}, ...itemRows(inv.items) } },
@@ -398,7 +403,8 @@ export async function saveInvoice(inv: InvoiceState, editedBy?: string): Promise
 }
 
 /**
- * Issues an invoice: allocates the next number and freezes the settings it was drawn with.
+ * Issues an invoice: allocates the next number (none for a cash invoice) and freezes the settings it
+ * was drawn with.
  *
  * The counter is incremented inside the transaction, so two people issuing at the same moment cannot
  * take the same number. The frozen settings matter because the switches are editable: without the
@@ -421,13 +427,17 @@ export async function issueInvoice(id: string): Promise<InvoiceState> {
     const missing = whatIsMissing(inv, frozen);
     if (missing.length) throw new Error(`INCOMPLETE: ${missing.join(", ")}`);
 
-    const counter = await tx.invoiceNumberCounter.upsert({
-      where: { id: COUNTER_ID },
-      create: { id: COUNTER_ID, lastNumber: nextNumber(CONTINUES_FROM) },
-      update: { lastNumber: { increment: 1 } },
-    });
-    // On create the row is written already holding the first number; on update it has just been bumped.
-    const number = counter.lastNumber;
+    // A cash invoice is issued without touching the counter, so the numbered series stays unbroken.
+    let number: number | null = null;
+    if (!inv.isCash) {
+      const counter = await tx.invoiceNumberCounter.upsert({
+        where: { id: COUNTER_ID },
+        create: { id: COUNTER_ID, lastNumber: nextNumber(CONTINUES_FROM) },
+        update: { lastNumber: { increment: 1 } },
+      });
+      // On create the row is written already holding the first number; on update it has just been bumped.
+      number = counter.lastNumber;
+    }
 
     const issued = await tx.invoice.update({
       where: { id },

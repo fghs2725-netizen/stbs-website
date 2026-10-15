@@ -66,7 +66,7 @@ export default async function InvoiceDetailPage({
     <div className="a-page">
       <PageHeader
         eyebrow="Invoice"
-        title={invoice.number ? `Invoice ${formatInvoiceNumber(invoice.number)}` : "Draft invoice"}
+        title={invoice.number ? `Invoice ${formatInvoiceNumber(invoice.number)}` : invoice.isCash && invoice.status !== "DRAFT" ? "Cash invoice" : invoice.isCash ? "Draft cash invoice" : "Draft invoice"}
         description={invoice.client.companyName || "No client yet"}
         action={
           <span className="hidden items-center gap-2 lg:flex">
@@ -80,6 +80,7 @@ export default async function InvoiceDetailPage({
 
       <div className="flex flex-wrap items-center gap-2">
         <Pill tone={TONE[invoice.status]}>{LABEL[invoice.status]}</Pill>
+        {invoice.isCash && <Pill tone="neutral">Cash</Pill>}
         {deleted && <Pill tone="warn">Deleted</Pill>}
         {late > 0 && <Pill tone="warn">{late} day{late === 1 ? "" : "s"} overdue</Pill>}
         {invoice.quotationReference && (
@@ -125,13 +126,11 @@ export default async function InvoiceDetailPage({
         {invoice.status === "DRAFT" && (
           <form action={issueInvoiceAction.bind(null, id)}>
             <Button type="submit" disabled={missing.length > 0}>
-              Issue and take the next number
+              {invoice.isCash ? "Issue as cash invoice" : "Issue and take the next number"}
             </Button>
           </form>
         )}
-        {invoice.number && (
-          <InvoicePdfActions id={id} subject={shareSubjectFromInvoice(invoice, effective, { grandTotal: totals.grandTotal, balance: totals.balance })} />
-        )}
+        <InvoicePdfActions id={id} subject={shareSubjectFromInvoice(invoice, effective, { grandTotal: totals.grandTotal, balance: totals.balance })} />
         <InvoiceSegmentsButton base={settings} initial={invoice.settingsOverride ?? {}} save={saveSegmentsAction.bind(null, id)} />
         <form action={duplicateInvoiceAction.bind(null, id)}>
           <Button type="submit" variant="secondary">Duplicate</Button>

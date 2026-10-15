@@ -49,12 +49,12 @@ export function compressRanges(nums: number[]): string {
 }
 
 /**
- * Numbers from SERIES_START to the highest in use that no live invoice holds. A cancelled invoice
- * keeps its number; a deleted one gives it up until restored, so it is listed here.
+ * Numbers from SERIES_START to the highest ever given out that no live invoice holds. A cancelled
+ * invoice keeps its number; a deleted one gives it up until restored, so it is listed here — even
+ * when it was the latest, which is why `top` counts deleted numbers too.
  */
-export function missingNumbers(used: number[]): number[] {
+export function missingNumbers(used: number[], top = Math.max(SERIES_START - 1, ...used)): number[] {
   const have = new Set(used);
-  const top = Math.max(SERIES_START - 1, ...used);
   const gaps: number[] = [];
   for (let n = SERIES_START; n <= top; n++) if (!have.has(n)) gaps.push(n);
   return gaps;
@@ -67,7 +67,11 @@ export type OwedRow = { id: string; number?: number; client: string; date: strin
 export type InvoiceAnalytics = {
   years: string[];
   fy: string;
-  current: { count: number; taxable: number; cgst: number; sgst: number; igst: number; gst: number; billed: number; received: number; clients: number; average: number };
+  current: {
+    count: number; taxable: number; cgst: number; sgst: number; igst: number; gst: number; billed: number; received: number; clients: number; average: number;
+    /** The part of the year's billing done on cash invoices (no bill number). */
+    cash: { count: number; billed: number };
+  };
   months: Array<{ label: string; billed: number; count: number }>;
   byYear: YearRow[];
   topClients: ClientRow[];
@@ -78,7 +82,7 @@ export type InvoiceAnalytics = {
 };
 
 const SELECT = {
-  id: true, number: true, date: true, dueDate: true, status: true, clientCompanyName: true, clientGstin: true,
+  id: true, number: true, date: true, dueDate: true, status: true, isCash: true, clientCompanyName: true, clientGstin: true,
   discountType: true, discountValue: true, gstEnabled: true, gstMode: true, gstRate: true, settingsOverride: true, deletedAt: true,
   items: { select: { id: true, description: true, unit: true, quantity: true, rate: true, discountPercent: true, gstRate: true } },
   payments: { select: { date: true, amount: true } },
@@ -87,7 +91,7 @@ const SELECT = {
 
 /** One invoice as the figures need it: the columns `SELECT` reads. */
 export type AnalyticsRow = {
-  id: string; number: number | null; date: string; dueDate: string | null; status: InvoiceStatus;
+  id: string; number: number | null; date: string; dueDate: string | null; status: InvoiceStatus; isCash?: boolean;
   clientCompanyName: string; clientGstin: string | null;
   discountType: string | null; discountValue: unknown; gstEnabled: boolean; gstMode: string; gstRate: unknown;
   settingsOverride: unknown; deletedAt: Date | null;
@@ -98,15 +102,17 @@ export type AnalyticsRow = {
 
 export async function getInvoiceAnalytics(fyWanted?: string): Promise<InvoiceAnalytics> {
   await requireAdmin();
-  const [rows, setting] = await Promise.all([
+  const [rows, setting, counter] = await Promise.all([
     prisma.invoice.findMany({ select: SELECT }),
     prisma.invoiceSetting.findUnique({ where: { id: "singleton" }, select: { settings: true } }),
+    prisma.invoiceNumberCounter.findUnique({ where: { id: "invoice" }, select: { lastNumber: true } }),
   ]);
-  return computeInvoiceAnalytics(rows as AnalyticsRow[], setting?.settings ?? {}, new Date(), fyWanted);
+  return computeInvoiceAnalytics(rows as AnalyticsRow[], setting?.settings ?? {}, new Date(), fyWanted, counter?.lastNumber);
 }
 
 /** The arithmetic behind `getInvoiceAnalytics`, kept free of the database so it can be checked on its own. */
-export function computeInvoiceAnalytics(rows: AnalyticsRow[], storedSettings: unknown, today: Date, fyWanted?: string): InvoiceAnalytics {
+/** `lastIssued` is the counter's last number, so a permanently deleted latest invoice still shows as a gap. */
+export function computeInvoiceAnalytics(rows: AnalyticsRow[], storedSettings: unknown, today: Date, fyWanted?: string, lastIssued?: number): InvoiceAnalytics {
   const base = resolveSettings(storedSettings);
 
   const live = rows.filter((r) => !r.deletedAt);
@@ -167,6 +173,7 @@ export function computeInvoiceAnalytics(rows: AnalyticsRow[], storedSettings: un
     gst: sum((b) => b.tax), billed: sum((b) => b.total), received: receivedByFy.get(fy) ?? 0,
     clients: new Set(inFy.map(clientKey)).size,
     average: inFy.length ? round2(sum((b) => b.total) / inFy.length) : 0,
+    cash: { count: inFy.filter((b) => b.r.isCash).length, billed: round2(inFy.filter((b) => b.r.isCash).reduce((s, b) => s + b.total, 0)) },
   };
 
   const months = MONTHS.map((label, n) => {
@@ -193,7 +200,8 @@ export function computeInvoiceAnalytics(rows: AnalyticsRow[], storedSettings: un
   const overdue = list.filter((o) => o.overdueDays > 0);
 
   const used = live.map((r) => r.number).filter((n): n is number => n !== null);
-  const gaps = missingNumbers(used);
+  const allNumbers = rows.map((r) => r.number).filter((n): n is number => n !== null);
+  const gaps = missingNumbers(used, Math.max(SERIES_START - 1, lastIssued ?? 0, ...allNumbers));
   const deletedNumbers = new Set(rows.filter((r) => r.deletedAt && r.number !== null).map((r) => r.number as number));
 
   return {

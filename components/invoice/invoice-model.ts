@@ -73,6 +73,11 @@ export type InvoiceState = {
   gstMode: GstMode;
   gstRate: number;
   reverseCharge?: boolean;
+  /**
+   * A cash invoice is issued without a number, so it takes no place in the GST series and leaves no
+   * gap in it. Chosen while the invoice is a draft; fixed once it is issued.
+   */
+  isCash?: boolean;
   /** The quotation this was converted from, when there was one. */
   quotationId?: string;
   quotationReference?: string;

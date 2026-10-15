@@ -13,7 +13,7 @@ type Props = {
    * rather than what is on screen.
    */
   beforePdf?: () => Promise<void>;
-  /** Shown but inert — a draft has no number, and the PDF route refuses one. */
+  /** Shown but inert, for an invoice that has not been saved yet and so has nothing to render. */
   disabled?: boolean;
   /** Why the buttons are inert, as their tooltip. */
   disabledReason?: string;
@@ -22,7 +22,7 @@ type Props = {
 };
 
 /**
- * "PDF" and "Share" for an issued invoice. The sheet is the quotation's — it takes a subject and a
+ * "PDF" and "Share" for any saved invoice, a draft included. The sheet is the quotation's — it takes a subject and a
  * way to fetch the file, and neither is quotation-specific — so both documents behave the same way.
  */
 export function InvoicePdfActions({ id, subject, beforePdf, disabled, disabledReason, saveLabel = "PDF" }: Props) {

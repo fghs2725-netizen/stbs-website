@@ -26,8 +26,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     stage = "INVOICE_FETCH";
     const invoice = await getInvoice(id);
     if (!invoice) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    // A draft has no number and is not a tax document yet; issuing it is what makes it one.
-    if (!invoice.number) return NextResponse.json({ error: "Issue the invoice before downloading it" }, { status: 409 });
+    // A draft can be exported too (the owner's choice): it prints "Draft" where the number goes.
 
     stage = "PDF_GENERATION";
     const { settings } = await getInvoiceConfig();

@@ -14,10 +14,12 @@ import "./preset-wizard.css";
 
 const CUSTOM = "__custom__";
 
-export function PresetWizard({ presets, onDone, onBlank }: {
+export function PresetWizard({ presets, onDone, onBlank, document = "quotation" }: {
   presets: Preset[];
   onDone: (preset: Preset, answers: Record<string, string>) => void;
   onBlank: () => void;
+  /** The same presets start an invoice too; only the wording of the first screen changes. */
+  document?: "quotation" | "invoice";
 }) {
   const [preset, setPreset] = useState<Preset | null>(null);
   const [step, setStep] = useState(0);
@@ -54,8 +56,8 @@ export function PresetWizard({ presets, onDone, onBlank }: {
     return (
       <div className="pw">
         <header className="pw-head">
-          <p className="pw-eyebrow">New quotation</p>
-          <h1>What are you quoting for?</h1>
+          <p className="pw-eyebrow">{document === "invoice" ? "New invoice" : "New quotation"}</p>
+          <h1>{document === "invoice" ? "What is this invoice for?" : "What are you quoting for?"}</h1>
           <p className="pw-sub">Pick a job and the items are written for you. You can change every line afterwards.</p>
         </header>
         <div className="pw-choices">
@@ -66,7 +68,7 @@ export function PresetWizard({ presets, onDone, onBlank }: {
             </button>
           ))}
           <button type="button" className="pw-choice pw-choice-quiet" onClick={onBlank}>
-            <span className="pw-choice-name"><FileText size={16} aria-hidden /> Blank quotation</span>
+            <span className="pw-choice-name"><FileText size={16} aria-hidden /> {document === "invoice" ? "Blank invoice" : "Blank quotation"}</span>
             <span className="pw-choice-meta">Start with an empty table</span>
           </button>
         </div>
