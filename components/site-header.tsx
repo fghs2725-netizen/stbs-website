@@ -40,10 +40,10 @@ export function SiteHeader({ navLinks, businessName, logoUrl, mobileLogoUrl, pho
   }, [open]);
 
   const focus = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stbs-ink-on-dark";
-  const linkBase = `inline-flex h-full items-center font-body text-[0.8125rem] font-normal tracking-[-0.005em] transition-colors duration-300 ${focus}`;
+  const linkBase = `inline-flex h-full items-center font-copy text-[0.8125rem] font-normal tracking-[-0.005em] transition-colors duration-300 ${focus}`;
 
   return (
-    <header className={`${isEditor ? "absolute" : "sticky"} inset-x-0 top-0 z-50 h-[56px] glass border-b border-white/10 font-body`}>
+    <header className={`${isEditor ? "absolute" : "sticky"} inset-x-0 top-0 z-50 h-[56px] glass border-b border-white/10 font-copy`}>
       <div className="container-x flex h-full items-center justify-between gap-u2">
         <div className="flex items-center gap-u2">
           <Link href="/" data-editor-safe className={`flex min-h-[44px] items-center ${focus}`} aria-label={businessName ? `${businessName} home` : "Home"}>
@@ -124,7 +124,7 @@ export function SiteHeader({ navLinks, businessName, logoUrl, mobileLogoUrl, pho
                   style={{ transitionDelay: open ? `${90 + i * 55}ms` : "0ms" }}
                   className={`transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${open ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
                 >
-                  <Link href={l.href} tabIndex={open ? undefined : -1} aria-current={active ? "page" : undefined} className={`flex min-h-[64px] items-center border-b border-white/10 font-body text-[1.75rem] font-semibold tracking-[-0.03em] ${active ? "text-white" : "text-white/70"} ${focus}`}>{l.label}</Link>
+                  <Link href={l.href} tabIndex={open ? undefined : -1} aria-current={active ? "page" : undefined} className={`flex min-h-[64px] items-center border-b border-white/10 font-copy text-[1.75rem] font-semibold tracking-[-0.03em] ${active ? "text-white" : "text-white/70"} ${focus}`}>{l.label}</Link>
                 </li>
               );
             })}

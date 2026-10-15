@@ -37,7 +37,7 @@ export function ProjectsList({ projects }: { projects: ReadonlyArray<ProjectCase
                   {facts.map(([k, v]) => (
                     <div key={k} className="flex flex-col-reverse gap-u1">
                       <dt className="t-eyebrow">{k}</dt>
-                      <dd className="m-0 font-heading text-lg font-bold text-stbs-ink tabular-nums">{v}</dd>
+                      <dd className="m-0 font-brand text-lg font-bold text-stbs-ink tabular-nums">{v}</dd>
                     </div>
                   ))}
                 </dl>

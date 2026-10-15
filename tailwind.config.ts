@@ -21,7 +21,7 @@ export default {
         stbs: {
           ink: "var(--ink)", body: "var(--body)", muted: "var(--muted)", hairline: "var(--hairline)",
           "hairline-strong": "var(--hairline-strong)", surface: "var(--surface)", "surface-alt": "var(--surface-alt)",
-          "brand-deep": "var(--brand-deep)", "brand-mid": "var(--brand-mid)", accent: "var(--accent)", verified: "var(--verified)",
+          "brand-deep": "var(--brand-deep)", "brand-mid": "var(--brand-mid)", "bronze-light": "var(--bronze-light)", accent: "var(--accent)", verified: "var(--verified)",
           "ink-on-dark": "var(--ink-on-dark)", "muted-on-dark": "var(--muted-on-dark)", "hairline-on-dark": "var(--hairline-on-dark)",
         },
 
@@ -65,6 +65,10 @@ export default {
         heading: ["var(--font-heading)", "Archivo", "system-ui", "sans-serif"],
         body: ["var(--font-body)", "Inter", "system-ui", "sans-serif"],
         display: ["Noto Sans", "system-ui", "sans-serif"],
+        // Public site (catalogue brand)
+        brand: ["var(--font-display)", "system-ui", "sans-serif"],
+        copy: ["var(--font-text)", "system-ui", "sans-serif"],
+        accent: ["var(--font-serif)", "Georgia", "serif"],
       },
       spacing: {
         // 8px scale for the public design system: p-u2 = 16px, gap-u3 = 24px, py-u7 = 56px, ...

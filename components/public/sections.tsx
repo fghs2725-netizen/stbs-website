@@ -201,7 +201,7 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
       <div className="container-x relative z-10 flex w-full flex-1 flex-col items-center justify-center py-u10 text-center">
         <Editable target={{ kind: "section", section: target }} label="Badge" className="max-w-fit">
           <p className="inline-flex items-center gap-u1 rounded-full border border-white/20 bg-white/10 px-u2 py-[7px] text-[0.9375rem] font-medium text-white backdrop-blur-md animate-[fadeSlideUp_0.9s_cubic-bezier(0.28,0.11,0.32,1)_0.15s_both]">
-            <BadgeCheck size={16} strokeWidth={1.75} className="text-[#5bd18a]" aria-hidden />{eyebrow}
+            <BadgeCheck size={16} strokeWidth={1.75} className="text-[#D2A65A]" aria-hidden />{eyebrow}
           </p>
         </Editable>
         <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
@@ -222,7 +222,7 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
               <CtaLink href={secondaryCtaUrl} className="btn btn-secondary-dark"><Download size={18} strokeWidth={1.75} aria-hidden />{secondaryCtaText}</CtaLink>
             </Editable>
           ) : (
-            <CtaLink href="/services" className="link-arrow inline-flex min-h-[44px] items-center !text-[#2997ff]">Explore our services</CtaLink>
+            <CtaLink href="/services" className="link-arrow inline-flex min-h-[44px] items-center !text-stbs-bronze-light">Explore our services</CtaLink>
           )}
         </div>
       </div>
@@ -388,7 +388,7 @@ export function ServicesSection({ owner, content, data }: { owner?: RenderableSe
                       <div className={`relative p-u3 ${photo ? "text-white" : ""}`}>
                         <h3 className={`font-semibold tracking-[-0.03em] ${feature ? "text-[2rem] leading-[1.08]" : "text-[1.5rem] leading-[1.15]"} ${photo ? "!text-white" : "text-stbs-ink"}`}>{s.title}</h3>
                         {page?.summary && <p className={`mt-u1 max-w-[30rem] text-[0.9375rem] leading-[1.5] ${photo ? "text-white/75" : "text-stbs-muted"}`}>{page.summary}</p>}
-                        <span className={`mt-u2 inline-flex items-center gap-1 text-[0.9375rem] font-medium ${photo ? "text-[#2997ff]" : "text-stbs-brand-mid"}`}>
+                        <span className={`mt-u2 inline-flex items-center gap-1 text-[0.9375rem] font-medium ${photo ? "text-stbs-bronze-light" : "text-stbs-brand-mid"}`}>
                           Learn more
                           <span aria-hidden className="text-[1.3em] leading-none transition-transform duration-300 ease-[cubic-bezier(0.28,0.11,0.32,1)] group-hover:translate-x-1">&#8250;</span>
                         </span>
@@ -540,7 +540,7 @@ function TextImageSection({ owner, content }: { owner?: RenderableSection; conte
       </Editable>
       {badgeText && (
         <p className="mt-u2 flex items-baseline gap-u1">
-          <span className="font-heading text-2xl font-bold tabular-nums text-stbs-ink">{badgeText}</span>
+          <span className="font-brand text-2xl font-bold tabular-nums text-stbs-ink">{badgeText}</span>
           {badgeSubtext && <span className="t-eyebrow">{badgeSubtext}</span>}
         </p>
       )}
@@ -619,7 +619,7 @@ function FounderSection({ owner, content, data }: { owner?: RenderableSection; c
           <Editable target={{ kind: "section-field", section: target, fieldKey: "photo" }} label="Edit Image" className="block">
             <PagePhoto src={photo} alt={`${name}, ${title}`} sizes="(max-width:1024px) 100vw, 40vw" position="top" />
           </Editable>
-          <p className="mt-u2 font-heading text-lg font-bold text-stbs-ink">{name}</p>
+          <p className="mt-u2 font-brand text-lg font-bold text-stbs-ink">{name}</p>
           <p className="t-eyebrow mt-u1">{title}</p>
         </Reveal>
         <Reveal delay={0.1}>
@@ -712,7 +712,7 @@ function ExperienceCultureSection({ owner, content }: { owner?: RenderableSectio
           </Editable>
           {badgeText && (
             <p className="mt-u2 flex items-baseline gap-u1">
-              <span className="font-heading text-2xl font-bold tabular-nums text-stbs-ink">{badgeText}</span>
+              <span className="font-brand text-2xl font-bold tabular-nums text-stbs-ink">{badgeText}</span>
               {badgeSubtext && <span className="t-eyebrow">{badgeSubtext}</span>}
             </p>
           )}
@@ -999,7 +999,7 @@ function QuoteIntroSection({ owner, content }: { owner?: RenderableSection; cont
           <ol className="border-b border-stbs-hairline">
             {displaySteps.map((step, i) => (
               <li key={i} className="rule flex items-baseline gap-u3 py-u2">
-                <span className="font-heading text-lg font-bold tabular-nums text-stbs-brand-mid">0{i + 1}</span>
+                <span className="font-brand text-lg font-bold tabular-nums text-stbs-brand-mid">0{i + 1}</span>
                 <span className="t-body">{step}</span>
               </li>
             ))}
