@@ -48,3 +48,21 @@ export function buildLocalBusiness() {
   }
   return data;
 }
+
+/** FAQPage structured data built from the exact visible FAQ text. */
+export function faqJsonLd(items: Array<[string, string]>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
+  };
+}
+
+/** BreadcrumbList for an inner page: Home first, then each step as { name, path }. */
+export function breadcrumbJsonLd(steps: Array<{ name: string; path: string }>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [{ name: "Home", path: "/" }, ...steps].map((s, i) => ({ "@type": "ListItem", position: i + 1, name: s.name, item: absolutePath(s.path) })),
+  };
+}

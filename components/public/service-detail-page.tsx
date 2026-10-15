@@ -5,15 +5,7 @@ import { PageHero } from "@/components/page-hero";
 import { CtaSection } from "@/components/public/sections";
 import { Faq, ProcessSteps } from "@/components/public/site-additions";
 import { SERVICE_FAQS } from "@/lib/website/service-faqs";
-
-/** FAQPage structured data built from the exact visible FAQ text. */
-function faqJsonLd(items: Array<[string, string]>) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: items.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
-  };
-}
+import { breadcrumbJsonLd, faqJsonLd } from "@/lib/website/structured-data";
 
 /**
  * `image` is illustrative site photography, not a record of a specific job, so it carries no
@@ -105,6 +97,7 @@ export function ServiceDetailPage({ slug, eyebrow, title, intro, icon: Icon, bul
 
       {process && <ProcessSteps />}
       {faqs.length > 0 && <Faq items={faqs} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd([{ name: "Services", path: "/services" }, { name: eyebrow, path: `/${slug}` }])) }} />
       {faqs.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(faqs)) }} />}
       <CtaSection content={{}} />
     </>
