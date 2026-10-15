@@ -32,10 +32,10 @@ export const ABOUT_SECTIONS: DefaultSection[] = [
       eyebrow: "34 years in the field",
       heading: "Know the ground.",
       headingLine2: "Respect the work.",
-      body: "Our experience spans rainwater harvesting, borewells from 100 mm to 400 mm, quality borewell material supply and complete tubewell construction.",
+      body: "Our experience spans rainwater harvesting, borewells from 150 mm to 300 mm, water testing up to 800 m, quality borewell material supply and complete tubewell construction.",
       body2: "We focus on quality materials at reasonable rates, timely work and follow-up support to ensure supplied equipment runs efficiently and is serviced on time.",
-      image: "/site_pic.jpeg",
-      imageAlt: "Worker in a ringed concrete pit guiding a pipe above a gravel bed",
+      image: "/founder/rajesh-saini-pump-commissioning.webp",
+      imageAlt: "Rajesh Saini with a hand on the pressure gauge of a newly commissioned borewell as water discharges at an industrial site",
       layout: "right-image",
       badgeText: "1992",
       badgeSubtext: "Established",
@@ -64,7 +64,7 @@ export const ABOUT_SECTIONS: DefaultSection[] = [
       items: [
         { title: "34+ Years", subtitle: "Field experience", description: "34 years of hands-on expertise in water infrastructure." },
         { title: "1200+ Projects", subtitle: "Completed work", description: "Proven track record across residential and industrial sites." },
-        { title: "20+ Clients", subtitle: "Named clients", description: "Industrial, commercial and institutional sites across Haryana." },
+        { title: "22+ Clients", subtitle: "Named clients", description: "Industry, education, real estate and healthcare across Haryana and NCR." },
       ],
     },
   },
@@ -90,8 +90,8 @@ export const ABOUT_SECTIONS: DefaultSection[] = [
     content: {
       heading: "34 years",
       headingLine2: "of expertise.",
-      image: "/Site_pic_2.jpeg",
-      imageAlt: "Crew lowering precast concrete rings into a trench beside a drilling rig",
+      image: "/services/borewell-rig-factory-site.webp",
+      imageAlt: "Crew handling drill pipe beside a truck-mounted drilling rig at a factory under construction",
       badgeText: "1992",
       badgeSubtext: "Established",
       sections: [
@@ -101,7 +101,7 @@ export const ABOUT_SECTIONS: DefaultSection[] = [
         },
         {
           title: "Our Experience",
-          body: "From rainwater harvesting systems to deep borewell drilling, we've completed over 1200 projects. Our experience spans 100mm to 400mm borewells, complete tubewell construction, and modern recharge systems built for challenging local conditions.",
+          body: "From rainwater harvesting systems to deep borewell drilling, we've completed over 1200 projects. Our experience spans 150 mm to 300 mm borewells, complete tubewell construction, and modern recharge systems built for challenging local conditions.",
         },
       ],
       values: [

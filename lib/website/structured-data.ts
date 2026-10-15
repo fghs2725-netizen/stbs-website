@@ -31,7 +31,7 @@ export function buildLocalBusiness() {
         .map((name) => ({ "@type": "City", name })),
       { "@type": "AdministrativeArea", name: "Delhi NCR" },
     ],
-    serviceType: ["Borewell drilling", "Tubewell construction", "Rainwater harvesting", "Borewell material supply"],
+    serviceType: ["Water testing", "Borewell drilling", "Tubewell construction", "Rainwater harvesting", "Borewell material supply"],
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "Services",

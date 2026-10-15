@@ -55,7 +55,7 @@ export const CLASSIC_CONTENT: TemplateContent = {
   preparedBy: {
     company: "SAINI TUBEWELL BORING SERVICE",
     contact: "Rajesh Saini · Managing Director",
-    phones: "9812003001 / 7988024114",
+    phones: "9812003001 / 8708128632 / 7988814808",
     email: "stbs2025@gmail.com",
   },
   letter: {

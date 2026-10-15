@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FilmBand } from "@/components/public/film-band";
 import { ProjectsList } from "@/components/public/projects-list";
 import { pageMetadata } from "@/lib/page-metadata";
 import { SEO } from "@/lib/website/seo-copy";
@@ -28,7 +29,12 @@ export default async function ProjectsPage() {
           <p className="t-body measure mt-u3">
             Rainwater harvesting and groundwater recharge work for industrial, institutional and commercial sites in Sonipat and Kundli, Haryana.
           </p>
-          <div className="mt-u6 lg:mt-u8">
+          </div>
+      </section>
+      <FilmBand scene="projects" />
+      <section className="pb-u7">
+        <div className="container-x">
+          <div>
             <ProjectsList projects={projects} />
           </div>
           <p className="mt-u4 text-sm text-stbs-muted measure">Scope is shown as ordered by the client; figures come from the work order or purchase order.</p>

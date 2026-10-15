@@ -18,9 +18,7 @@ export const DEFAULT_NAV_LINKS: NavLink[] = [
 ];
 
 /** Live pages that are not in the navbar but stay reachable from the footer. */
-export const FOOTER_ONLY_LINKS: NavLink[] = [
-  { label: "Gallery", href: "/gallery" },
-];
+export const FOOTER_ONLY_LINKS: NavLink[] = [];
 
 /**
  * About is always in the navbar, even when published CMS nav rows predate it,
@@ -34,12 +32,13 @@ export function ensureAboutLink(links: NavLink[]): NavLink[] {
 }
 
 /** The four service pages all belong to the "Services" nav item. */
-const SERVICE_PATHS = ["/services", "/borewell-drilling", "/rainwater-harvesting", "/borewell-material-supply", "/tubewell-construction"];
+const SERVICE_PATHS = ["/services", "/water-testing", "/borewell-drilling", "/rainwater-harvesting", "/borewell-material-supply", "/tubewell-construction"];
 
 /** Never render admin links or the quote page (that is the CTA button) as nav items. */
 export function isPublicNavLink(l: NavLink): boolean {
   const label = l.label.trim().toLowerCase();
-  return l.href.startsWith("/") && !l.href.startsWith("/admin") && !l.href.startsWith("/quote") && label !== "admin" && !label.includes("quote") && !label.includes("proposal");
+  // Gallery stays out of the navigation until it has published photos (it is still reachable at /gallery).
+  return l.href.startsWith("/") && !l.href.startsWith("/admin") && !l.href.startsWith("/quote") && !l.href.startsWith("/gallery") && label !== "admin" && !label.includes("quote") && !label.includes("proposal");
 }
 
 export function isActiveNavLink(href: string, pathname: string): boolean {

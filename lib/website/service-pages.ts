@@ -4,7 +4,7 @@
  * and a CMS service with an unknown slug degrades to /services instead of a 404.
  * Routes are unchanged from the live site.
  */
-export type ServiceIconKey = "drill" | "rain" | "supply" | "tubewell";
+export type ServiceIconKey = "testing" | "drill" | "rain" | "supply" | "tubewell";
 
 export interface ServicePage {
   slug: string;
@@ -19,6 +19,7 @@ export interface ServicePage {
 }
 
 export const SERVICE_PAGES: ReadonlyArray<ServicePage> = [
+  { slug: "water-testing", href: "/water-testing", title: "Water Testing", fullTitle: "Water Testing (up to 800 m)", summary: "Ground survey up to 800 m before drilling; yield and water-quality tests after.", icon: "testing" },
   { slug: "borewell-drilling", href: "/borewell-drilling", title: "Borewell Drilling", fullTitle: "Borewell Drilling", summary: "Precision drilling planned around access, ground conditions and water requirements.", icon: "drill" },
   { slug: "rainwater-harvesting", href: "/rainwater-harvesting", title: "Rainwater Harvesting", fullTitle: "Rainwater Harvesting", summary: "Practical recharge systems for responsible rainwater management.", icon: "rain" },
   { slug: "borewell-material-supply", href: "/borewell-material-supply", title: "Material Supply", fullTitle: "Borewell Material Supply", summary: "Borewell components selected around durability and fit for the installation.", icon: "supply" },

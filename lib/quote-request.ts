@@ -6,6 +6,7 @@ import { company } from "@/lib/company";
  * the rules a visitor sees inline are exactly the rules the server enforces.
  */
 export const SERVICE_CHOICES = [
+  "Water Testing",
   "Borewell Drilling",
   "Rainwater Harvesting",
   "Borewell Material Supply",

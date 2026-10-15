@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Pencil } from "lucide-react";
 import type { CmsSettings } from "@/components/public/sections";
-import { businessInfo } from "@/lib/company";
+import { businessInfo, company } from "@/lib/company";
 import { formatIndianPhone, telHref } from "@/lib/phone";
 import { useWebsiteEditor } from "@/lib/website/editor-context";
 import { DEFAULT_NAV_LINKS, ensureAboutLink, FOOTER_ONLY_LINKS, isPublicNavLink } from "@/lib/website/nav-defaults";
@@ -19,7 +19,11 @@ const LINK = "flex min-h-[44px] items-center text-stbs-muted-on-dark transition-
  * performance budget (the contact page carries the actual embed).
  */
 export function SiteFooter({ settings, navLinks }: { settings?: FooterSettings | null; navLinks?: Array<{ label: string; href: string }> }) {
-  const phones = [settings?.phone, settings?.phone2].filter((p): p is string => Boolean(p));
+  // The settings row holds two numbers; the third comes from lib/company.ts. Same number twice is shown once.
+  const digits = (p?: string | null) => (p ?? "").replace(/\D/g, "").slice(-10);
+  const phones = [settings?.phone, settings?.phone2, ...company.phones]
+    .filter((p, i, all): p is string => Boolean(p) && all.findIndex((q) => digits(q) === digits(p)) === i)
+    .slice(0, 3);
   const email = settings?.email ?? "";
   const name = settings?.businessName ?? "";
   const tagline = settings?.shortDescription ?? "";
@@ -119,7 +123,6 @@ export function SiteFooter({ settings, navLinks }: { settings?: FooterSettings |
           <ul className="flex flex-wrap gap-x-u3">
             <li><Link className={LINK} href="/privacy">Privacy Policy</Link></li>
             <li><Link className={LINK} href="/terms">Terms of Service</Link></li>
-            <li><Link className={LINK} href="/admin">Admin</Link></li>
           </ul>
         </div>
       </div>

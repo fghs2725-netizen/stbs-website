@@ -18,8 +18,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Contact() {
   const cmsPage = await getPublishedPage(SLUG);
   if (cmsPage && cmsPage.sections.length > 0) {
-    return <PageRenderer sections={cmsPage.sections.map((s) => ({ type: s.type, content: s.content as Record<string, unknown> }))} />;
+    return <PageRenderer films={[{ afterType: "page_hero", scene: "map" }]} sections={cmsPage.sections.map((s) => ({ type: s.type, content: s.content as Record<string, unknown> }))} />;
   }
   // Same section renderers as the CMS, fed the built-in defaults.
-  return <PageRenderer sections={CONTACT_SECTIONS} />;
+  return <PageRenderer films={[{ afterType: "page_hero", scene: "map" }]} sections={CONTACT_SECTIONS} />;
 }

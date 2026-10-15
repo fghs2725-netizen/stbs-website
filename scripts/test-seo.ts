@@ -18,12 +18,12 @@ check("it is valid JSON-LD with the LocalBusiness type and an @id", () => {
   assert.equal(ld["@type"], "HomeAndConstructionBusiness");
   assert.match(String(ld["@id"]), /#business$/);
 });
-check("both phone numbers are in E.164 form", () => assert.deepEqual(ld.telephone, ["+919812003001", "+917988024114"]));
+check("all phone numbers are in E.164 form", () => assert.deepEqual(ld.telephone, ["+919812003001", "+918708128632", "+917988814808"]));
 check("founding year is 1992", () => assert.equal(ld.foundingDate, "1992"));
-check("all four services are listed as serviceType and as offers with absolute URLs", () => {
-  assert.equal((ld.serviceType as string[]).length, 4);
+check("all five services are listed as serviceType and as offers with absolute URLs", () => {
+  assert.equal((ld.serviceType as string[]).length, 5);
   const offers = (ld.hasOfferCatalog as { itemListElement: Array<{ itemOffered: { url: string } }> }).itemListElement;
-  assert.equal(offers.length, 4);
+  assert.equal(offers.length, 5);
   for (const o of offers) assert.match(o.itemOffered.url, /^https:\/\/www\.stbs\.in\/[a-z-]+$/);
 });
 check("areas served include Haryana, each named place and Delhi NCR (Gurugram from the owner's list)", () => {

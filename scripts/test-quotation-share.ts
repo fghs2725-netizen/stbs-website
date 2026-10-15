@@ -9,7 +9,7 @@ function check(label: string, fn: () => void) { fn(); passed++; console.log(`  o
 const subject: ShareSubject = {
   reference: "STBS/2026/084", clientName: "Acme Industries Pvt Ltd", contact: "Mr. Sharma", phone: "98120 03001", email: "purchase@acme.example",
   service: "Borewell Construction", total: 123456, validity: "15 days from date of submission",
-  company: "Saini Tubewell Boring Service", signatory: "Rajesh Saini", signatoryTitle: "Managing Director", phones: "9812003001 / 7988024114",
+  company: "Saini Tubewell Boring Service", signatory: "Rajesh Saini", signatoryTitle: "Managing Director", phones: "9812003001 / 8708128632 / 7988814808",
 };
 
 /* ---------- the phone number ---------- */
@@ -58,7 +58,7 @@ check("the message greets the contact, names the quotation and service, and stat
   assert.match(m, /quotation STBS\/2026\/084 for Borewell Construction\./);
   assert.match(m, /Total: ₹1,23,456\.00/);
   assert.match(m, /Valid: 15 days from date of submission/);
-  assert.match(m, /Regards,\nRajesh Saini, Managing Director\nSaini Tubewell Boring Service\n9812003001 \/ 7988024114$/);
+  assert.match(m, /Regards,\nRajesh Saini, Managing Director\nSaini Tubewell Boring Service\n9812003001 \/ 8708128632 \/ 7988814808$/);
 });
 check("it falls back to the company name, then a neutral greeting, when there is no contact person", () => {
   assert.match(buildShareMessage({ ...subject, contact: undefined }), /^Dear Acme Industries Pvt Ltd,/);

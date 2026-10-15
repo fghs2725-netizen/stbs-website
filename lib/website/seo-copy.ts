@@ -21,9 +21,13 @@ export const SEO = {
     title: "Borewell, Tubewell & Rainwater Services | Saini Tubewell",
     description: "Borewell drilling, tubewell construction, rainwater harvesting and material supply in Sonipat, Panipat, Kundli, Rohtak and Delhi NCR. Site assessment first.",
   },
+  "water-testing": {
+    title: "Water Testing & Groundwater Survey in Sonipat | Saini Tubewell",
+    description: "Groundwater survey up to 800 m before drilling, plus yield and water-quality testing after, for sites in Sonipat, Panipat, Kundli, Rohtak and Delhi NCR.",
+  },
   "borewell-drilling": {
     title: "Borewell Drilling in Sonipat & Panipat | Saini Tubewell",
-    description: "Borewell drilling from 100 to 400 mm for industrial, commercial and residential sites in Sonipat, Panipat, Kundli and Rohtak, with casing and aquifer isolation.",
+    description: "Borewell drilling, 150–300 mm, with our own rotary rigs after a ground survey up to 800 m. Industrial and commercial sites in Sonipat, Panipat, Kundli, Rohtak.",
   },
   "rainwater-harvesting": {
     title: "Rainwater Harvesting in Sonipat & Kundli | Saini Tubewell",

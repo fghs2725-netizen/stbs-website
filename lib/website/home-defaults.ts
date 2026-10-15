@@ -8,15 +8,16 @@ export const HOME_HERO = {
   eyebrow: "Trusted since 1992",
   heading: "Water infrastructure for industrial & commercial sites",
   headingLine2: "",
-  supportingText: "Borewell drilling, tubewell construction and rainwater recharge across Haryana & NCR.",
+  supportingText: "Water testing, borewell drilling, tubewell construction, material supply and rainwater recharge across Haryana & NCR.",
   primaryCtaText: "Get a site assessment",
   primaryCtaUrl: "/quote",
   // No company profile PDF exists yet (owner, 2026-09-19), so there is no secondary button.
   // To add one later: upload public/docs/stbs-company-profile.pdf and set these two fields in Website -> Home -> Hero.
   secondaryCtaText: "",
   secondaryCtaUrl: "",
-  heroImage: "/hero/stbs-drilling-rig-site.webp",
-  heroImageAlt: "STBS borewell drilling rig on an industrial site, with two crew members in safety gear beside stacked casing pipes",
+  heroImage: "/hero/stbs-water-outlets-wide.webp",
+  mobileImage: "/hero/stbs-water-outlets.webp",
+  heroImageAlt: "Water gushing from a row of green industrial outlet pipes into a channel at dusk",
 } as const;
 
 /**
@@ -27,7 +28,7 @@ export const HOME_HERO = {
 export const HOME_STATS = [
   { value: "34+", label: "Years in operation" },
   { value: "1200+", label: "Projects completed" },
-  { value: "20+", label: "Industrial, commercial & institutional clients" },
+  { value: "22+", label: "Industrial, commercial & institutional clients" },
   { value: "Haryana & NCR", label: "Service area" },
 ] as const;
 

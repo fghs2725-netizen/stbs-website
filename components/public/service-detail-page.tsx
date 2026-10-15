@@ -4,6 +4,8 @@ import { Check } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
 import { CtaSection } from "@/components/public/sections";
 import { Faq, ProcessSteps } from "@/components/public/site-additions";
+import { FilmBand } from "@/components/public/film-band";
+import type { FilmSceneId } from "@/lib/website/film-scenes";
 
 /* FAQ answers are intentionally generic until the business owner confirms
    exact depth ranges, turnaround commitments, licensing scope and warranty
@@ -29,11 +31,12 @@ function faqJsonLd(items: Array<[string, string]>) {
  * `image` is illustrative site photography, not a record of a specific job, so it carries no
  * caption tying it to a client or project. Pass `imageAlt` describing only what is visible.
  */
-export function ServiceDetailPage({ eyebrow, title, intro, icon: Icon, bullets, specs, process, segments, image, imageAlt }: { eyebrow: string; title: string; intro: string; icon: LucideIcon; bullets: string[]; specs?: string[]; process?: boolean; segments?: string[]; image?: string; imageAlt?: string }) {
+export function ServiceDetailPage({ eyebrow, title, intro, icon: Icon, bullets, specs, process, segments, image, imageAlt, films, specsTitle = "Planning specifications" }: { eyebrow: string; title: string; intro: string; icon: LucideIcon; bullets: string[]; specs?: string[]; process?: boolean; segments?: string[]; image?: string; imageAlt?: string; films?: FilmSceneId[]; specsTitle?: string }) {
   const hasAside = Boolean(specs?.length || segments?.length);
   return (
     <>
       <PageHero eyebrow={eyebrow} title={title} text={intro} />
+      {films?.map((f) => <FilmBand key={f} scene={f} />)}
 
       <section className="theme-public section-y">
         <div className={`container-x grid gap-u6 ${hasAside ? "lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-u8" : ""}`}>
@@ -54,7 +57,7 @@ export function ServiceDetailPage({ eyebrow, title, intro, icon: Icon, bullets, 
             <aside className="grid content-start gap-u2">
               {specs && specs.length > 0 && (
                 <div className="tile p-u3">
-                  <p className="t-eyebrow">Planning specifications</p>
+                  <p className="t-eyebrow">{specsTitle}</p>
                   <ul className="mt-u2 space-y-u1">
                     {specs.map((x) => (
                       <li key={x} className="font-medium tabular-nums text-stbs-ink">{x}</li>

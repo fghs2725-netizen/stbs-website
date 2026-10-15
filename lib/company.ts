@@ -7,7 +7,7 @@ export const company = {
   tagline: "Drilling deep. Building trust.",
   description: "Professional borewell and tubewell solutions engineered for dependable water access, responsible recharge and long-term performance.",
   managingDirector: "Rajesh Saini",
-  phones: ["9812003001", "7988024114"],
+  phones: ["9812003001", "8708128632", "7988814808"],
   email: "stbs2025@gmail.com",
   mission: "To provide customers with products and services that achieve and sustain the highest possible quality standards.",
   vision: "Excel in what we do and build a safe and secure environment for our community.",

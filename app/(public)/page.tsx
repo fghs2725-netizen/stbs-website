@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Home() {
   const cmsPage = await getPublishedPage(SLUG);
   if (cmsPage && cmsPage.sections.length > 0) {
-    return <PageRenderer sections={cmsPage.sections.map((s) => ({ type: s.type, content: s.content as Record<string, unknown> }))} />;
+    return <PageRenderer films={[{ afterType: "hero", scene: "hook" }, { afterType: "case_studies", scene: "clients" }]} sections={cmsPage.sections.map((s) => ({ type: s.type, content: s.content as Record<string, unknown> }))} />;
   }
   return <HomePage />;
 }

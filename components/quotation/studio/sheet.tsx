@@ -82,7 +82,7 @@ export function Sheet({ s, clients, units, onCreateUnit, onPreview }: {
           <span className="qs-eyebrow">Prepared by</span>
           <strong>SAINI TUBEWELL BORING SERVICE</strong>
           <span>Rajesh Saini · Managing Director</span>
-          <span>9812003001 / 7988024114</span>
+          <span>9812003001 / 8708128632 / 7988814808</span>
           <span>stbs2025@gmail.com</span>
         </div>
       </div>

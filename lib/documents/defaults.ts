@@ -13,7 +13,7 @@ export const DEFAULT_COMPANY: CompanySettingsData = {
   logoUrl: "/logo.png",
   bannerUrl: "/quotation/banner/stbs-premium-banner.png",
   phone1: "9812003001",
-  phone2: "7988024114",
+  phone2: "8708128632",
   email: "stbs2025@gmail.com",
   website: "https://stbs.in",
   addressLine1: "Sonipat, Haryana",

@@ -180,7 +180,7 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
   const secondaryCtaText = str(content, "secondaryCtaText", HOME_HERO.secondaryCtaText);
   const secondaryCtaUrl = str(content, "secondaryCtaUrl", HOME_HERO.secondaryCtaUrl);
   const heroImage = str(content, "heroImage", HOME_HERO.heroImage);
-  const mobileImage = str(content, "mobileImage");
+  const mobileImage = str(content, "mobileImage", "mobileImage" in content ? "" : HOME_HERO.mobileImage);
   const heroImageAlt = str(content, "heroImageAlt", HOME_HERO.heroImageAlt);
   const target = asSection(owner);
 
@@ -331,10 +331,11 @@ function ProcessSection({ owner, content }: { owner?: RenderableSection; content
 
 /** Home-page photography for each service card. Falls back to the icon tile when a slug has no photo. */
 const SERVICE_CARD_IMAGES: Record<string, { src: string; alt: string }> = {
-  "borewell-drilling": { src: "/services/borewell-drilling-rods.webp", alt: "Two workers threading a drill rod into the borehole at a rig" },
+  "water-testing": { src: "/services/water-testing-survey.webp", alt: "A surveyor with a resistivity meter and electrodes laid along a field, explaining the survey to a farmer" },
+  "borewell-drilling": { src: "/services/borewell-rig-factory-site.webp", alt: "Crew handling drill pipe beside a truck-mounted drilling rig at a factory under construction" },
   "rainwater-harvesting": { src: "/services/rainwater-harvesting-recharge.webp", alt: "Precast concrete rings beside an excavated recharge pit at a commercial site" },
-  "tubewell-construction": { src: "/services/tubewell-yield-discharge.webp", alt: "Water discharging from a commissioned tubewell outlet into a drainage channel" },
-  "borewell-material-supply": { src: "/services/borewell-material-supply-yard.webp", alt: "Casing pipes, cable drums and submersible pump motors stacked in a supply yard" },
+  "tubewell-construction": { src: "/services/tubewell-rig-pipes.webp", alt: "A worker carrying white uPVC casing pipe past a drilling rig at an industrial site" },
+  "borewell-material-supply": { src: "/services/material-supply-yard-stock.webp", alt: "uPVC and steel casing pipes, a submersible cable drum and a row of submersible pumps in a supply yard" },
 };
 
 export function ServicesSection({ owner, content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data: SectionData }) {

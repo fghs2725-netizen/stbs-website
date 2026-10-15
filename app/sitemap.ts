@@ -4,7 +4,7 @@ import { canonicalSiteUrl } from "@/lib/site-url";
 
 export const revalidate = 86400;
 
-const ROUTES = ["", "/about", "/services", "/borewell-drilling", "/rainwater-harvesting", "/borewell-material-supply", "/tubewell-construction", "/projects", "/clients", "/gallery", "/contact", "/quote"];
+const ROUTES = ["", "/about", "/services", "/water-testing", "/borewell-drilling", "/rainwater-harvesting", "/borewell-material-supply", "/tubewell-construction", "/projects", "/clients", "/contact", "/quote"];
 
 // lastmod is the last time a page's live content was published. Code-only pages carry none rather than
 // claiming "now" on every request, which teaches Google to ignore the dates altogether.
