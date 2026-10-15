@@ -239,5 +239,8 @@ html.lenis, html.lenis body { height: auto; }
 .film-band--bleed .film-band__frame { max-width: none; border-radius: 0; box-shadow: none; }
 .film-band--bleed .film-band__frame.is-portrait { max-width: none; max-height: 88svh; }
 .film-band__replay { position: absolute; right: 14px; bottom: 14px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(210, 166, 90, 0.45); background: rgba(19, 24, 25, 0.78); color: var(--ink-on-dark); font: 700 13px/1 var(--font-text), Inter, system-ui, sans-serif; cursor: pointer; backdrop-filter: blur(6px); }
+.film-band__play { position: absolute; left: 50%; bottom: clamp(16px, 4%, 32px); transform: translateX(-50%); display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 22px 0 18px; border-radius: 999px; border: 1px solid rgba(210, 166, 90, 0.6); background: rgba(19, 24, 25, 0.72); color: var(--ink-on-dark); font: 700 15px/1 var(--font-text), system-ui, sans-serif; cursor: pointer; backdrop-filter: blur(8px); transition: background-color .25s ease; }
+.film-band__play:hover { background: rgba(19, 24, 25, 0.9); }
+.film-band__play:focus-visible { outline: 2px solid var(--bronze-light); outline-offset: 4px; }
 .film-band__replay:hover { background: rgba(19, 24, 25, 0.92); }
 .film-band__replay:focus-visible { outline: 2px solid var(--bronze-light); outline-offset: 3px; }
