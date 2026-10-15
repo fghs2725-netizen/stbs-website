@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ReceiptText, Search, SlidersHorizontal } from "lucide-react";
 import { auth } from "@/auth";
 import { getInvoiceConfig, listInvoices, type InvoiceSort } from "@/lib/invoice-management";
+import { getInvoiceAnalytics, type InvoiceAnalytics } from "@/lib/invoice-analytics";
 import { InvoicePdfActions } from "@/components/invoice/share/InvoicePdfActions";
 import { shareSubjectFromInvoice } from "@/components/invoice/share/invoice-share";
 import { formatINR, overdueBy, type InvoiceStatus } from "@/components/invoice/invoice-model";
@@ -10,7 +11,10 @@ import { formatInvoiceNumber } from "@/lib/invoice-numbering";
 import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { EmptyState, FloatingAction, Pill } from "@/components/admin/shell/ui";
+import { InvoiceSummaryStrip } from "@/components/invoice/analytics/InvoiceAnalyticsView";
 import { Button } from "@/components/ui/button";
+import { ConfirmSubmit } from "@/components/admin/ConfirmSubmit";
+import { purgeInvoiceAction, restoreInvoiceAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +32,7 @@ const STATUSES = [
   { key: "PARTLY_PAID", label: "Part paid" },
   { key: "PAID", label: "Paid" },
   { key: "CANCELLED", label: "Cancelled" },
+  { key: "DELETED", label: "Deleted" },
 ];
 const LABEL: Record<InvoiceStatus, string> = {
   DRAFT: "Draft", ISSUED: "Issued", PARTLY_PAID: "Part paid", PAID: "Paid", CANCELLED: "Cancelled",
@@ -69,6 +74,15 @@ export default async function InvoicesPage({
     error = "Invoice history is unavailable.";
   }
 
+  // The strip above the list is a convenience: if it fails, the list still loads.
+  let stats: InvoiceAnalytics | null = null;
+  try {
+    stats = await getInvoiceAnalytics();
+  } catch {
+    stats = null;
+  }
+  const inDeleted = statusFilter === "DELETED";
+
   const outOfRange = !error && total > 0 && pageNumber > totalPages;
   const filtered = Boolean(query || from || to || statusFilter !== "ALL");
   const baseParams = {
@@ -92,11 +106,14 @@ export default async function InvoicesPage({
         description="Raise, issue and track payment on tax invoices."
         action={
           <span className="hidden items-center gap-2 lg:flex">
+            <Link href="/admin/invoices/analytics" className="a-btn">Analytics</Link>
             <Link href="/admin/invoices/settings" className="a-btn">Settings</Link>
             <Link href="/admin/invoices/new" className="a-btn a-btn-primary">New invoice</Link>
           </span>
         }
       />
+
+      {stats && <InvoiceSummaryStrip stats={stats} />}
 
       <div className="flex flex-col gap-3">
         <form action="/admin/invoices" method="GET" role="search" className="flex gap-2">
@@ -163,9 +180,11 @@ export default async function InvoicesPage({
         ) : rows.length === 0 && !error ? (
           <EmptyState
             icon={ReceiptText}
-            title={filtered ? "No matches" : "No invoices yet"}
+            title={inDeleted ? "Nothing in Deleted" : filtered ? "No matches" : "No invoices yet"}
             description={
-              filtered
+              inDeleted
+                ? "Deleted invoices appear here, ready to restore or delete for good."
+                : filtered
                 ? "No invoices match these filters."
                 : "Raise one from a quotation, or start a fresh invoice. Numbering continues from 764."
             }
@@ -209,10 +228,22 @@ export default async function InvoicesPage({
 
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Button asChild size="sm"><Link href={`/admin/invoices/${inv.id}`}>View</Link></Button>
-                    {inv.status !== "CANCELLED" && (
+                    {inDeleted && (
+                      <>
+                        <form action={restoreInvoiceAction.bind(null, inv.id!)}>
+                          <Button type="submit" variant="secondary" size="sm">Restore</Button>
+                        </form>
+                        <form action={purgeInvoiceAction.bind(null, inv.id!)}>
+                          <ConfirmSubmit variant="destructive" message="Delete this invoice permanently? Its items, payments and history are removed and this cannot be undone.">
+                            Delete permanently
+                          </ConfirmSubmit>
+                        </form>
+                      </>
+                    )}
+                    {!inDeleted && inv.status !== "CANCELLED" && (
                       <Button asChild variant="secondary" size="sm"><Link href={`/admin/invoices/${inv.id}/edit`}>Edit</Link></Button>
                     )}
-                    {inv.number && (
+                    {!inDeleted && inv.number && (
                       <InvoicePdfActions
                         id={inv.id!}
                         subject={shareSubjectFromInvoice(inv, settings, { grandTotal: inv.grandTotal, balance: inv.balance })}
