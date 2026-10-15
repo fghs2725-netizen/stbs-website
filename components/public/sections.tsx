@@ -7,7 +7,7 @@ import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain
 import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "@/lib/website/home-defaults";
 import { SERVICE_PAGES, serviceHref, servicePageFor } from "@/lib/website/service-pages";
 import { SERVICE_ICONS } from "@/components/public/service-icons";
-import { HOME_PROJECTS, resolveProjects } from "@/lib/website/projects-data";
+import { HOME_PROJECTS, resolveProjects, type ProjectCase } from "@/lib/website/projects-data";
 import { StatsStrip } from "@/components/public/stats-strip";
 import { PagePhoto } from "@/components/public/photo";
 import { formatIndianPhone, telHref } from "@/lib/phone";
@@ -73,6 +73,8 @@ export interface SectionData {
   clients?: CmsClient[] | null;
   featuredClients?: CmsClient[] | null;
   settings?: CmsSettings | null;
+  /** Live projects from Admin -> Website projects; null when they could not be read (the built-in list is used). */
+  projects?: ProjectCase[] | null;
 }
 
 /**
@@ -726,13 +728,17 @@ export function SectorsSection({ owner, content }: { owner?: RenderableSection; 
   );
 }
 
-export function CaseStudiesSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
+export function CaseStudiesSection({ owner, content, data }: { owner?: RenderableSection; content: Record<string, unknown>; data?: Pick<SectionData, "projects"> }) {
   const eyebrow = str(content, "eyebrow", HOME_PROJECTS.eyebrow);
   const heading = str(content, "heading", HOME_PROJECTS.heading);
   const ctaText = str(content, "ctaText", HOME_PROJECTS.ctaText);
   const ctaUrl = str(content, "ctaUrl", HOME_PROJECTS.ctaUrl);
-  const projects = resolveProjects(content.projects).slice(0, 3);
+  // The owner picks up to three in Admin -> Website projects; with none picked, the first three lead.
+  const all = data?.projects ?? resolveProjects(content.projects);
+  const picked = all.filter((p) => p.featured);
+  const projects = (picked.length > 0 ? picked : all).slice(0, 3);
   const target = asSection(owner);
+  if (projects.length === 0) return null;
   return (
     <section className="theme-public band-alt section-y">
       <div className="container-x">
@@ -753,6 +759,11 @@ export function CaseStudiesSection({ owner, content }: { owner?: RenderableSecti
               <Reveal delay={i * 0.06} className="h-full">
                 <Editable target={{ kind: "section", section: target }} label="Edit projects" className="block h-full">
                   <article className="flex h-full flex-col rounded-[18px] bg-[var(--card)] p-u4 shadow-[0_1px_0_rgba(19,24,25,.06)]">
+                    {p.images?.[0] && (
+                      <div className="relative -mx-u4 -mt-u4 mb-u3 aspect-[4/3] overflow-hidden rounded-t-[18px]">
+                        <Image src={p.images[0].src} alt={p.images[0].alt} fill sizes="(max-width:1024px) 100vw, 33vw" className="object-cover" />
+                      </div>
+                    )}
                     {p.sector && <span className="t-eyebrow">{p.sector}</span>}
                     <h3 className="t-h3 mt-u2">{p.title}</h3>
                     {p.summary && <p className="mt-u2 text-[1.0625rem] leading-[1.5] text-stbs-body">{p.summary}</p>}
@@ -999,7 +1010,7 @@ export function SectionRenderer({
     case "why_stbs": body = <WhyStbsSection owner={section} content={content} />; break;
     case "experience_culture": body = <ExperienceCultureSection owner={section} content={content} />; break;
     case "sectors": body = <SectorsSection owner={section} content={content} />; break;
-    case "case_studies": body = <CaseStudiesSection owner={section} content={content} />; break;
+    case "case_studies": body = <CaseStudiesSection owner={section} content={content} data={data} />; break;
     case "featured_clients": body = <FeaturedClientsSection owner={section} content={content} data={data} />; break;
     case "contact_info": body = <ContactInfoSection owner={section} content={content} data={data} />; break;
     case "map": body = <MapSection owner={section} content={content} />; break;

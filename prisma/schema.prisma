@@ -1407,3 +1407,30 @@ model Expense {
 
   @@index([date])
 }
+
+/// A project shown on the public site: the homepage "Selected projects" and /projects. Edited in
+/// Admin -> Website projects; `published` rows go live immediately, so there is no separate publish step.
+model WebsiteProject {
+  id        String    @id @default(cuid())
+  title     String
+  location  String
+  sector    String    @default("")
+  summary   String    @default("")
+  /// One scope item per line.
+  scope     String?
+  depth     String?
+  output    String?
+  year      String?
+  /// [{ "url": "...", "alt": "..." }] in display order; the first photo is the cover.
+  photos    Json      @default("[]")
+  published Boolean   @default(false)
+  /// Shown on the homepage (up to three, only while published). With none chosen, the homepage shows the first three.
+  featured  Boolean   @default(false)
+  /// Lowest first. New projects take the lowest position so they lead the list and the homepage.
+  position  Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([published, position])
+}

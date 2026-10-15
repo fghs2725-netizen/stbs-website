@@ -1,4 +1,5 @@
 import {
+  Briefcase,
   Building2,
   Database,
   FileText,
@@ -56,6 +57,7 @@ export const ADMIN_SETUP_NAV: NavItemDef[] = [
   { name: 'Quotation templates', href: '/admin/quotations/templates', icon: LayoutTemplate },
   { name: 'Quotation presets', href: '/admin/quotations/presets', icon: ListChecks },
   { name: 'Invoice settings', href: '/admin/invoices/settings', icon: SlidersHorizontal },
+  { name: 'Website projects', href: '/admin/projects', icon: Briefcase },
   { name: 'Website photos', href: '/admin/photos', icon: Images },
   { name: 'Data & files', href: '/admin/storage', icon: Database },
   { name: 'Account & password', href: '/admin/account', icon: KeyRound },

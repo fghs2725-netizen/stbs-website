@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { MapPin } from "lucide-react";
 import { scopeLines, type ProjectCase } from "@/lib/website/projects-data";
 
@@ -51,6 +52,15 @@ export function ProjectsList({ projects }: { projects: ReadonlyArray<ProjectCase
                     ))}
                   </ul>
                 </div>
+              )}
+              {p.images && p.images.length > 0 && (
+                <ul className={`mt-u4 grid gap-u1 ${p.images.length === 1 ? "" : "sm:grid-cols-2"}`}>
+                  {p.images.map((img, n) => (
+                    <li key={img.src} className={`relative overflow-hidden rounded-[14px] bg-stbs-ink/5 ${p.images!.length > 1 && n === 0 && p.images!.length % 2 === 1 ? "sm:col-span-2 aspect-[16/9]" : "aspect-[4/3]"}`}>
+                      <Image src={img.src} alt={img.alt} fill sizes="(max-width:1024px) 100vw, 40vw" className="object-cover" />
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           </li>

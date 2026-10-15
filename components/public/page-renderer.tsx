@@ -6,6 +6,7 @@ import {
   getPublishedFeaturedClients,
   getPublishedSettings,
 } from "@/lib/website/queries";
+import { getPublishedProjects } from "@/lib/website-projects";
 import {
   SectionRenderer,
   type SectionData,
@@ -23,7 +24,7 @@ export async function PageRenderer({
   sections: CmsPageSection[];
   seed?: Partial<SectionData>;
 }) {
-  const [services, testimonials, gallery, clients, featuredClients, settings] =
+  const [services, testimonials, gallery, clients, featuredClients, settings, projects] =
     await Promise.all([
       seed?.services !== undefined ? Promise.resolve(seed.services) : getPublishedServices(),
       seed?.testimonials !== undefined ? Promise.resolve(seed.testimonials) : getPublishedTestimonials(),
@@ -31,9 +32,10 @@ export async function PageRenderer({
       seed?.clients !== undefined ? Promise.resolve(seed.clients) : getPublishedClients(),
       seed?.featuredClients !== undefined ? Promise.resolve(seed.featuredClients) : getPublishedFeaturedClients(),
       seed?.settings !== undefined ? Promise.resolve(seed.settings) : getPublishedSettings(),
+      seed?.projects !== undefined ? Promise.resolve(seed.projects) : getPublishedProjects(),
     ]);
 
-  const data: SectionData = { services, testimonials, gallery, clients, featuredClients, settings };
+  const data: SectionData = { services, testimonials, gallery, clients, featuredClients, settings, projects };
 
   return (
     <>

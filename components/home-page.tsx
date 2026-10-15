@@ -1,3 +1,4 @@
+import { getPublishedProjects } from "@/lib/website-projects";
 import { CaseStudiesSection, CtaSection, HeroSection, SectorsSection, ServicesSection, StatsSection } from "@/components/public/sections";
 
 /**
@@ -6,14 +7,15 @@ import { CaseStudiesSection, CtaSection, HeroSection, SectorsSection, ServicesSe
  * order the brief specifies: hero, stats, sectors, services, projects, closing CTA.
  * (The navbar and footer come from the shared frame.)
  */
-export function HomePage() {
+export async function HomePage() {
+  const projects = await getPublishedProjects();
   return (
     <>
       <HeroSection content={{}} />
       <StatsSection content={{}} />
       <SectorsSection content={{}} />
       <ServicesSection content={{}} data={{}} />
-      <CaseStudiesSection content={{}} />
+      <CaseStudiesSection content={{}} data={{ projects }} />
       <CtaSection content={{}} />
     </>
   );
