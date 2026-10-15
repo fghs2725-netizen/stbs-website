@@ -14,7 +14,7 @@ export interface SeoEntry {
 
 export const SEO = {
   home: {
-    title: "Borewell & Tubewell Contractor in Sonipat, NCR | Saini Tubewell",
+    title: "Borewell & Tubewell Contractor, Sonipat | Saini Tubewell",
     description: "Borewell drilling, tubewell construction and rainwater harvesting for industrial and commercial sites in Sonipat, Panipat, Kundli, Rohtak and NCR since 1992.",
   },
   services: {
@@ -22,7 +22,7 @@ export const SEO = {
     description: "Borewell drilling, tubewell construction, rainwater harvesting and material supply in Sonipat, Panipat, Kundli, Rohtak and Delhi NCR. Site assessment first.",
   },
   "water-testing": {
-    title: "Water Testing & Groundwater Survey in Sonipat | Saini Tubewell",
+    title: "Water Testing & Groundwater Survey | Saini Tubewell",
     description: "Groundwater survey up to 800 m before drilling, plus yield and water-quality testing after, for sites in Sonipat, Panipat, Kundli, Rohtak and Delhi NCR.",
   },
   "borewell-drilling": {
@@ -34,11 +34,11 @@ export const SEO = {
     description: "Rainwater harvesting and groundwater recharge for industrial and institutional sites in Sonipat, Kundli and NCR: percolation boreholes, filters, recharge pits.",
   },
   "borewell-material-supply": {
-    title: "Borewell Material Supply, Sonipat & Haryana | Saini Tubewell",
+    title: "Borewell Material Supply, Haryana | Saini Tubewell",
     description: "Casing pipes, pump sets, fittings and control panels for borewell installations, supplied across Sonipat, Panipat, Kundli, Rohtak and Delhi NCR.",
   },
   "tubewell-construction": {
-    title: "Tubewell Construction in Sonipat & Haryana | Saini Tubewell",
+    title: "Tubewell Construction, Sonipat & Haryana | Saini Tubewell",
     description: "End-to-end tubewell construction for agricultural, commercial and industrial sites in Sonipat, Panipat, Rohtak and Haryana: planning to handover.",
   },
   about: {
