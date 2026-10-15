@@ -52,13 +52,18 @@ check("an address cannot smuggle extra headers into the mail link", () => {
 
 /* ---------- the message ---------- */
 
-check("the message greets the contact, names the quotation and service, and states total and validity", () => {
+check("the message greets the contact, names the quotation and service, and states validity but not the total", () => {
   const m = buildShareMessage(subject);
   assert.match(m, /^Dear Mr\. Sharma,/);
   assert.match(m, /quotation STBS\/2026\/084 for Borewell Construction\./);
-  assert.match(m, /Total: ₹1,23,456\.00/);
+  assert.ok(!m.includes("Total:") && !m.includes("1,23,456"), "a quotation message must not carry the amount");
   assert.match(m, /Valid: 15 days from date of submission/);
   assert.match(m, /Regards,\nRajesh Saini, Managing Director\nSaini Tubewell Boring Service\n9812003001 \/ 8708128632 \/ 7988814808$/);
+});
+check("an invoice message still states the total, so the client knows what is owed", () => {
+  const m = buildShareMessage({ ...subject, kind: "invoice", dueDate: "30 Oct 2026" });
+  assert.match(m, /Total: ₹1,23,456\.00/);
+  assert.match(m, /Due by: 30 Oct 2026/);
 });
 check("it falls back to the company name, then a neutral greeting, when there is no contact person", () => {
   assert.match(buildShareMessage({ ...subject, contact: undefined }), /^Dear Acme Industries Pvt Ltd,/);
