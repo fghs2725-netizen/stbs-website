@@ -4,8 +4,6 @@ import { Check } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
 import { CtaSection } from "@/components/public/sections";
 import { Faq, ProcessSteps } from "@/components/public/site-additions";
-import { FilmBand } from "@/components/public/film-band";
-import type { FilmSceneId } from "@/lib/website/film-scenes";
 import { SERVICE_FAQS } from "@/lib/website/service-faqs";
 
 /** FAQPage structured data built from the exact visible FAQ text. */
@@ -21,13 +19,12 @@ function faqJsonLd(items: Array<[string, string]>) {
  * `image` is illustrative site photography, not a record of a specific job, so it carries no
  * caption tying it to a client or project. Pass `imageAlt` describing only what is visible.
  */
-export function ServiceDetailPage({ slug, eyebrow, title, intro, icon: Icon, bullets, specs, process, segments, image, imageAlt, films, diagram, diagramTitle = "How it works", table, specsTitle = "Planning specifications" }: { slug: string; diagram?: ReactNode; diagramTitle?: string; table?: { head: string[]; rows: string[][] }; eyebrow: string; title: string; intro: string; icon: LucideIcon; bullets: string[]; specs?: string[]; process?: boolean; segments?: string[]; image?: string; imageAlt?: string; films?: FilmSceneId[]; specsTitle?: string }) {
+export function ServiceDetailPage({ slug, eyebrow, title, intro, icon: Icon, bullets, specs, process, segments, image, imageAlt, diagram, diagramTitle = "How it works", table, specsTitle = "Planning specifications" }: { slug: string; diagram?: ReactNode; diagramTitle?: string; table?: { head: string[]; rows: string[][] }; eyebrow: string; title: string; intro: string; icon: LucideIcon; bullets: string[]; specs?: string[]; process?: boolean; segments?: string[]; image?: string; imageAlt?: string; specsTitle?: string }) {
   const faqs = SERVICE_FAQS[slug] ?? [];
   const hasAside = Boolean(specs?.length || segments?.length);
   return (
     <>
       <PageHero eyebrow={eyebrow} title={title} text={intro} image={image} imageAlt={imageAlt} />
-      {films?.map((f) => <FilmBand key={f} scene={f} />)}
 
       <section className="theme-public section-y">
         <div className={`container-x grid gap-u6 ${hasAside ? "lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-u8" : ""}`}>

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
-import { FilmBand } from "@/components/public/film-band";
 import { CtaSection } from "@/components/public/sections";
 import { SERVICE_ICONS } from "@/components/public/service-icons";
 import { pageMetadata } from "@/lib/page-metadata";
@@ -15,7 +14,6 @@ export default function Services() {
   return (
     <>
       <PageHero eyebrow="Services" title="Water infrastructure, one service at a time." text="Choose a service to see the process, planning points and questions we can work through with you." />
-      <FilmBand scene="intro5" />
       <section className="theme-public section-y">
         <div className="container-x">
           <ul className="grid auto-rows-fr gap-u2 md:grid-cols-2 lg:gap-u3">

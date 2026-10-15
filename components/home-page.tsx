@@ -1,4 +1,3 @@
-import { FilmBand } from "@/components/public/film-band";
 import { CaseStudiesSection, CtaSection, HeroSection, SectorsSection, ServicesSection, StatsSection } from "@/components/public/sections";
 
 /**
@@ -11,12 +10,10 @@ export function HomePage() {
   return (
     <>
       <HeroSection content={{}} />
-      <FilmBand scene="hook" />
       <StatsSection content={{}} />
       <SectorsSection content={{}} />
       <ServicesSection content={{}} data={{}} />
       <CaseStudiesSection content={{}} />
-      <FilmBand scene="clients" />
       <CtaSection content={{}} />
     </>
   );

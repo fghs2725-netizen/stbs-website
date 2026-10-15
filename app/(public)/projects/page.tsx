@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { FilmBand } from "@/components/public/film-band";
 import { ProjectsList } from "@/components/public/projects-list";
 import { pageMetadata } from "@/lib/page-metadata";
 import { SEO } from "@/lib/website/seo-copy";
@@ -31,7 +30,6 @@ export default async function ProjectsPage() {
           </p>
           </div>
       </section>
-      <FilmBand scene="projects" />
       <section className="pb-u7">
         <div className="container-x">
           <div>
