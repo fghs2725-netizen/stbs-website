@@ -12,6 +12,7 @@
  * Item wording reuses the quotation's encoding: the name is the first line of `description` and the
  * details follow after a line break, so one column holds both and the two features cannot drift apart.
  */
+import { findItemCode } from "@/lib/item-code-key";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/quotation-management";
@@ -590,15 +591,18 @@ export async function duplicateInvoice(id: string): Promise<InvoiceState> {
 
 /* ────────────────────────── the HSN library ────────────────────────── */
 
-/** Fills in each item's HSN from the codes the owner has already saved, without overwriting one that is set. */
+/**
+ * Fills in each item's HSN from the codes the owner has already saved, without overwriting one that is
+ * set. A code saved for an item applies at every size ("Drilling of 250 mm dia borewell" also fills in
+ * "... 300 mm ..."); see itemCodeKey.
+ */
 export async function attachKnownCodes(items: InvoiceItem[]): Promise<InvoiceItem[]> {
-  const names = items.map((i) => i.description.trim()).filter(Boolean);
-  if (!names.length) return items;
-  const known = await prisma.invoiceItemCode.findMany({ where: { description: { in: names } } });
-  const byName = new Map(known.map((k) => [k.description.toLowerCase(), k]));
+  if (!items.some((i) => !i.hsn && i.description.trim())) return items;
+  const saved = await prisma.invoiceItemCode.findMany(); // a short list the owner typed by hand
+  if (!saved.length) return items;
   return items.map((i) => {
-    if (i.hsn) return i;
-    const hit = byName.get(i.description.trim().toLowerCase());
+    if (i.hsn || !i.description.trim()) return i;
+    const hit = findItemCode(i.description, saved);
     return hit ? { ...i, hsn: hit.hsn, unit: i.unit || hit.unit || "" } : i;
   });
 }

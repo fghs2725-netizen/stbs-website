@@ -54,7 +54,7 @@ export default async function ItemCodesPage({
       <PageHeader
         eyebrow="Invoice settings"
         title="HSN and SAC codes"
-        description="The code for each thing you sell, typed once and then filled in automatically."
+        description="The code for each thing you sell, typed once and then filled in automatically. It applies at every size: a code saved for the 250 mm drilling line also fills in the 300 mm line."
         action={<Link href="/admin/invoices/settings" className="a-btn">Back to settings</Link>}
       />
 
