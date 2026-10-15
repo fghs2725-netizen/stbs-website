@@ -90,6 +90,8 @@ export type InvoiceState = {
   settingsOverride?: InvoiceSettingsOverride;
   /** Set while the invoice sits in the Deleted list; it can be restored or deleted for good from there. */
   deletedAt?: string;
+  /** When the bill was sent to the CA (the accountant); absent until it is. */
+  sentToCaAt?: string;
 };
 
 export const emptyParty = (): InvoiceParty => ({

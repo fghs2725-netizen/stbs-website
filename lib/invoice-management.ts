@@ -109,6 +109,7 @@ function toState(x: Row): InvoiceState {
     quotationId: string | null; quotationReference: string | null; templateId: string | null;
     settingsOverride?: unknown;
     deletedAt?: Date | null;
+    sentToCaAt?: Date | null;
     items?: Array<{ id: string; description: string; unit: string; quantity: unknown; rate: unknown; hsn: string | null; discountPercent: unknown; gstRate: unknown }>;
     payments?: Array<{ id: string; date: string; amount: unknown; method: string | null; note: string | null }>;
   };
@@ -165,6 +166,7 @@ function toState(x: Row): InvoiceState {
     templateId: r.templateId ?? undefined,
     settingsOverride: sanitizeOverride(r.settingsOverride),
     ...(r.deletedAt ? { deletedAt: r.deletedAt.toISOString() } : {}),
+    ...(r.sentToCaAt ? { sentToCaAt: r.sentToCaAt.toISOString() } : {}),
     payments: (r.payments ?? []).map((p) => ({
       id: p.id, date: p.date, amount: Number(p.amount),
       method: p.method ?? undefined, note: p.note ?? undefined,
@@ -264,26 +266,52 @@ export async function getInvoiceForPdfRender(id: string): Promise<InvoiceState |
 }
 
 export type InvoiceSort = "updated" | "created" | "number" | "client" | "due";
-export type InvoiceListOptions = { sort?: InvoiceSort; dir?: "asc" | "desc"; from?: string; to?: string };
+/**
+ * `month` is "2026-10" and matches the invoice date. `kind`: "final" is an issued bill with a number,
+ * "cash" an issued cash bill, "draft" a draft. `ca`: whether an issued bill has been sent to the CA.
+ */
+export type InvoiceListOptions = {
+  sort?: InvoiceSort; dir?: "asc" | "desc"; from?: string; to?: string;
+  month?: string; kind?: "final" | "cash" | "draft"; ca?: "sent" | "unsent";
+};
+/** The list's filters as one value, so the list, the bulk actions and the export all select the same invoices. */
+export type InvoiceFilter = { search?: string; status?: string } & Omit<InvoiceListOptions, "sort" | "dir">;
 const SORT_FIELDS: Record<InvoiceSort, string> = { updated: "updatedAt", created: "createdAt", number: "number", client: "clientCompanyName", due: "dueDate" };
 const isoDay = (v?: string) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
+
+/** The Prisma `where` for a set of list filters. */
+export function invoiceWhere(f: InvoiceFilter): Record<string, unknown> {
+  const status = f.status || "ALL";
+  const search = f.search?.trim() ?? "";
+  // "DELETED" is the bin, not a status: every other filter only ever sees live invoices.
+  const where: Record<string, unknown> = status === "DELETED" ? { deletedAt: { not: null } } : { deletedAt: null };
+  const and: Array<Record<string, unknown>> = [];
+  if (status !== "ALL" && status !== "DELETED") where.status = status;
+  if (search) {
+    const asNumber = Number(search);
+    and.push({ OR: [
+      { clientCompanyName: { contains: search, mode: "insensitive" } },
+      { quotationReference: { contains: search, mode: "insensitive" } },
+      ...(Number.isInteger(asNumber) && asNumber > 0 ? [{ number: asNumber }] : []),
+    ] });
+  }
+  const from = isoDay(f.from), to = isoDay(f.to);
+  if (from || to) where.createdAt = { ...(from ? { gte: new Date(`${from}T00:00:00.000Z`) } : {}), ...(to ? { lte: new Date(`${to}T23:59:59.999Z`) } : {}) };
+  if (f.month && /^\d{4}-\d{2}$/.test(f.month)) where.date = { startsWith: f.month };
+  if (f.kind === "final") and.push({ number: { not: null } }, { isCash: false }, { status: { notIn: ["DRAFT", "CANCELLED"] } });
+  else if (f.kind === "cash") and.push({ isCash: true }, { status: { not: "DRAFT" } });
+  else if (f.kind === "draft") and.push({ status: "DRAFT" });
+  // Only an issued bill goes to the CA, so both CA filters leave drafts out.
+  if (f.ca === "sent") and.push({ sentToCaAt: { not: null } }, { status: { not: "DRAFT" } });
+  else if (f.ca === "unsent") and.push({ sentToCaAt: null }, { status: { not: "DRAFT" } });
+  if (and.length) where.AND = and;
+  return where;
+}
 
 export async function listInvoices(search = "", status = "ALL", page = 1, pageSize = 20, opts: InvoiceListOptions = {}) {
   await requireAdmin();
   const settings = (await getInvoiceConfig()).settings;
-  // "DELETED" is the bin, not a status: every other filter only ever sees live invoices.
-  const where: Record<string, unknown> = status === "DELETED" ? { deletedAt: { not: null } } : { deletedAt: null };
-  if (status !== "ALL" && status !== "DELETED") where.status = status;
-  if (search) {
-    const asNumber = Number(search.trim());
-    where.OR = [
-      { clientCompanyName: { contains: search, mode: "insensitive" } },
-      { quotationReference: { contains: search, mode: "insensitive" } },
-      ...(Number.isInteger(asNumber) && asNumber > 0 ? [{ number: asNumber }] : []),
-    ];
-  }
-  const from = isoDay(opts.from), to = isoDay(opts.to);
-  if (from || to) where.createdAt = { ...(from ? { gte: new Date(`${from}T00:00:00.000Z`) } : {}), ...(to ? { lte: new Date(`${to}T23:59:59.999Z`) } : {}) };
+  const where = invoiceWhere({ ...opts, search, status });
 
   const dir = opts.dir === "asc" ? "asc" : "desc";
   const sort = opts.sort && opts.sort in SORT_FIELDS ? opts.sort : "updated";
@@ -505,6 +533,38 @@ export async function purgeInvoice(id: string) {
   if (!row) return;
   if (!row.deletedAt) throw new Error("NOT_DELETED");
   await prisma.invoice.delete({ where: { id } });
+}
+
+/**
+ * Marks issued bills as sent to the CA, or not sent. Drafts are skipped: only an issued bill goes to
+ * the accountant. Either `ids` or the list's filters choose the bills, so "every bill matching this
+ * filter" works across pages. Each change is written to the bill's edit history.
+ */
+export async function markSentToCa(target: { ids?: string[]; filter?: InvoiceFilter }, sent: boolean): Promise<number> {
+  await requireAdmin();
+  const chosen = target.ids?.length ? { id: { in: target.ids.slice(0, 2000) }, deletedAt: null } : target.filter ? invoiceWhere(target.filter) : null;
+  if (!chosen) return 0;
+  const rows = await prisma.invoice.findMany({
+    where: { AND: [chosen, { status: { not: "DRAFT" } }, sent ? { sentToCaAt: null } : { sentToCaAt: { not: null } }] },
+    select: { id: true },
+  });
+  if (!rows.length) return 0;
+  const ids = rows.map((r) => r.id);
+  const at = new Date();
+  await prisma.$transaction([
+    prisma.invoice.updateMany({ where: { id: { in: ids } }, data: { sentToCaAt: sent ? at : null } }),
+    prisma.invoiceEdit.createMany({
+      data: ids.map((invoiceId) => ({ invoiceId, field: "sent to CA", oldValue: sent ? "not sent" : "sent", newValue: sent ? "sent" : "not sent" })),
+    }),
+  ]);
+  return ids.length;
+}
+
+/** The ids the list's filters select, for bulk actions that need them one by one (sharing PDFs). */
+export async function invoiceIdsFor(filter: InvoiceFilter, limit = 500): Promise<string[]> {
+  await requireAdmin();
+  const rows = await prisma.invoice.findMany({ where: invoiceWhere(filter), select: { id: true }, orderBy: [{ date: "asc" }, { number: "asc" }], take: limit });
+  return rows.map((r) => r.id);
 }
 
 /* ────────────────────────── payments ────────────────────────── */

@@ -8,6 +8,7 @@
  */
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/quotation-management";
+import { invoiceWhere, type InvoiceFilter } from "@/lib/invoice-management";
 import { decodeItemText } from "@/components/quotation/item-text";
 import { calcInvoiceTotals, lineAmount, type InvoiceItem, type InvoiceStatus } from "@/components/invoice/invoice-model";
 import { effectiveInvoiceSettings, resolveSettings } from "@/components/invoice/invoice-settings";
@@ -19,16 +20,23 @@ const day = (s: string | null | undefined) => (s && /^\d{4}-\d{2}-\d{2}/.test(s)
 
 /** One invoice with everything the workbook prints. */
 export type ExportRow = AnalyticsRow & {
+  sentToCaAt?: Date | null;
   clientAddressLine1: string | null; clientAddressLine2: string | null; clientCity: string | null;
   clientState: string | null; clientPinCode: string | null; clientPhone: string | null; clientEmail: string | null;
   subject: string | null; purchaseOrder: string | null; quotationReference: string | null;
   payments: Array<{ date: string; amount: unknown; method?: string | null; note?: string | null }>;
 };
 
-export async function buildInvoiceExport(today = new Date()): Promise<Buffer> {
+/**
+ * With no target, every invoice. With `ids`, just those bills (the list's selection); with `filter`,
+ * the bills the list's filters show, across every page.
+ */
+export async function buildInvoiceExport(today = new Date(), target: { ids?: string[]; filter?: InvoiceFilter } = {}): Promise<Buffer> {
   await requireAdmin();
+  const where = target.ids?.length ? { id: { in: target.ids.slice(0, 2000) } } : target.filter ? invoiceWhere(target.filter) : undefined;
   const [rows, setting] = await Promise.all([
     prisma.invoice.findMany({
+      where,
       include: { items: { orderBy: { position: "asc" } }, payments: { orderBy: { date: "asc" } }, creditNotes: true },
       orderBy: [{ date: "asc" }, { number: "asc" }],
     }),
@@ -57,6 +65,7 @@ export function invoiceExportSheets(all: ExportRow[], storedSettings: unknown, t
       { header: "IGST", width: 11, format: "money" }, { header: "Total GST", width: 12, format: "money" }, { header: "Round off", width: 9, format: "money" },
       { header: "Invoice total", width: 13, format: "money" }, { header: "Received", width: 13, format: "money" },
       { header: "Credit notes", width: 11, format: "money" }, { header: "Balance", width: 12, format: "money" },
+      { header: "Sent to CA", width: 12, format: "date" },
     ],
     rows: [],
   };
@@ -103,6 +112,7 @@ export function invoiceExportSheets(all: ExportRow[], storedSettings: unknown, t
       r.subject, r.purchaseOrder, r.quotationReference,
       lines.length, t.subtotal, t.discount, t.taxable, t.cgst, t.sgst, t.igst, t.tax, t.roundOff,
       t.grandTotal, t.paid, Math.round(credited * 100) / 100, Math.max(0, Math.round((t.balance - credited) * 100) / 100),
+      r.sentToCaAt ?? null,
     ]);
     for (const it of lines) {
       const amount = lineAmount(it, effective.columns.lineDiscount);

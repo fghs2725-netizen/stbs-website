@@ -3,8 +3,9 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
   cancelInvoice, convertQuotationToInvoice, createCreditNote, deleteInvoice, deletePayment,
-  duplicateInvoice, issueInvoice, purgeInvoice, recordPayment, restoreInvoice, saveInvoice, saveInvoiceConfig, saveInvoiceSegments,
-  type InvoiceConfig,
+  duplicateInvoice, invoiceIdsFor, issueInvoice, markSentToCa, purgeInvoice, recordPayment, restoreInvoice, saveInvoice,
+  saveInvoiceConfig, saveInvoiceSegments,
+  type InvoiceConfig, type InvoiceFilter,
 } from "@/lib/invoice-management";
 import type { InvoiceState } from "@/components/invoice/invoice-model";
 import type { InvoiceSettingsOverride } from "@/components/invoice/invoice-settings";
@@ -118,4 +119,22 @@ export async function saveInvoiceConfigAction(config: Partial<InvoiceConfig>) {
   revalidatePath("/admin/invoices/settings");
   revalidatePath("/admin/invoices");
   return saved;
+}
+
+/** Marks the selected bills (or every bill the filter matches) as sent to the CA, or not sent. */
+export async function markSentToCaAction(target: { ids?: string[]; filter?: InvoiceFilter }, sent: boolean) {
+  const changed = await markSentToCa(target, sent);
+  refresh();
+  return changed;
+}
+
+/** The bills a filter matches, for sharing every matching PDF rather than just this page's. */
+export async function invoiceIdsForAction(filter: InvoiceFilter) {
+  return invoiceIdsFor(filter, 50);
+}
+
+/** The Sent to CA switch on one invoice's own page. */
+export async function setSentToCaAction(id: string, sent: boolean) {
+  await markSentToCa({ ids: [id] }, sent);
+  refresh(id);
 }

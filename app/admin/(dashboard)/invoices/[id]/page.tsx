@@ -16,7 +16,7 @@ import { InvoicePdfActions } from "@/components/invoice/share/InvoicePdfActions"
 import { shareSubjectFromInvoice } from "@/components/invoice/share/invoice-share";
 import {
   cancelInvoiceAction, createCreditNoteAction, deleteInvoiceAction, deletePaymentAction, duplicateInvoiceAction, issueInvoiceAction,
-  purgeInvoiceAction, recordPaymentAction, restoreInvoiceAction, saveSegmentsAction,
+  purgeInvoiceAction, recordPaymentAction, restoreInvoiceAction, saveSegmentsAction, setSentToCaAction,
 } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -158,6 +158,18 @@ export default async function InvoiceDetailPage({
               <dd className="text-right">{day(invoice.dueDate ?? "")}</dd>
             </dl>
           </div>
+
+          {!deleted && invoice.status !== "DRAFT" && (
+            <div className="a-card p-4" style={{ boxShadow: `inset 4px 0 0 ${invoice.sentToCaAt ? "var(--a-positive)" : "var(--a-danger)"}` }}>
+              <h2 className="text-[0.9375rem] font-semibold" style={{ color: "var(--a-ink)" }}>Accountant (CA)</h2>
+              <p className="mt-1 text-[0.875rem] font-medium" style={{ color: invoice.sentToCaAt ? "var(--a-positive)" : "var(--a-danger)" }}>
+                {invoice.sentToCaAt ? `Sent to CA on ${day(invoice.sentToCaAt.slice(0, 10))}` : "Not sent to CA yet"}
+              </p>
+              <form action={setSentToCaAction.bind(null, id, !invoice.sentToCaAt)} className="mt-2">
+                <Button type="submit" size="sm" variant="secondary">{invoice.sentToCaAt ? "Mark not sent" : "Mark sent to CA"}</Button>
+              </form>
+            </div>
+          )}
 
           {(invoice.payments ?? []).length > 0 && (
             <div className="a-card p-4">
