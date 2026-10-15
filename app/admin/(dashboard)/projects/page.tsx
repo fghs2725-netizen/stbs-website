@@ -25,13 +25,14 @@ export default async function ProjectsAdminPage() {
     error = "The project list is unavailable right now. If this keeps happening, the database update for projects may not have been applied yet.";
   }
   const live = rows.filter((r) => r.published).length;
+  const onHome = rows.filter((r) => r.featured).length;
 
   return (
     <div className="a-page">
       <PageHeader
         eyebrow="Website"
         title="Projects"
-        description="Add the jobs you want customers to see. They appear on your homepage and Projects page as soon as you save, with their photos."
+        description="Add the jobs you want customers to see. They appear on your Projects page as soon as you save, with their photos, and you choose up to three for the homepage."
         action={
           <div className="flex items-center gap-3">
             <span className="a-num a-sub hidden sm:inline">{live} live of {rows.length}</span>
@@ -47,7 +48,7 @@ export default async function ProjectsAdminPage() {
         <EmptyState icon={Briefcase} title="No projects yet" description="Add your first project. Photos are optional." action={<Link href="/admin/projects/new" className="a-btn a-btn-primary">Add project</Link>} />
       ) : (
         <>
-          <p className="a-sub text-[0.875rem]">The first three live projects appear on the homepage, in this order. Use the arrows to change the order.</p>
+          <p className="a-sub text-[0.875rem]">{onHome > 0 ? `${onHome} of 3 places on the homepage are used. Use “Put on homepage” to choose which projects it shows; the arrows set the order.` : "No projects are chosen for the homepage yet, so it shows the first three. Use “Put on homepage” to choose; the arrows set the order."}</p>
           <ul className="space-y-3">
             {rows.map((p, i) => (
               <li key={p.id} className="a-card flex flex-col gap-4 p-4 sm:flex-row">
@@ -63,9 +64,10 @@ export default async function ProjectsAdminPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="a-title !text-[1.0625rem]">{p.title}</h2>
                     <Pill tone={p.published ? "positive" : "neutral"}>{p.published ? "On website" : "Draft"}</Pill>
+                    {p.featured && <Pill tone="brand">On homepage</Pill>}
                   </div>
                   <p className="a-sub text-[0.875rem]">{p.location}{p.sector ? ` · ${p.sector}` : ""}{p.photos.length ? ` · ${p.photos.length} photo${p.photos.length === 1 ? "" : "s"}` : ""}</p>
-                  <ProjectRowActions id={p.id} published={p.published} first={i === 0} last={i === rows.length - 1} />
+                  <ProjectRowActions id={p.id} published={p.published} featured={p.featured} first={i === 0} last={i === rows.length - 1} />
                 </div>
               </li>
             ))}

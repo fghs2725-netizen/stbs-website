@@ -5,9 +5,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Pencil } from "lucide-react";
 import { ConfirmButton } from "@/components/admin/photos/ConfirmButton";
-import { deleteProjectAction, moveProjectAction, setProjectPublishedAction } from "@/app/admin/(dashboard)/projects/actions";
+import { deleteProjectAction, moveProjectAction, setProjectFeaturedAction, setProjectPublishedAction } from "@/app/admin/(dashboard)/projects/actions";
 
-export function ProjectRowActions({ id, published, first, last }: { id: string; published: boolean; first: boolean; last: boolean }) {
+export function ProjectRowActions({ id, published, featured, first, last }: { id: string; published: boolean; featured: boolean; first: boolean; last: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -28,6 +28,11 @@ export function ProjectRowActions({ id, published, first, last }: { id: string; 
         <button type="button" className="a-btn a-btn-sm a-btn-secondary" disabled={busy} onClick={() => run(() => setProjectPublishedAction(id, !published))}>
           {published ? "Take off website" : "Put on website"}
         </button>
+        {published && (
+          <button type="button" className="a-btn a-btn-sm a-btn-secondary" disabled={busy} onClick={() => run(() => setProjectFeaturedAction(id, !featured))}>
+            {featured ? "Take off homepage" : "Put on homepage"}
+          </button>
+        )}
         <button type="button" className="a-btn a-btn-sm a-btn-secondary" disabled={busy || first} onClick={() => run(() => moveProjectAction(id, -1))} aria-label="Move up"><ArrowUp size={14} aria-hidden /></button>
         <button type="button" className="a-btn a-btn-sm a-btn-secondary" disabled={busy || last} onClick={() => run(() => moveProjectAction(id, 1))} aria-label="Move down"><ArrowDown size={14} aria-hidden /></button>
         <ConfirmButton

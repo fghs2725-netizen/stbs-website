@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { deleteProject, moveProject, ProjectInputError, saveProject, setProjectPublished, type ProjectInput } from "@/lib/website-projects";
+import { deleteProject, moveProject, ProjectInputError, saveProject, setProjectFeatured, setProjectPublished, type ProjectInput } from "@/lib/website-projects";
 
 type Result = { ok: true; id?: string } | { ok: false; error: string };
 
@@ -36,4 +36,7 @@ export async function deleteProjectAction(id: string) {
 }
 export async function moveProjectAction(id: string, direction: -1 | 1) {
   return run(() => moveProject(id, direction));
+}
+export async function setProjectFeaturedAction(id: string, featured: boolean) {
+  return run(() => setProjectFeatured(id, featured));
 }

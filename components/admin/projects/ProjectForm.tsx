@@ -25,6 +25,7 @@ export function ProjectForm({ project }: Props) {
   const [year, setYear] = useState(project?.year ?? "");
   const [photos, setPhotos] = useState<ProjectPhoto[]>(project?.photos ?? []);
   const [published, setPublished] = useState(project?.published ?? true);
+  const [featured, setFeatured] = useState(project?.featured ?? false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -77,7 +78,7 @@ export function ProjectForm({ project }: Props) {
     if (!title.trim()) return setError("Give the project a title.");
     if (!location.trim()) return setError("Say where the project is.");
     setSaving(true);
-    const result = await saveProjectAction({ id: project?.id, title, location, sector, summary, scope, depth, output, year, photos, published });
+    const result = await saveProjectAction({ id: project?.id, title, location, sector, summary, scope, depth, output, year, photos, published, featured: published && featured });
     if (!result.ok) {
       setSaving(false);
       return setError(result.error);
@@ -180,10 +181,16 @@ export function ProjectForm({ project }: Props) {
       </div>
 
       <div className="a-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-        <label className="flex cursor-pointer items-center gap-3 text-[0.9375rem]">
-          <input type="checkbox" className="h-5 w-5" checked={published} onChange={(e) => setPublished(e.target.checked)} />
-          <span><strong>Show on the website</strong><span className="a-sub block text-[0.8125rem]">Live as soon as you save. Untick to keep it as a draft.</span></span>
-        </label>
+        <div className="space-y-3">
+          <label className="flex cursor-pointer items-center gap-3 text-[0.9375rem]">
+            <input type="checkbox" className="h-5 w-5" checked={published} onChange={(e) => setPublished(e.target.checked)} />
+            <span><strong>Show on the website</strong><span className="a-sub block text-[0.8125rem]">Live as soon as you save. Untick to keep it as a draft.</span></span>
+          </label>
+          <label className={`flex items-center gap-3 text-[0.9375rem] ${published ? "cursor-pointer" : "opacity-50"}`}>
+            <input type="checkbox" className="h-5 w-5" checked={published && featured} disabled={!published} onChange={(e) => setFeatured(e.target.checked)} />
+            <span><strong>Show on the homepage</strong><span className="a-sub block text-[0.8125rem]">The homepage has room for three projects. Projects that are not ticked still appear on the Projects page.</span></span>
+          </label>
+        </div>
         <div className="flex gap-2">
           <button type="button" className="a-btn a-btn-secondary" onClick={() => router.push("/admin/projects")} disabled={saving}>Cancel</button>
           <button type="button" className="a-btn a-btn-primary" onClick={save} disabled={saving || uploading}>

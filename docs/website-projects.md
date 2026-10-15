@@ -17,7 +17,8 @@ applied, save any project (or wait up to a day) so the cached public pages pick 
 
 ## Behaviour
 
-- The first three live projects, in list order, show on the homepage; /projects shows all of them.
+- The owner picks up to three projects for the homepage ("Put on homepage" in the list, or the tick in the form); they show in list order. With none picked, the homepage shows the first three live projects. A fourth is refused with a message, and taking a project off the website also takes it off the homepage. /projects shows every live project.
+- The migration marks the three existing projects as on the homepage, so it looks the same until the owner changes it.
 - New projects go to the top of the list. Use the arrows to reorder.
 - Delete is a soft delete (the row stays in the database but leaves the site and the list).
 - A photo removed from a project is not deleted from storage.

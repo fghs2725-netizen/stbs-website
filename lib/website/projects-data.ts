@@ -29,6 +29,8 @@ export interface ProjectCase {
   year?: string;
   /** Photos of the job, uploaded in Admin -> Website projects. The first is the cover. */
   images?: Array<{ src: string; alt: string }>;
+  /** Chosen for the homepage in Admin -> Website projects. */
+  featured?: boolean;
 }
 
 export const PROJECTS: ReadonlyArray<ProjectCase> = [

@@ -1424,6 +1424,8 @@ model WebsiteProject {
   /// [{ "url": "...", "alt": "..." }] in display order; the first photo is the cover.
   photos    Json      @default("[]")
   published Boolean   @default(false)
+  /// Shown on the homepage (up to three, only while published). With none chosen, the homepage shows the first three.
+  featured  Boolean   @default(false)
   /// Lowest first. New projects take the lowest position so they lead the list and the homepage.
   position  Int       @default(0)
   createdAt DateTime  @default(now())

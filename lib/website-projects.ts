@@ -22,6 +22,8 @@ export type ProjectInput = {
   year: string;
   photos: ProjectPhoto[];
   published: boolean;
+  /** Shown on the homepage; at most three projects can be, and only while published. */
+  featured: boolean;
 };
 
 export type ProjectRow = ProjectInput & { id: string; position: number; updatedAt: string };
@@ -29,6 +31,7 @@ export type ProjectRow = ProjectInput & { id: string; position: number; updatedA
 export class ProjectInputError extends Error {}
 
 const MAX_PHOTOS = 12;
+export const MAX_FEATURED = 3;
 
 async function requireAdmin() {
   const session = await auth();
@@ -69,6 +72,7 @@ const toRow = (r: Row): ProjectRow => ({
   year: r.year ?? "",
   photos: readPhotos(r.photos),
   published: r.published,
+  featured: r.featured && r.published,
   position: r.position,
   updatedAt: r.updatedAt.toISOString(),
 });
@@ -94,6 +98,7 @@ export async function getPublishedProjects(): Promise<ProjectCase[] | null> {
         ...(row.depth ? { depth: row.depth } : {}),
         ...(row.output ? { output: row.output } : {}),
         ...(row.year ? { year: row.year } : {}),
+        ...(row.featured ? { featured: true } : {}),
         ...(row.photos.length ? { images: row.photos.map((p, i) => ({ src: p.url, alt: p.alt || `${row.title}, photo ${i + 1}` })) } : {}),
       };
     });
@@ -130,13 +135,22 @@ function validate(input: ProjectInput) {
     year: clean(input.year, 12) || null,
     photos: readPhotos(input.photos),
     published: Boolean(input.published),
+    // Only a project that is on the website can be on the homepage.
+    featured: Boolean(input.published) && Boolean(input.featured),
   };
+}
+
+/** The homepage has room for three: refuse a fourth rather than quietly dropping one. */
+async function assertHomepageRoom(excludeId: string | undefined) {
+  const others = await prisma.websiteProject.count({ where: { published: true, featured: true, deletedAt: null, ...(excludeId ? { NOT: { id: excludeId } } : {}) } });
+  if (others >= MAX_FEATURED) throw new ProjectInputError(`Only ${MAX_FEATURED} projects fit on the homepage. Take one off the homepage first.`);
 }
 
 /** Creates or updates a project; returns its id. A new project takes the first place in the list. */
 export async function saveProject(input: ProjectInput): Promise<string> {
   await requireAdmin();
   const data = validate(input);
+  if (data.featured) await assertHomepageRoom(input.id);
   if (input.id) {
     const found = await prisma.websiteProject.findFirst({ where: { id: input.id, deletedAt: null }, select: { id: true } });
     if (!found) throw new ProjectInputError("That project no longer exists.");
@@ -150,13 +164,23 @@ export async function saveProject(input: ProjectInput): Promise<string> {
 
 export async function setProjectPublished(id: string, published: boolean) {
   await requireAdmin();
-  await prisma.websiteProject.update({ where: { id }, data: { published } });
+  // Taking a project off the website also takes it off the homepage.
+  await prisma.websiteProject.update({ where: { id }, data: published ? { published } : { published, featured: false } });
+}
+
+export async function setProjectFeatured(id: string, featured: boolean) {
+  await requireAdmin();
+  const row = await prisma.websiteProject.findFirst({ where: { id, deletedAt: null }, select: { published: true } });
+  if (!row) throw new ProjectInputError("That project no longer exists.");
+  if (featured && !row.published) throw new ProjectInputError("Put the project on the website first.");
+  if (featured) await assertHomepageRoom(id);
+  await prisma.websiteProject.update({ where: { id }, data: { featured } });
 }
 
 /** Soft delete, like the rest of the admin: the row stays in the database but leaves the site and the list. */
 export async function deleteProject(id: string) {
   await requireAdmin();
-  await prisma.websiteProject.update({ where: { id }, data: { deletedAt: new Date(), published: false } });
+  await prisma.websiteProject.update({ where: { id }, data: { deletedAt: new Date(), published: false, featured: false } });
 }
 
 /** Swaps a project with its neighbour in the list. */

@@ -733,7 +733,10 @@ export function CaseStudiesSection({ owner, content, data }: { owner?: Renderabl
   const heading = str(content, "heading", HOME_PROJECTS.heading);
   const ctaText = str(content, "ctaText", HOME_PROJECTS.ctaText);
   const ctaUrl = str(content, "ctaUrl", HOME_PROJECTS.ctaUrl);
-  const projects = (data?.projects ?? resolveProjects(content.projects)).slice(0, 3);
+  // The owner picks up to three in Admin -> Website projects; with none picked, the first three lead.
+  const all = data?.projects ?? resolveProjects(content.projects);
+  const picked = all.filter((p) => p.featured);
+  const projects = (picked.length > 0 ? picked : all).slice(0, 3);
   const target = asSection(owner);
   if (projects.length === 0) return null;
   return (
