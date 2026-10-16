@@ -17,9 +17,10 @@ import { InvoiceList, type InvoiceListRow } from "@/components/invoice/list/Invo
 export const dynamic = "force-dynamic";
 
 const SORTS: { key: InvoiceSort; label: string }[] = [
+  { key: "date", label: "Invoice date" },
+  { key: "number", label: "Invoice number" },
   { key: "updated", label: "Last updated" },
   { key: "created", label: "Created" },
-  { key: "number", label: "Invoice number" },
   { key: "client", label: "Client" },
   { key: "due", label: "Due date" },
 ];
@@ -58,7 +59,7 @@ export default async function InvoicesPage({
   const query = p.q || "";
   const statusFilter = p.status || "ALL";
   const pageNumber = Math.max(1, parseInt(p.page || "1", 10) || 1);
-  const sort: InvoiceSort = isSort(p.sort) ? p.sort : "updated";
+  const sort: InvoiceSort = isSort(p.sort) ? p.sort : "date";
   const dir = p.dir === "asc" ? "asc" : "desc";
   const from = p.from || "";
   const to = p.to || "";
@@ -258,7 +259,7 @@ export default async function InvoicesPage({
             totalPages={totalPages}
             totalItems={total}
             basePath="/admin/invoices"
-            params={{ ...baseParams, sort: sort === "updated" ? undefined : sort, dir: dir === "desc" ? undefined : dir }}
+            params={{ ...baseParams, sort: sort === "date" ? undefined : sort, dir: dir === "desc" ? undefined : dir }}
           />
         )}
       </div>
