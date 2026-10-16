@@ -48,7 +48,7 @@ export function SiteHeader({ navLinks, businessName, logoUrl, mobileLogoUrl, pho
         <div className="flex items-center gap-u2">
           <Link href="/" data-editor-safe className={`flex min-h-[44px] items-center ${focus}`} aria-label={businessName ? `${businessName} home` : "Home"}>
             <span className="relative block h-[34px] w-[92px]">
-              <Image src={logoUrl || "/stbs-logo-only.png"} alt="STBS logo" fill className={`object-contain object-left ${mobileLogoUrl ? "hidden sm:block" : ""}`} sizes="92px" priority />
+              <Image src={logoUrl || "/brand/stbs-logo-hd.svg"} alt="STBS logo" fill className={`object-contain object-left ${mobileLogoUrl ? "hidden sm:block" : ""}`} sizes="92px" priority />
               {mobileLogoUrl && <Image src={mobileLogoUrl} alt="STBS logo" fill className="object-contain object-left sm:hidden" sizes="92px" priority />}
             </span>
           </Link>

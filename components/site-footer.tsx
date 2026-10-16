@@ -42,7 +42,7 @@ export function SiteFooter({ settings, navLinks }: { settings?: FooterSettings |
           <div className="flex flex-wrap items-center gap-u1">
             <Link href="/" data-editor-safe className="inline-block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stbs-ink-on-dark" aria-label={name ? `${name} home` : "Home"}>
               <Image
-                src={settings?.primaryLogoUrl || settings?.lightLogoUrl || settings?.darkLogoUrl || settings?.logoUrl || "/stbs-logo-only.png"}
+                src={settings?.primaryLogoUrl || settings?.lightLogoUrl || settings?.darkLogoUrl || settings?.logoUrl || "/brand/stbs-logo-hd.svg"}
                 alt="STBS logo"
                 width={220}
                 height={93}
