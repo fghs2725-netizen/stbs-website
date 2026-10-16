@@ -248,6 +248,7 @@ html.lenis, html.lenis body { height: auto; }
     min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(246,242,234,.22); background: rgba(19,24,25,.35); color: var(--muted-on-dark);
     font: 500 .75rem/1 var(--font-text), system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: color .3s, border-color .3s, opacity .3s; }
   .ih-overlay[data-released] .ih-skip { opacity: 0; pointer-events: none; }
+  @media (max-width: 359px) { .ih-overlay .ih-ov-tag { letter-spacing: .22em; padding-left: .22em; } }
   @media (hover: hover) { .ih-overlay .ih-skip:hover { color: var(--ink-on-dark); border-color: rgba(246,242,234,.5); } }
   .ih-overlay .ih-skip:focus-visible { outline: 2px solid var(--bronze-light); outline-offset: 3px; }
   /* The hero text waits for the overlay (failsafe: shows anyway after 15s), and the photo skips its zoom so the grey and colour frames line up. */

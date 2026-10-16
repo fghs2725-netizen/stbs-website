@@ -9,7 +9,7 @@ export const HOME_HERO = {
   // (water drop -> STBS logo -> tagline -> greyscale photo from dots -> colour); "photo" shows the hero as is.
   // Switch in Website -> Home -> Hero.
   style: "intro",
-  introTagline: "BUILDING DEEP LINE",
+  introTagline: "GO DEEPER BUILD STRONGER",
   eyebrow: "Trusted since 1992",
   heading: "Water infrastructure for *industrial & commercial* sites",
   headingLine2: "",

@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
  * It plays in a fixed overlay above the real hero, which stays exactly as designed underneath:
  *
  *   1. a water drop falls onto the drill tip of the STBS logo; the splash ripple reveals the logo (in grey)
- *   2. the tagline (BUILDING DEEP LINE) scrambles in under it
+ *   2. the tagline (GO DEEPER BUILD STRONGER) scrambles in under it
  *   3. the logo flies up into its place in the header while grey dots drift in and form the hero photo
  *   4. the dots settle into the photo in greyscale
  *   5. colour spreads out from the centre like a ripple, uncovering the real page; the hero text animates in

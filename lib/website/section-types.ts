@@ -61,7 +61,7 @@ export const SECTION_TYPE_DEFS: Record<string, SectionTypeDef> = {
     description: "Homepage hero: badge, headline, one-line subheadline, two CTAs, photo background, and an optional opening animation.",
     fields: [
       { key: "style", label: "Opening animation", type: "select", options: [{ value: "intro", label: "On: water drop, logo, then the photo in grey turning to colour" }, { value: "photo", label: "Off: show the hero straight away" }] },
-      { key: "introTagline", label: "Tagline under the logo in the opening animation (leave empty to skip it)", type: "text", placeholder: "BUILDING DEEP LINE" },
+      { key: "introTagline", label: "Tagline under the logo in the opening animation (leave empty to skip it)", type: "text", placeholder: "GO DEEPER BUILD STRONGER" },
       { key: "eyebrow", label: "Badge", type: "text", placeholder: "Trusted since 1992" },
       { key: "heading", label: "Headline", type: "text", placeholder: "Water infrastructure for industrial & commercial sites" },
       { key: "headingLine2", label: "Headline, second line (optional)", type: "text" },
