@@ -5,11 +5,11 @@
  * clearly marked placeholder.
  */
 export const HOME_HERO = {
-  // "intro" = water drop, word scramble and the hero photo built from dots (components/public/intro-hero.tsx);
-  // "photo" = the full-bleed photo hero. Switch in Website -> Home -> Hero.
+  // "intro" plays components/public/hero-intro-overlay.tsx over this hero on a visitor's first view
+  // (water drop -> STBS logo -> tagline -> greyscale photo from dots -> colour); "photo" shows the hero as is.
+  // Switch in Website -> Home -> Hero.
   style: "intro",
-  introWord: "STBS",
-  heroWord: "BUILDING DEEP LINE",
+  introTagline: "BUILDING DEEP LINE",
   eyebrow: "Trusted since 1992",
   heading: "Water infrastructure for *industrial & commercial* sites",
   headingLine2: "",

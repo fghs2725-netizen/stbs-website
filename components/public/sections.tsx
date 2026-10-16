@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowDown, ArrowDownRight, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain, Construction, Copy, Download, Drill, Droplets, Eye, EyeOff, Factory, Home, Landmark, Mail, MapPin, MessageCircle, Pencil, Phone, Sprout, Store, Trash2, type LucideIcon } from "lucide-react";
+import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain, Construction, Copy, Download, Drill, Droplets, Eye, EyeOff, Factory, Home, Landmark, Mail, MapPin, MessageCircle, Pencil, Phone, Sprout, Store, Trash2, type LucideIcon } from "lucide-react";
 import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "@/lib/website/home-defaults";
 import { SERVICE_PAGES, serviceHref, servicePageFor } from "@/lib/website/service-pages";
 import { SERVICE_ICONS } from "@/components/public/service-icons";
@@ -19,7 +19,7 @@ import { QuoteForm } from "@/components/quote-form";
 import type { SerializedSection } from "@/lib/website/action-types";
 import { useWebsiteEditor, type EditorSignal } from "@/lib/website/editor-context";
 import { Editable } from "@/components/website/editable";
-import { IntroHero } from "@/components/public/intro-hero";
+import { HeroIntroOverlay } from "@/components/public/hero-intro-overlay";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 
@@ -176,70 +176,6 @@ function CtaLink({ href, className, children }: { href: string; className: strin
 }
 
 export function HeroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
-  if (str(content, "style", HOME_HERO.style) !== "photo") return <IntroHeroSection owner={owner} content={content} />;
-  return <PhotoHeroSection owner={owner} content={content} />;
-}
-
-/** Animated intro: water drop, big words, the hero photo built from dots; CMS badge, headline, subheadline and CTAs underneath. */
-function IntroHeroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
-  const word = (key: "introWord" | "heroWord") => str(content, key, HOME_HERO[key]).trim().toUpperCase() || HOME_HERO[key];
-  const eyebrow = str(content, "eyebrow", HOME_HERO.eyebrow);
-  const heading = str(content, "heading", HOME_HERO.heading);
-  const headingLine2 = str(content, "headingLine2", HOME_HERO.headingLine2);
-  const supportingText = str(content, "supportingText", HOME_HERO.supportingText);
-  const primaryCtaText = str(content, "primaryCtaText", HOME_HERO.primaryCtaText);
-  const primaryCtaUrl = str(content, "primaryCtaUrl", HOME_HERO.primaryCtaUrl);
-  const secondaryCtaText = str(content, "secondaryCtaText", HOME_HERO.secondaryCtaText);
-  const secondaryCtaUrl = str(content, "secondaryCtaUrl", HOME_HERO.secondaryCtaUrl);
-  const heroImage = str(content, "heroImage", HOME_HERO.heroImage) || HOME_HERO.heroImage;
-  const mobileImage = str(content, "mobileImage", "mobileImage" in content ? "" : HOME_HERO.mobileImage);
-  const heroImageAlt = str(content, "heroImageAlt", HOME_HERO.heroImageAlt);
-  const target = asSection(owner);
-
-  return (
-    <IntroHero
-      introWord={word("introWord")}
-      heroWord={word("heroWord")}
-      photo={heroImage}
-      mobilePhoto={mobileImage || undefined}
-      photoAlt={heroImageAlt}
-      editTarget={owner ? target : undefined}
-    >
-      <div className="ih-copy-text">
-        {eyebrow && (
-          <Editable target={{ kind: "section", section: target }} label="Badge" className="max-w-fit">
-            <p className="t-eyebrow inline-flex items-center gap-u1"><BadgeCheck size={15} strokeWidth={1.75} aria-hidden />{eyebrow}</p>
-          </Editable>
-        )}
-        <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-          <h1 className="ih-title">
-            <Accent text={heading} className="t-serif" />
-            {headingLine2 && <>{" "}<span className="block">{headingLine2}</span></>}
-          </h1>
-        </Editable>
-        {supportingText && (
-          <Editable target={{ kind: "section", section: target }} label="Subheadline" className="max-w-fit">
-            <p className="ih-sub">{supportingText}</p>
-          </Editable>
-        )}
-      </div>
-      <div className="ih-actions">
-        {secondaryCtaText && secondaryCtaUrl ? (
-          <Editable target={{ kind: "section", section: target }} label="Secondary CTA">
-            <CtaLink href={secondaryCtaUrl} className="btn btn-secondary-dark"><Download size={18} strokeWidth={1.75} aria-hidden />{secondaryCtaText}</CtaLink>
-          </Editable>
-        ) : (
-          <Link href="/services" className="ih-round" aria-label="Explore our services"><ArrowDownRight size={18} strokeWidth={1.75} aria-hidden /></Link>
-        )}
-        <Editable target={{ kind: "section", section: target }} label="Primary CTA">
-          <CtaLink href={primaryCtaUrl} className="btn btn-primary">{primaryCtaText}</CtaLink>
-        </Editable>
-      </div>
-    </IntroHero>
-  );
-}
-
-function PhotoHeroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
   const eyebrow = str(content, "eyebrow", HOME_HERO.eyebrow);
   const heading = str(content, "heading", HOME_HERO.heading);
   const headingLine2 = str(content, "headingLine2", HOME_HERO.headingLine2);
@@ -252,13 +188,19 @@ function PhotoHeroSection({ owner, content }: { owner?: RenderableSection; conte
   const mobileImage = str(content, "mobileImage", "mobileImage" in content ? "" : HOME_HERO.mobileImage);
   const heroImageAlt = str(content, "heroImageAlt", HOME_HERO.heroImageAlt);
   const target = asSection(owner);
+  // Opening animation: plays over this hero (never inside the visual editor). The copy below holds its
+  // entrance until the overlay hands over; data-intro-hold is removed by the overlay.
+  const editing = useWebsiteEditor().isEditor;
+  const intro = !editing && str(content, "style", HOME_HERO.style) !== "photo";
+  const tagline = str(content, "introTagline", HOME_HERO.introTagline).trim().toUpperCase();
 
   return (
-    <section className="band-deep relative flex min-h-[calc(100svh-56px)] overflow-hidden">
+    <section className="band-deep relative flex min-h-[calc(100svh-56px)] overflow-hidden" data-intro={intro ? "" : undefined} data-intro-hold={intro ? "" : undefined}>
+      {intro && <HeroIntroOverlay tagline={tagline} />}
       <Editable target={{ kind: "section-field", section: target, fieldKey: "heroImage" }} label="Edit Image" className="absolute inset-0">
         <div className="absolute inset-0 overflow-hidden">
           {/* Slow settle from a slight zoom, like a product reveal. Reduced-motion users get the still image. */}
-          <div className="absolute inset-0 motion-safe:animate-[heroZoom_2.6s_cubic-bezier(0.28,0.11,0.32,1)_both]">
+          <div className="ph-zoom absolute inset-0 motion-safe:animate-[heroZoom_2.6s_cubic-bezier(0.28,0.11,0.32,1)_both]">
             <Image src={heroImage} alt={heroImageAlt} fill priority className={`object-cover object-[46%_center] sm:object-[70%_center] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
             {mobileImage && <Image src={mobileImage} alt={heroImageAlt} fill priority className="object-cover object-center sm:hidden" sizes="100vw" />}
           </div>
@@ -267,7 +209,7 @@ function PhotoHeroSection({ owner, content }: { owner?: RenderableSection; conte
       {/* Flat neutral scrim keeps text contrast independent of the photo; the fade into the next band is a soft bottom edge. */}
       <div className="hero-scrim pointer-events-none absolute inset-0" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/50 to-transparent" />
-      <div className="container-x relative z-10 flex w-full flex-1 flex-col items-center justify-center py-u10 text-center">
+      <div className="ph-copy container-x relative z-10 flex w-full flex-1 flex-col items-center justify-center py-u10 text-center">
         <Editable target={{ kind: "section", section: target }} label="Badge" className="max-w-fit">
           <p className="inline-flex items-center gap-u1 rounded-full border border-white/20 bg-white/10 px-u2 py-[7px] text-[0.9375rem] font-medium text-white backdrop-blur-md animate-[fadeSlideUp_0.9s_cubic-bezier(0.28,0.11,0.32,1)_0.15s_both]">
             <BadgeCheck size={16} strokeWidth={1.75} className="text-[#D2A65A]" aria-hidden />{eyebrow}

@@ -58,11 +58,10 @@ export const SECTION_TYPES: Record<string, string> = {
 export const SECTION_TYPE_DEFS: Record<string, SectionTypeDef> = {
   hero: {
     label: "Hero",
-    description: "Homepage hero: badge, headline, one-line subheadline, two CTAs, and either the animated intro (the hero photo forms from dots) or a plain photo background.",
+    description: "Homepage hero: badge, headline, one-line subheadline, two CTAs, photo background, and an optional opening animation.",
     fields: [
-      { key: "style", label: "Style", type: "select", options: [{ value: "intro", label: "Animated intro (water drop, words, photo from dots)" }, { value: "photo", label: "Photo background" }] },
-      { key: "introWord", label: "Intro word, revealed by the water drop (animated intro only)", type: "text", placeholder: "STBS" },
-      { key: "heroWord", label: "Big line it turns into (animated intro only; breaks onto up to 3 lines)", type: "text", placeholder: "BUILDING DEEP LINE" },
+      { key: "style", label: "Opening animation", type: "select", options: [{ value: "intro", label: "On: water drop, logo, then the photo in grey turning to colour" }, { value: "photo", label: "Off: show the hero straight away" }] },
+      { key: "introTagline", label: "Tagline under the logo in the opening animation (leave empty to skip it)", type: "text", placeholder: "BUILDING DEEP LINE" },
       { key: "eyebrow", label: "Badge", type: "text", placeholder: "Trusted since 1992" },
       { key: "heading", label: "Headline", type: "text", placeholder: "Water infrastructure for industrial & commercial sites" },
       { key: "headingLine2", label: "Headline, second line (optional)", type: "text" },
@@ -305,7 +304,7 @@ export const SECTION_TYPE_DEFS: Record<string, SectionTypeDef> = {
 // (list rows use "<listKey>.<fieldKey>"). Applied to SECTION_TYPE_DEFS below so
 // the editor (counters) and the server (validation) read one source of truth.
 const LIMITS: Record<string, Record<string, number>> = {
-  hero: { introWord: 10, heroWord: 24, eyebrow: 40, heading: 80, headingLine2: 80, supportingText: 120, primaryCtaText: 30, secondaryCtaText: 30, heroImageAlt: 150 },
+  hero: { introTagline: 28, eyebrow: 40, heading: 80, headingLine2: 80, supportingText: 120, primaryCtaText: 30, secondaryCtaText: 30, heroImageAlt: 150 },
   page_hero: { eyebrow: 40, heading: 80, text: 300 },
   stats: { "items.label": 50, "items.value": 20 },
   why_choose: { heading: 80, "items.title": 60, "items.text": 220 },
