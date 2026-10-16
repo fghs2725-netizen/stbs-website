@@ -229,3 +229,37 @@ html.lenis, html.lenis body { height: auto; }
 @keyframes heroZoom { from { transform: scale(1.14); } to { transform: scale(1); } }
 ::selection { background: rgba(168, 120, 40, .28); }
 
+
+/* ── Intro hero (homepage hero, "Animated intro" style) ──────────────────────
+   Dot sweep → word scramble → particle rig. components/public/intro-hero.tsx sets
+   data-word / data-lit / data-ready on the section as the sequence runs. */
+@layer components {
+  .intro-hero { height: calc(100svh - var(--nav-h)); min-height: 560px; max-height: 1080px; background-image: none; }
+  .intro-hero::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0; transition: opacity 1.6s var(--ease-out);
+    background: radial-gradient(55% 48% at 50% 44%, rgba(246,242,234,.075), transparent 100%), radial-gradient(45% 32% at 50% 100%, rgba(210,166,90,.08), transparent 100%); }
+  .intro-hero[data-lit]::before { opacity: 1; }
+  .intro-hero::after { content: ""; position: absolute; inset: auto 0 0 0; height: 38%; z-index: 1; pointer-events: none; opacity: .75; background: linear-gradient(to top, var(--brand-deep), transparent); }
+  .intro-hero .ih-canvas { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; }
+  .intro-hero .ih-dot, .intro-hero .ih-bar { position: absolute; left: 0; top: 0; z-index: 3; opacity: 0; pointer-events: none; will-change: transform; }
+  .intro-hero .ih-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ink-on-dark); box-shadow: 0 0 18px rgba(246,242,234,.5); }
+  .intro-hero .ih-bar { width: 6px; height: 60px; border-radius: 99px; transform-origin: 50% 100%; background: linear-gradient(to top, var(--ink-on-dark), var(--muted-on-dark)); }
+  .intro-hero .ih-foot { position: absolute; inset-inline: 0; bottom: 0; z-index: 2; display: flex; flex-direction: column; gap: clamp(14px, 2.2vh, 28px); padding-bottom: clamp(28px, 5vh, 64px); }
+  /* Fitted to the container width by the script; this size is the no-script fallback. */
+  .intro-hero .ih-word { display: inline-block; align-self: flex-start; white-space: nowrap; font-family: var(--font-display), system-ui, sans-serif; font-weight: 600;
+    font-size: min(calc((min(100vw, 1280px) - 2 * var(--gutter)) / 5.6), 26svh); line-height: .9; letter-spacing: -.03em; padding: .06em .03em .04em 0;
+    transform-origin: 50% 50%; will-change: transform; color: transparent; -webkit-text-fill-color: transparent;
+    background: linear-gradient(180deg, #fff 8%, var(--ink-on-dark) 46%, #7a746a 100%); -webkit-background-clip: text; background-clip: text;
+    filter: drop-shadow(0 14px 30px rgba(0,0,0,.55)); }
+  .intro-hero:not([data-word]) .ih-word { opacity: 0; }
+  .intro-hero .ih-copy { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s3) var(--s5);
+    opacity: 0; visibility: hidden; transform: translateY(12px); transition: opacity .8s var(--ease-out), transform .8s var(--ease-out), visibility 0s linear .8s; }
+  .intro-hero[data-ready] .ih-copy { opacity: 1; visibility: visible; transform: none; transition: opacity .8s var(--ease-out) .1s, transform .8s var(--ease-out) .1s, visibility 0s; }
+  .intro-hero .ih-copy-text { min-width: 0; max-width: 46rem; }
+  .intro-hero .ih-title { margin: 10px 0 0; font-family: var(--font-display), system-ui, sans-serif; font-weight: 500; font-size: clamp(1.375rem, calc(1rem + 1.25vw), 2.25rem); line-height: 1.12; letter-spacing: -.015em; color: var(--ink-on-dark); text-wrap: balance; }
+  .intro-hero .ih-sub { margin: 10px 0 0; max-width: 40rem; font-size: clamp(.9375rem, calc(.88rem + .2vw), 1.0625rem); line-height: 1.5; color: var(--muted-on-dark); }
+  .intro-hero .ih-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); }
+  .intro-hero .ih-round { display: inline-grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; border: 1px solid rgba(246,242,234,.28); color: var(--ink-on-dark);
+    transition: background-color var(--t-fast) var(--ease-apple), color var(--t-fast) var(--ease-apple), border-color var(--t-fast) var(--ease-apple); }
+  @media (hover: hover) { .intro-hero .ih-round:hover { background: var(--ink-on-dark); color: var(--brand-deep); border-color: var(--ink-on-dark); } }
+  @media (max-width: 639px) { .intro-hero .ih-sub { font-size: .875rem; } .intro-hero .ih-copy { gap: var(--s2); } }
+}

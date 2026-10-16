@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain, Construction, Copy, Download, Drill, Droplets, Eye, EyeOff, Factory, Home, Landmark, Mail, MapPin, MessageCircle, Pencil, Phone, Sprout, Store, Trash2, type LucideIcon } from "lucide-react";
+import { ArrowRight, ArrowDown, ArrowDownRight, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain, Construction, Copy, Download, Drill, Droplets, Eye, EyeOff, Factory, Home, Landmark, Mail, MapPin, MessageCircle, Pencil, Phone, Sprout, Store, Trash2, type LucideIcon } from "lucide-react";
 import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "@/lib/website/home-defaults";
 import { SERVICE_PAGES, serviceHref, servicePageFor } from "@/lib/website/service-pages";
 import { SERVICE_ICONS } from "@/components/public/service-icons";
@@ -19,6 +19,7 @@ import { QuoteForm } from "@/components/quote-form";
 import type { SerializedSection } from "@/lib/website/action-types";
 import { useWebsiteEditor, type EditorSignal } from "@/lib/website/editor-context";
 import { Editable } from "@/components/website/editable";
+import { IntroHero } from "@/components/public/intro-hero";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 
@@ -175,6 +176,60 @@ function CtaLink({ href, className, children }: { href: string; className: strin
 }
 
 export function HeroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
+  if (str(content, "style", HOME_HERO.style) !== "photo") return <IntroHeroSection owner={owner} content={content} />;
+  return <PhotoHeroSection owner={owner} content={content} />;
+}
+
+/** Animated intro: big word + particle rig, with the CMS badge, headline, subheadline and CTAs underneath. */
+function IntroHeroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
+  const word = (key: "introWord" | "heroWord") => str(content, key, HOME_HERO[key]).trim().toUpperCase() || HOME_HERO[key];
+  const eyebrow = str(content, "eyebrow", HOME_HERO.eyebrow);
+  const heading = str(content, "heading", HOME_HERO.heading);
+  const headingLine2 = str(content, "headingLine2", HOME_HERO.headingLine2);
+  const supportingText = str(content, "supportingText", HOME_HERO.supportingText);
+  const primaryCtaText = str(content, "primaryCtaText", HOME_HERO.primaryCtaText);
+  const primaryCtaUrl = str(content, "primaryCtaUrl", HOME_HERO.primaryCtaUrl);
+  const secondaryCtaText = str(content, "secondaryCtaText", HOME_HERO.secondaryCtaText);
+  const secondaryCtaUrl = str(content, "secondaryCtaUrl", HOME_HERO.secondaryCtaUrl);
+  const target = asSection(owner);
+
+  return (
+    <IntroHero introWord={word("introWord")} heroWord={word("heroWord")} editTarget={owner ? target : undefined}>
+      <div className="ih-copy-text">
+        {eyebrow && (
+          <Editable target={{ kind: "section", section: target }} label="Badge" className="max-w-fit">
+            <p className="t-eyebrow inline-flex items-center gap-u1"><BadgeCheck size={15} strokeWidth={1.75} aria-hidden />{eyebrow}</p>
+          </Editable>
+        )}
+        <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
+          <h1 className="ih-title">
+            <Accent text={heading} className="t-serif" />
+            {headingLine2 && <>{" "}<span className="block">{headingLine2}</span></>}
+          </h1>
+        </Editable>
+        {supportingText && (
+          <Editable target={{ kind: "section", section: target }} label="Subheadline" className="max-w-fit">
+            <p className="ih-sub">{supportingText}</p>
+          </Editable>
+        )}
+      </div>
+      <div className="ih-actions">
+        {secondaryCtaText && secondaryCtaUrl ? (
+          <Editable target={{ kind: "section", section: target }} label="Secondary CTA">
+            <CtaLink href={secondaryCtaUrl} className="btn btn-secondary-dark"><Download size={18} strokeWidth={1.75} aria-hidden />{secondaryCtaText}</CtaLink>
+          </Editable>
+        ) : (
+          <Link href="/services" className="ih-round" aria-label="Explore our services"><ArrowDownRight size={18} strokeWidth={1.75} aria-hidden /></Link>
+        )}
+        <Editable target={{ kind: "section", section: target }} label="Primary CTA">
+          <CtaLink href={primaryCtaUrl} className="btn btn-primary">{primaryCtaText}</CtaLink>
+        </Editable>
+      </div>
+    </IntroHero>
+  );
+}
+
+function PhotoHeroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
   const eyebrow = str(content, "eyebrow", HOME_HERO.eyebrow);
   const heading = str(content, "heading", HOME_HERO.heading);
   const headingLine2 = str(content, "headingLine2", HOME_HERO.headingLine2);
