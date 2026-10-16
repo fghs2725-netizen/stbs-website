@@ -5,11 +5,11 @@
  * clearly marked placeholder.
  */
 export const HOME_HERO = {
-  // "intro" = animated dot sweep, word scramble and particle rig (components/public/intro-hero.tsx);
-  // "photo" = the full-bleed photo hero below. Switch in Website -> Home -> Hero.
+  // "intro" = water drop, word scramble and the hero photo built from dots (components/public/intro-hero.tsx);
+  // "photo" = the full-bleed photo hero. Switch in Website -> Home -> Hero.
   style: "intro",
-  introWord: "SAINI",
-  heroWord: "BOREWELL",
+  introWord: "STBS",
+  heroWord: "BUILDING DEEP LINE",
   eyebrow: "Trusted since 1992",
   heading: "Water infrastructure for *industrial & commercial* sites",
   headingLine2: "",

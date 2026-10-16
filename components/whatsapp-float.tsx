@@ -30,7 +30,7 @@ export function WhatsAppFloat({ phone }: { phone?: string }) {
   // Plain CSS transition (no animation library): this component loads on every public page, and pulling
   // in framer-motion for a fade cost ~120 KB of JavaScript. Hidden = out of the tab order and the a11y tree.
   return (
-    <aside aria-label="WhatsApp chat">
+    <aside aria-label="WhatsApp chat" data-hide-during-intro="">
       <a
         href={href}
         target="_blank"

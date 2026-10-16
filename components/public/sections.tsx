@@ -180,7 +180,7 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
   return <PhotoHeroSection owner={owner} content={content} />;
 }
 
-/** Animated intro: big word + particle rig, with the CMS badge, headline, subheadline and CTAs underneath. */
+/** Animated intro: water drop, big words, the hero photo built from dots; CMS badge, headline, subheadline and CTAs underneath. */
 function IntroHeroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
   const word = (key: "introWord" | "heroWord") => str(content, key, HOME_HERO[key]).trim().toUpperCase() || HOME_HERO[key];
   const eyebrow = str(content, "eyebrow", HOME_HERO.eyebrow);
@@ -191,10 +191,20 @@ function IntroHeroSection({ owner, content }: { owner?: RenderableSection; conte
   const primaryCtaUrl = str(content, "primaryCtaUrl", HOME_HERO.primaryCtaUrl);
   const secondaryCtaText = str(content, "secondaryCtaText", HOME_HERO.secondaryCtaText);
   const secondaryCtaUrl = str(content, "secondaryCtaUrl", HOME_HERO.secondaryCtaUrl);
+  const heroImage = str(content, "heroImage", HOME_HERO.heroImage) || HOME_HERO.heroImage;
+  const mobileImage = str(content, "mobileImage", "mobileImage" in content ? "" : HOME_HERO.mobileImage);
+  const heroImageAlt = str(content, "heroImageAlt", HOME_HERO.heroImageAlt);
   const target = asSection(owner);
 
   return (
-    <IntroHero introWord={word("introWord")} heroWord={word("heroWord")} editTarget={owner ? target : undefined}>
+    <IntroHero
+      introWord={word("introWord")}
+      heroWord={word("heroWord")}
+      photo={heroImage}
+      mobilePhoto={mobileImage || undefined}
+      photoAlt={heroImageAlt}
+      editTarget={owner ? target : undefined}
+    >
       <div className="ih-copy-text">
         {eyebrow && (
           <Editable target={{ kind: "section", section: target }} label="Badge" className="max-w-fit">

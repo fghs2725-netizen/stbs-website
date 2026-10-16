@@ -43,7 +43,7 @@ export function SiteHeader({ navLinks, businessName, logoUrl, mobileLogoUrl, pho
   const linkBase = `inline-flex h-full items-center font-copy text-[0.8125rem] font-normal tracking-[-0.005em] transition-colors duration-300 ${focus}`;
 
   return (
-    <header className={`${isEditor ? "absolute" : "sticky"} inset-x-0 top-0 z-50 h-[56px] glass border-b border-white/10 font-copy`}>
+    <header data-hide-during-intro="up" className={`${isEditor ? "absolute" : "sticky"} inset-x-0 top-0 z-50 h-[56px] glass border-b border-white/10 font-copy`}>
       <div className="container-x flex h-full items-center justify-between gap-u2">
         <div className="flex items-center gap-u2">
           <Link href="/" data-editor-safe className={`flex min-h-[44px] items-center ${focus}`} aria-label={businessName ? `${businessName} home` : "Home"}>
