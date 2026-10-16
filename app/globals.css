@@ -229,3 +229,35 @@ html.lenis, html.lenis body { height: auto; }
 @keyframes heroZoom { from { transform: scale(1.14); } to { transform: scale(1); } }
 ::selection { background: rgba(168, 120, 40, .28); }
 
+
+/* ── Homepage opening animation (components/public/hero-intro-overlay.tsx) ──────
+   A fixed overlay above the real hero: water drop → STBS logo → tagline → grey photo
+   from dots → colour spreads out. The hero underneath is unchanged; its text holds its
+   entrance (data-intro-hold) until the overlay hands over. */
+@layer components {
+  .ih-overlay { position: fixed; inset: 0; z-index: 70; background: var(--brand-deep); animation: ih-overlay-failsafe 0s linear 15s forwards; }
+  .ih-overlay[data-live] { background: transparent; }
+  .ih-overlay[data-done] { display: none; }
+  .ih-overlay .ih-ov-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+  .ih-overlay .ih-ov-logo { position: absolute; z-index: 2; left: 0; top: 0; width: 92px; height: 34px; object-fit: contain; object-position: left center; opacity: 0; pointer-events: none; will-change: transform;
+    filter: grayscale(1) drop-shadow(0 12px 28px rgba(0,0,0,.55)); transition: filter 1.2s var(--ease-out), opacity .4s ease; }
+  .ih-overlay[data-colour] .ih-ov-logo { filter: grayscale(0) drop-shadow(0 0 0 rgba(0,0,0,0)); }
+  .ih-overlay .ih-ov-tag { position: absolute; z-index: 2; left: 50%; top: 60%; transform: translateX(-50%); white-space: pre; pointer-events: none; opacity: 0; transition: opacity .45s ease;
+    font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; font-size: clamp(.8125rem, calc(.6rem + .9vw), 1.375rem); letter-spacing: .34em; padding-left: .34em; color: #d9dcde; text-shadow: 0 2px 18px rgba(0,0,0,.5); }
+  .ih-overlay .ih-skip { position: absolute; z-index: 3; top: max(16px, env(safe-area-inset-top, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px));
+    min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(246,242,234,.22); background: rgba(19,24,25,.35); color: var(--muted-on-dark);
+    font: 500 .75rem/1 var(--font-text), system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: color .3s, border-color .3s, opacity .3s; }
+  .ih-overlay[data-released] .ih-skip { opacity: 0; pointer-events: none; }
+  @media (max-width: 359px) { .ih-overlay .ih-ov-tag { letter-spacing: .22em; padding-left: .22em; } }
+  @media (hover: hover) { .ih-overlay .ih-skip:hover { color: var(--ink-on-dark); border-color: rgba(246,242,234,.5); } }
+  .ih-overlay .ih-skip:focus-visible { outline: 2px solid var(--bronze-light); outline-offset: 3px; }
+  /* The hero text waits for the overlay (failsafe: shows anyway after 15s), and the photo skips its zoom so the grey and colour frames line up. */
+  [data-intro-hold] .ph-copy [class*="animate-"] { animation: ih-copy-failsafe .8s ease 15s both !important; }
+  [data-intro] .ph-zoom { animation: none !important; }
+  @media (prefers-reduced-motion: reduce) {
+    .ih-overlay { display: none; }
+    [data-intro-hold] .ph-copy [class*="animate-"] { animation: none !important; opacity: 1; }
+  }
+}
+@keyframes ih-overlay-failsafe { to { opacity: 0; visibility: hidden; } }
+@keyframes ih-copy-failsafe { from { opacity: 0; } to { opacity: 1; } }

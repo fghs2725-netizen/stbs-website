@@ -19,6 +19,7 @@ import { QuoteForm } from "@/components/quote-form";
 import type { SerializedSection } from "@/lib/website/action-types";
 import { useWebsiteEditor, type EditorSignal } from "@/lib/website/editor-context";
 import { Editable } from "@/components/website/editable";
+import { HeroIntroOverlay } from "@/components/public/hero-intro-overlay";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 
@@ -187,13 +188,19 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
   const mobileImage = str(content, "mobileImage", "mobileImage" in content ? "" : HOME_HERO.mobileImage);
   const heroImageAlt = str(content, "heroImageAlt", HOME_HERO.heroImageAlt);
   const target = asSection(owner);
+  // Opening animation: plays over this hero (never inside the visual editor). The copy below holds its
+  // entrance until the overlay hands over; data-intro-hold is removed by the overlay.
+  const editing = useWebsiteEditor().isEditor;
+  const intro = !editing && str(content, "style", HOME_HERO.style) !== "photo";
+  const tagline = str(content, "introTagline", HOME_HERO.introTagline).trim().toUpperCase();
 
   return (
-    <section className="band-deep relative flex min-h-[calc(100svh-56px)] overflow-hidden">
+    <section className="band-deep relative flex min-h-[calc(100svh-56px)] overflow-hidden" data-intro={intro ? "" : undefined} data-intro-hold={intro ? "" : undefined}>
+      {intro && <HeroIntroOverlay tagline={tagline} />}
       <Editable target={{ kind: "section-field", section: target, fieldKey: "heroImage" }} label="Edit Image" className="absolute inset-0">
         <div className="absolute inset-0 overflow-hidden">
           {/* Slow settle from a slight zoom, like a product reveal. Reduced-motion users get the still image. */}
-          <div className="absolute inset-0 motion-safe:animate-[heroZoom_2.6s_cubic-bezier(0.28,0.11,0.32,1)_both]">
+          <div className="ph-zoom absolute inset-0 motion-safe:animate-[heroZoom_2.6s_cubic-bezier(0.28,0.11,0.32,1)_both]">
             <Image src={heroImage} alt={heroImageAlt} fill priority className={`object-cover object-[46%_center] sm:object-[70%_center] ${mobileImage ? "hidden sm:block" : ""}`} sizes="100vw" />
             {mobileImage && <Image src={mobileImage} alt={heroImageAlt} fill priority className="object-cover object-center sm:hidden" sizes="100vw" />}
           </div>
@@ -202,7 +209,7 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
       {/* Flat neutral scrim keeps text contrast independent of the photo; the fade into the next band is a soft bottom edge. */}
       <div className="hero-scrim pointer-events-none absolute inset-0" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/50 to-transparent" />
-      <div className="container-x relative z-10 flex w-full flex-1 flex-col items-center justify-center py-u10 text-center">
+      <div className="ph-copy container-x relative z-10 flex w-full flex-1 flex-col items-center justify-center py-u10 text-center">
         <Editable target={{ kind: "section", section: target }} label="Badge" className="max-w-fit">
           <p className="inline-flex items-center gap-u1 rounded-full border border-white/20 bg-white/10 px-u2 py-[7px] text-[0.9375rem] font-medium text-white backdrop-blur-md animate-[fadeSlideUp_0.9s_cubic-bezier(0.28,0.11,0.32,1)_0.15s_both]">
             <BadgeCheck size={16} strokeWidth={1.75} className="text-[#D2A65A]" aria-hidden />{eyebrow}

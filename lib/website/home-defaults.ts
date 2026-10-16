@@ -5,6 +5,11 @@
  * clearly marked placeholder.
  */
 export const HOME_HERO = {
+  // "intro" plays components/public/hero-intro-overlay.tsx over this hero on a visitor's first view
+  // (water drop -> STBS logo -> tagline -> greyscale photo from dots -> colour); "photo" shows the hero as is.
+  // Switch in Website -> Home -> Hero.
+  style: "intro",
+  introTagline: "GO DEEPER BUILD STRONGER",
   eyebrow: "Trusted since 1992",
   heading: "Water infrastructure for *industrial & commercial* sites",
   headingLine2: "",
