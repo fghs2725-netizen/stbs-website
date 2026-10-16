@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
   cancelInvoice, convertQuotationToInvoice, createCreditNote, deleteInvoice, deletePayment,
-  duplicateInvoice, invoiceIdsFor, issueInvoice, markSentToCa, purgeInvoice, recordPayment, restoreInvoice, saveInvoice,
+  checkInvoiceNumber, duplicateInvoice, invoiceIdsFor, issueInvoice, markSentToCa, purgeInvoice, recordPayment, restoreInvoice, saveInvoice,
   saveInvoiceConfig, saveInvoiceSegments,
   type InvoiceConfig, type InvoiceFilter,
 } from "@/lib/invoice-management";
@@ -137,4 +137,9 @@ export async function invoiceIdsForAction(filter: InvoiceFilter) {
 export async function setSentToCaAction(id: string, sent: boolean) {
   await markSentToCa({ ids: [id] }, sent);
   refresh(id);
+}
+
+/** Whether a hand-chosen invoice number can be used, for the editor's number field. */
+export async function checkInvoiceNumberAction(n: number | null, forId?: string) {
+  return checkInvoiceNumber(n, forId);
 }

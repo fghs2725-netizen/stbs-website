@@ -7,7 +7,7 @@ import { buildDraft } from "@/components/invoice/invoice-model";
 import { NewInvoiceFlow } from "@/components/invoice/presets/NewInvoiceFlow";
 import { listPresets } from "@/lib/quotation-preset-store";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { saveInvoiceAction } from "../actions";
+import { checkInvoiceNumberAction, saveInvoiceAction } from "../actions";
 import { mergeUnits } from "@/lib/units";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +46,7 @@ export default async function NewInvoicePage() {
         initial={draft} settings={settings} business={business} template={template}
         units={units} onCreateUnit={createUnitAction}
         save={saveInvoiceAction} gstModeFor={gstModeAction}
+        checkNumber={checkInvoiceNumberAction}
       />
     </div>
   );

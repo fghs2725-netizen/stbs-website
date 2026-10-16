@@ -6,7 +6,7 @@ import { resolveInvoiceTemplateById } from "@/lib/invoice-templates";
 import { InvoiceEditor } from "@/components/invoice/editor/InvoiceEditor";
 import { formatInvoiceNumber } from "@/lib/invoice-numbering";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { saveInvoiceAction } from "../../actions";
+import { checkInvoiceNumberAction, saveInvoiceAction } from "../../actions";
 import { mergeUnits } from "@/lib/units";
 
 export const dynamic = "force-dynamic";
@@ -51,6 +51,7 @@ export default async function EditInvoicePage({ params }: { params: Promise<{ id
         units={units}
         onCreateUnit={createUnitAction}
         save={saveInvoiceAction}
+        checkNumber={checkInvoiceNumberAction}
         gstModeFor={gstModeAction}
       />
     </div>

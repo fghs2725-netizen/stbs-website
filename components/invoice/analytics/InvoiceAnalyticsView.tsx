@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { BarChart3 } from "lucide-react";
-import type { InvoiceAnalytics } from "@/lib/invoice-analytics";
+import { compressRanges, type InvoiceAnalytics } from "@/lib/invoice-analytics";
 import { formatINR } from "@/components/invoice/invoice-model";
-import { formatInvoiceNumber } from "@/lib/invoice-numbering";
+import { CONTINUES_FROM, formatInvoiceNumber } from "@/lib/invoice-numbering";
 import { StatTiles } from "@/components/admin/shell/ui";
 
 /** ₹12.4 L / ₹1.85 Cr for chart labels, where a full rupee figure would not fit. */
@@ -199,8 +199,9 @@ export function InvoiceAnalyticsView({ a }: { a: InvoiceAnalytics }) {
   );
 }
 
-/** The four totals and the missing-number line shown above the invoice list. */
+/** The four totals shown above the invoice list, and any number missing from the series since 764. */
 export function InvoiceSummaryStrip({ stats }: { stats: InvoiceAnalytics }) {
+  const recent = stats.missing.numbers.filter((n) => n > CONTINUES_FROM);
   return (
     <section aria-label="Invoice summary" className="flex flex-col gap-3">
       <StatTiles
@@ -211,24 +212,30 @@ export function InvoiceSummaryStrip({ stats }: { stats: InvoiceAnalytics }) {
           { label: "Overdue", value: tile(stats.outstanding.overdueTotal), hint: `${stats.outstanding.overdueCount} past the due date` },
         ]}
       />
-      <div className="a-card flex flex-wrap items-start justify-between gap-3 p-4">
-        <div className="min-w-0">
-          <p className="a-label">Missing invoice numbers (from 503)</p>
-          <p className="a-num mt-1 text-[0.9375rem]" style={{ color: stats.missing.numbers.length ? "var(--a-ink)" : "var(--a-faint)" }}>
-            {stats.missing.numbers.length ? stats.missing.text : "None. The series is complete."}
-          </p>
-          {stats.missing.numbers.length > 0 && (
-            <p className="mt-1 text-[0.75rem]" style={{ color: "var(--a-faint)" }}>
-              {stats.missing.numbers.length} number{stats.missing.numbers.length === 1 ? "" : "s"}
-              {stats.missing.deletedNumbers.length ? `, of which ${stats.missing.deletedNumbers.length} are in Deleted and come back on restore` : ""}.
+      {recent.length > 0 ? (
+        // Only gaps in the series this app keeps (after 764) are raised here, filled red so they are
+        // not missed; the older gaps from the previous book are listed on the Analytics page.
+        <div role="alert" className="flex flex-wrap items-start justify-between gap-3 rounded-[var(--a-r)] p-4" style={{ background: "var(--a-danger-soft)", border: "1px solid var(--a-danger)" }}>
+          <div className="min-w-0">
+            <p className="text-[0.8125rem] font-semibold" style={{ color: "var(--a-danger)" }}>
+              Missing invoice number{recent.length === 1 ? "" : "s"}
             </p>
-          )}
+            <p className="a-num mt-1 text-[1rem] font-semibold" style={{ color: "var(--a-danger)" }}>{compressRanges(recent)}</p>
+            <p className="mt-1 text-[0.75rem]" style={{ color: "var(--a-body)" }}>
+              Use one when you make an invoice (type it in Invoice no.), or restore the deleted bill that had it.
+            </p>
+          </div>
+          <Link href="/admin/invoices/analytics" className="a-btn a-btn-sm">
+            <BarChart3 size={15} strokeWidth={1.75} aria-hidden />
+            Analytics
+          </Link>
         </div>
-        <Link href="/admin/invoices/analytics" className="a-btn a-btn-sm">
+      ) : (
+        <Link href="/admin/invoices/analytics" className="a-link inline-flex items-center gap-2 self-start text-[0.875rem]">
           <BarChart3 size={15} strokeWidth={1.75} aria-hidden />
           Analytics
         </Link>
-      </div>
+      )}
     </section>
   );
 }

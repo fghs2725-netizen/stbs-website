@@ -47,6 +47,11 @@ type Props = {
    * dev-only harness passes its own so the editor can be exercised without a database behind it.
    */
   onSaved?: (saved: InvoiceState) => void;
+  /**
+   * Checks a hand-chosen invoice number: whether another invoice already has it, and what the next
+   * automatic number is. Left out (the harness), the number field is not shown.
+   */
+  checkNumber?: (n: number | null, forId?: string) => Promise<{ status: "free" | "taken" | "invalid"; next: number; message: string }>;
 };
 
 const newRow = (): InvoiceItem => ({
@@ -56,8 +61,19 @@ const newRow = (): InvoiceItem => ({
 
 const num = (v: string) => (v.trim() === "" ? 0 : Number(v));
 
-export function InvoiceEditor({ initial, settings, save, gstModeFor, business, template, units, onCreateUnit, onSaved }: Props) {
+export function InvoiceEditor({ initial, settings, save, gstModeFor, business, template, units, onCreateUnit, onSaved, checkNumber }: Props) {
   const [inv, setInv] = useState<InvoiceState>(initial);
+  // The number field: what the server says about the number typed, and the next automatic one.
+  const [numberCheck, setNumberCheck] = useState<{ status: "free" | "taken" | "invalid"; next: number; message: string } | null>(null);
+  useEffect(() => {
+    if (!checkNumber || inv.isCash) return;
+    let live = true;
+    const t = setTimeout(() => {
+      checkNumber(inv.number ?? null, inv.id).then((r) => { if (live) setNumberCheck(r); }).catch(() => {});
+    }, 300);
+    return () => { live = false; clearTimeout(t); };
+  }, [checkNumber, inv.number, inv.id, inv.isCash]);
+  const numberBlocked = !inv.isCash && Boolean(numberCheck && numberCheck.status !== "free");
   const [saving, startSaving] = useTransition();
   const [error, setError] = useState("");
   const [preview, setPreview] = useState(false);
@@ -314,6 +330,18 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, t
       <section className="a-card p-4">
         <h2 className="a-h2">Dates, discount and GST</h2>
         <div className="mt-3 flex flex-wrap items-end gap-3">
+          {checkNumber && !inv.isCash && (
+            <label className="a-label">Invoice no.
+              <input
+                type="number" inputMode="numeric" min={1} step={1} className="a-input mt-1 w-32"
+                value={inv.number ?? ""}
+                placeholder={numberCheck ? `Next: ${numberCheck.next}` : "Automatic"}
+                aria-invalid={numberBlocked || undefined}
+                aria-describedby="invoice-number-note"
+                onChange={(e) => patch({ number: e.target.value.trim() === "" ? undefined : Math.trunc(Number(e.target.value)) })}
+              />
+            </label>
+          )}
           <label className="a-label">Invoice date
             <input
               type="date" className="a-input mt-1 w-auto" value={inv.date}
@@ -355,6 +383,14 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, t
             <input type="checkbox" checked={Boolean(inv.reverseCharge)} onChange={(e) => patch({ reverseCharge: e.target.checked })} /> Reverse charge
           </label>
         </div>
+        {checkNumber && !inv.isCash && (
+          <p id="invoice-number-note" role={numberBlocked ? "alert" : undefined} className="mt-2 text-[0.8125rem]" style={{ color: numberBlocked ? "var(--a-danger)" : "var(--a-faint)" }}>
+            {numberCheck?.message
+              || (inv.number === undefined
+                ? inv.status === "DRAFT" ? `Leave blank to take the next number${numberCheck ? ` (${numberCheck.next})` : ""} when you issue it, or type one.` : ""
+                : inv.status === "DRAFT" ? "This number is kept for this invoice until you issue it." : "")}
+          </p>
+        )}
       </section>
 
       <section className="a-card p-4">
@@ -385,7 +421,7 @@ export function InvoiceEditor({ initial, settings, save, gstModeFor, business, t
       )}
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button type="button" onClick={onSave} disabled={saving}>{saving ? "Saving…" : "Save invoice"}</Button>
+        <Button type="button" onClick={onSave} disabled={saving || numberBlocked}>{saving ? "Saving…" : "Save invoice"}</Button>
         <Button
           type="button" variant="secondary" ref={previewButton}
           onClick={() => setPreview(true)}
