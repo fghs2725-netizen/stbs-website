@@ -7,7 +7,9 @@
  *
  * A number is taken only when an invoice is ISSUED, never when a draft is created, so an abandoned draft
  * cannot leave a gap. Under GST the series must be unbroken for the financial year, so the one rule that
- * matters here is: allocate late, and never reuse.
+ * matters here is: allocate late. The one exception (the owner's choice, 2026-10-16): when the newest
+ * invoices are deleted, their numbers are given back so the series continues without a gap; see
+ * `settleCounter` in lib/invoice-management.ts. A number can also be chosen by hand.
  *
  * Pure (no database). The atomic allocation against the counter row lives in lib/invoice-management.ts.
  */

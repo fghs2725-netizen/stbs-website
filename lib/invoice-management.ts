@@ -359,6 +359,90 @@ export async function invoicesForQuotation(quotationId: string) {
 
 /* ────────────────────────── writes ────────────────────────── */
 
+/* ────────────────────────── numbering ────────────────────────── */
+
+type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+/**
+ * Takes the next free number from the counter. A number chosen by hand further up the series is
+ * skipped rather than handed out twice.
+ */
+async function allocateNumber(tx: Tx): Promise<number> {
+  const counter = await tx.invoiceNumberCounter.upsert({
+    where: { id: COUNTER_ID },
+    create: { id: COUNTER_ID, lastNumber: nextNumber(CONTINUES_FROM) },
+    update: { lastNumber: { increment: 1 } },
+  });
+  // On create the row is written already holding the first number; on update it has just been bumped.
+  let n = counter.lastNumber;
+  while (await tx.invoice.findFirst({ where: { number: n }, select: { id: true } })) n += 1;
+  if (n !== counter.lastNumber) await tx.invoiceNumberCounter.update({ where: { id: COUNTER_ID }, data: { lastNumber: n } });
+  return n;
+}
+
+/**
+ * Keeps the counter at the top of the series (the owner's choice, 2026-10-16): when the newest
+ * numbered invoices have been deleted, their numbers are given back, so the next invoice continues
+ * straight on instead of leaving a gap. Only the top of the series is given back; a deleted invoice
+ * further down keeps its number, and that gap stays visible. A number chosen by hand above the
+ * counter moves the counter up to it, leaving the numbers in between as gaps.
+ */
+async function settleCounter(tx: Tx): Promise<void> {
+  for (;;) {
+    const top = await tx.invoice.findFirst({
+      where: { number: { not: null } }, orderBy: { number: "desc" }, select: { id: true, number: true, deletedAt: true },
+    });
+    if (top?.deletedAt) {
+      await tx.invoice.update({
+        where: { id: top.id },
+        data: { number: null, edits: { create: { field: "number", oldValue: String(top.number), newValue: "given back when deleted" } } },
+      });
+      continue;
+    }
+    const last = Math.max(top?.number ?? 0, CONTINUES_FROM);
+    await tx.invoiceNumberCounter.upsert({ where: { id: COUNTER_ID }, create: { id: COUNTER_ID, lastNumber: last }, update: { lastNumber: last } });
+    return;
+  }
+}
+
+/**
+ * Whether a number can be given to an invoice. A number held by a live invoice cannot; one held only
+ * by a deleted invoice can, and is taken from it.
+ */
+async function claimNumber(tx: Tx, n: number, forId?: string): Promise<void> {
+  if (!Number.isInteger(n) || n < 1 || n > 999_999_999) throw new Error("NUMBER_INVALID: an invoice number is a whole number above 0");
+  const holder = await tx.invoice.findFirst({ where: { number: n, ...(forId ? { NOT: { id: forId } } : {}) }, select: { id: true, deletedAt: true } });
+  if (!holder) return;
+  if (!holder.deletedAt) throw new Error(`NUMBER_TAKEN: invoice ${n} already exists`);
+  await tx.invoice.update({
+    where: { id: holder.id },
+    data: { number: null, edits: { create: { field: "number", oldValue: String(n), newValue: "given to another invoice" } } },
+  });
+}
+
+export type NumberCheck = { status: "free" | "taken" | "invalid"; next: number; message: string };
+
+/**
+ * What the editor shows beside the number field: whether a number can be used, and what the next
+ * automatic number is. `forId` is the invoice being edited, so its own number reads as free.
+ */
+export async function checkInvoiceNumber(n: number | null, forId?: string): Promise<NumberCheck> {
+  await requireAdmin();
+  const counter = await prisma.invoiceNumberCounter.findUnique({ where: { id: COUNTER_ID }, select: { lastNumber: true } });
+  let next = nextNumber(counter?.lastNumber ?? CONTINUES_FROM);
+  while (await prisma.invoice.findFirst({ where: { number: next, deletedAt: null }, select: { id: true } })) next += 1;
+  if (n === null) return { status: "free", next, message: "" };
+  if (!Number.isInteger(n) || n < 1) return { status: "invalid", next, message: "Use a whole number above 0." };
+  if (forId) {
+    const own = await prisma.invoice.findUnique({ where: { id: forId }, select: { number: true } });
+    if (own?.number === n) return { status: "free", next, message: "" };
+  }
+  const holder = await prisma.invoice.findFirst({ where: { number: n, deletedAt: null, ...(forId ? { NOT: { id: forId } } : {}) }, select: { id: true } });
+  if (holder) return { status: "taken", next, message: `Invoice ${n} already exists. Pick another number.` };
+  if (n > next) return { status: "free", next, message: `Numbers ${next}${n - 1 > next ? `–${n - 1}` : ""} will show as missing until used.` };
+  return { status: "free", next, message: n < next ? `${n} is free: it fills a gap in the series.` : "" };
+}
+
 /** Fields worth recording when an issued invoice is edited. Items are summarised rather than diffed row by row. */
 const TRACKED: Array<keyof ReturnType<typeof toInput>> = [
   "date", "dueDate", "clientCompanyName", "clientGstin", "clientState",
@@ -415,17 +499,29 @@ export async function saveInvoice(inv: InvoiceState, editedBy?: string): Promise
       // Cash or numbered is settled when the invoice is issued: switching later would either leave a
       // numbered invoice without its number or hand a cash one a place in the series after the fact.
       if (old.status !== "DRAFT") data.isCash = old.isCash;
+      // The number can be chosen by hand: on a draft it is reserved for when it is issued, on an
+      // issued bill it renumbers it. A cash invoice never has one.
+      const wanted = data.isCash ? null : inv.number ?? null;
+      const renumber = wanted !== old.number && !(old.status !== "DRAFT" && wanted === null);
+      if (renumber && wanted !== null) await claimNumber(tx, wanted, inv.id);
+      if (renumber && old.status !== "DRAFT") {
+        await tx.invoiceEdit.create({ data: { invoiceId: inv.id, field: "number", oldValue: old.number === null ? null : String(old.number), newValue: String(wanted), editedBy: editedBy ?? null } });
+      }
       const updated = await tx.invoice.update({
         where: { id: inv.id },
-        data: { ...data, items: { deleteMany: {}, ...itemRows(inv.items) } },
+        data: { ...data, ...(renumber ? { number: wanted } : {}), items: { deleteMany: {}, ...itemRows(inv.items) } },
         include: withItems,
       });
+      if (renumber) await settleCounter(tx);
       return toState(updated as never);
     }
+    const wanted = data.isCash ? null : inv.number ?? null;
+    if (wanted !== null) await claimNumber(tx, wanted);
     const created = await tx.invoice.create({
-      data: { ...data, status: "DRAFT", items: itemRows(inv.items) },
+      data: { ...data, number: wanted, status: "DRAFT", items: itemRows(inv.items) },
       include: withItems,
     });
+    if (wanted !== null) await settleCounter(tx);
     return toState(created as never);
   }, TX);
 }
@@ -456,16 +552,9 @@ export async function issueInvoice(id: string): Promise<InvoiceState> {
     if (missing.length) throw new Error(`INCOMPLETE: ${missing.join(", ")}`);
 
     // A cash invoice is issued without touching the counter, so the numbered series stays unbroken.
+    // A number chosen by hand on the draft is kept; otherwise the next one is taken.
     let number: number | null = null;
-    if (!inv.isCash) {
-      const counter = await tx.invoiceNumberCounter.upsert({
-        where: { id: COUNTER_ID },
-        create: { id: COUNTER_ID, lastNumber: nextNumber(CONTINUES_FROM) },
-        update: { lastNumber: { increment: 1 } },
-      });
-      // On create the row is written already holding the first number; on update it has just been bumped.
-      number = counter.lastNumber;
-    }
+    if (!inv.isCash) number = row.number ?? (await allocateNumber(tx));
 
     const issued = await tx.invoice.update({
       where: { id },
@@ -478,6 +567,7 @@ export async function issueInvoice(id: string): Promise<InvoiceState> {
       },
       include: withItems,
     });
+    if (row.number) await settleCounter(tx);
     return toState(issued as never);
   }, TX);
 }
@@ -505,10 +595,17 @@ export async function deleteInvoice(id: string) {
   const row = await prisma.invoice.findUnique({ where: { id }, select: { status: true, deletedAt: true } });
   if (!row) throw new Error("NOT_FOUND");
   if (row.deletedAt) return;
-  await prisma.invoice.update({
-    where: { id },
-    data: { deletedAt: new Date(), ...(row.status !== "DRAFT" ? { edits: { create: { field: "deleted", oldValue: row.status, newValue: "moved to Deleted" } } } : {}) },
-  });
+  await prisma.$transaction(async (tx) => {
+    await tx.invoice.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        // A draft only reserved its number, so deleting it frees the number outright.
+        ...(row.status === "DRAFT" ? { number: null } : { edits: { create: { field: "deleted", oldValue: row.status, newValue: "moved to Deleted" } } }),
+      },
+    });
+    await settleCounter(tx);
+  }, TX);
 }
 
 /** Brings a deleted invoice back exactly as it was, number included. */
@@ -517,10 +614,19 @@ export async function restoreInvoice(id: string) {
   const row = await prisma.invoice.findUnique({ where: { id }, select: { status: true, deletedAt: true } });
   if (!row) throw new Error("NOT_FOUND");
   if (!row.deletedAt) return;
-  await prisma.invoice.update({
-    where: { id },
-    data: { deletedAt: null, ...(row.status !== "DRAFT" ? { edits: { create: { field: "restored", oldValue: "Deleted", newValue: row.status } } } : {}) },
-  });
+  await prisma.$transaction(async (tx) => {
+    const full = await tx.invoice.findUnique({ where: { id }, select: { number: true, isCash: true } });
+    // Its number may have been given back while it sat in Deleted; an issued bill then takes a fresh one.
+    const number = row.status !== "DRAFT" && !full?.isCash && full?.number === null ? await allocateNumber(tx) : undefined;
+    await tx.invoice.update({
+      where: { id },
+      data: {
+        deletedAt: null,
+        ...(number !== undefined ? { number } : {}),
+        ...(row.status !== "DRAFT" ? { edits: { create: { field: "restored", oldValue: "Deleted", newValue: number !== undefined ? `${row.status}, new number ${number}` : row.status } } } : {}),
+      },
+    });
+  }, TX);
 }
 
 /**
@@ -532,7 +638,10 @@ export async function purgeInvoice(id: string) {
   const row = await prisma.invoice.findUnique({ where: { id }, select: { deletedAt: true } });
   if (!row) return;
   if (!row.deletedAt) throw new Error("NOT_DELETED");
-  await prisma.invoice.delete({ where: { id } });
+  await prisma.$transaction(async (tx) => {
+    await tx.invoice.delete({ where: { id } });
+    await settleCounter(tx);
+  }, TX);
 }
 
 /**
