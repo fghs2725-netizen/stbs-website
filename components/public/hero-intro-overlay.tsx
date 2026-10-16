@@ -22,6 +22,8 @@ import { useEffect, useRef } from "react";
 
 const SEEN_KEY = "stbs-intro-seen";
 const FALLBACK_LOGO = "/stbs-logo-only.png";
+// Vector trace of the STBS logo (same 805x340 frame as stbs-logo-only.png), sharp at any size.
+const HD_LOGO = "/brand/stbs-logo-hd.svg";
 const NOSCRIPT_CSS = ".ih-overlay{display:none!important}[data-intro-hold] .ph-copy [class*='animate-']{animation:none!important;opacity:1!important}";
 
 export function HeroIntroOverlay({ tagline }: { tagline: string }) {
@@ -202,30 +204,29 @@ function createIntro(els: {
     return Array.from(hero.querySelectorAll<HTMLImageElement>("img")).find((i) => !overlay.contains(i) && i.offsetParent !== null) ?? null;
   }
 
-  /** Puts the logo element over the header logo, then works out the transform that shows it big mid-screen. */
+  /**
+   * Lays the logo out at its big mid-screen size, so it is drawn sharp, and works out the transform
+   * that shrinks it onto the header logo. (Scaling a small image up is what made it soft.)
+   */
   function placeLogo() {
     const nw = logo.naturalWidth || 805, nh = logo.naturalHeight || 340;
     const box = headerBox ?? { l: W / 2 - 46, t: 11, w: 92, h: 34 };
-    Object.assign(logo.style, { left: `${box.l}px`, top: `${box.t}px`, width: `${box.w}px`, height: `${box.h}px` });
-    const s = Math.min(box.w / nw, box.h / nh);
-    const dw = nw * s, dh = nh * s;
-    const bigW = Math.min(W * (W < 700 ? 0.72 : 0.4), 560);
-    const k = bigW / dw;
+    // where the header draws its logo: contained in its box, left-aligned, centred vertically
+    const hs = Math.min(box.w / nw, box.h / nh);
+    const hw = nw * hs, hh = nh * hs, hl = box.l, ht = box.t + (box.h - hh) / 2;
+    const bigW = Math.min(W * (W < 700 ? 0.72 : 0.4), 560), bigH = (bigW * nh) / nw;
     const cx = W / 2, cy = Math.min(H * 0.42, H / 2 - 20);
-    // object-position: left center, like the header
-    const tx = cx - (box.l + dw / 2), ty = cy - (box.t + box.h / 2);
-    logo.style.transformOrigin = `${dw / 2}px ${box.h / 2}px`;
-    const tip = /stbs-logo/.test(logo.src) ? DRILL_TIP : { x: 0.5, y: 0.75 };
+    const L = cx - bigW / 2, T = cy - bigH / 2;
+    Object.assign(logo.style, { left: `${L}px`, top: `${T}px`, width: `${bigW}px`, height: `${bigH}px`, transformOrigin: "0 0" });
     geo = {
-      k, tx, ty, dw, dh, cx, cy,
-      tipX: cx + (tip.x - 0.5) * dw * k, tipY: cy + (tip.y - 0.5) * dh * k,
-      lx: tip.x * dw, ly: (box.h - dh) / 2 + tip.y * dh,
+      k: hw / bigW, tx: hl - L, ty: ht - T, dw: bigW, dh: bigH, cx, cy,
+      tipX: L + DRILL_TIP.x * bigW, tipY: T + DRILL_TIP.y * bigH,
+      lx: DRILL_TIP.x * bigW, ly: DRILL_TIP.y * bigH,
     };
-    tag.style.top = `${cy + (dh * k) / 2 + Math.max(16, dh * k * 0.16)}px`;
+    tag.style.top = `${T + bigH * (305 / 340) + Math.max(16, bigH * 0.12)}px`; // just under the water rings
   }
-  const setLogo = (p: number) => { // 0 = big in the centre, 1 = in the header
-    const s = lerp(geo.k, 1, p);
-    logo.style.transform = `translate(${lerp(geo.tx, 0, p)}px,${lerp(geo.ty, 0, p)}px) scale(${s})`;
+  const setLogo = (p: number) => { // 0 = big in the centre, 1 = exactly over the header logo
+    logo.style.transform = p <= 0 ? "none" : `translate(${geo.tx * p}px,${geo.ty * p}px) scale(${lerp(1, geo.k, p)})`;
   };
 
   /** The hero photo exactly as the page frames it, desaturated, with the hero's own scrim baked in. */
@@ -600,12 +601,12 @@ function createIntro(els: {
     await tween(680, (e) => { drop = { x: geo.tipX, y: lerp(-rd * 4, geo.tipY, e), k: 1 + 0.5 * e, r: rd }; kick(); }, id, inQuad);
     drop = null;
     impact(geo.tipX, geo.tipY);
-    const big = { w: geo.dw * geo.k, h: geo.dh * geo.k };
+    const big = { w: geo.dw, h: geo.dh };
     const dx = Math.max(geo.tipX - (geo.cx - big.w / 2), geo.cx + big.w / 2 - geo.tipX);
     const dy = Math.max(geo.tipY - (geo.cy - big.h / 2), geo.cy + big.h / 2 - geo.tipY);
     const reach = Math.hypot(dx, dy / 0.5) + 8;
     await tween(1000, (e) => {
-      const R = (reach * e) / geo.k;
+      const R = reach * e;
       logo.style.clipPath = `ellipse(${R.toFixed(1)}px ${(R * 0.5).toFixed(1)}px at ${geo.lx.toFixed(1)}px ${geo.ly.toFixed(1)}px)`;
     }, id, outCubic);
     logo.style.clipPath = "";
@@ -641,11 +642,17 @@ function createIntro(els: {
 
       const found = findHeaderLogo();
       headerBox = found?.box ?? null;
-      logo.src = found ? originalSrc(found.img) : FALLBACK_LOGO;
+      const fallbackSrc = found ? originalSrc(found.img) : FALLBACK_LOGO;
+      logo.src = HD_LOGO;
+      const logoReady = whenLoaded(logo, 2000).then((ok) => {
+        if (ok) return true;
+        logo.src = fallbackSrc; // HD file missing: use the header's own logo
+        return whenLoaded(logo, 2000);
+      });
       heroImg = findHeroImg();
       const fontsReady = document.fonts?.ready ?? Promise.resolve();
       Promise.all([
-        whenLoaded(logo, 2000),
+        logoReady,
         heroImg ? whenLoaded(heroImg, 3000) : Promise.resolve(false),
         Promise.race([fontsReady, new Promise((r) => window.setTimeout(r, 1200))]),
       ]).then(([, heroOk]) => {
