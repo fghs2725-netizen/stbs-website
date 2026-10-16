@@ -265,7 +265,7 @@ export async function getInvoiceForPdfRender(id: string): Promise<InvoiceState |
   return x ? toState(x as never) : null;
 }
 
-export type InvoiceSort = "updated" | "created" | "number" | "client" | "due";
+export type InvoiceSort = "date" | "updated" | "created" | "number" | "client" | "due";
 /**
  * `month` is "2026-10" and matches the invoice date. `kind`: "final" is an issued bill with a number,
  * "cash" an issued cash bill, "draft" a draft. `ca`: whether an issued bill has been sent to the CA.
@@ -276,7 +276,7 @@ export type InvoiceListOptions = {
 };
 /** The list's filters as one value, so the list, the bulk actions and the export all select the same invoices. */
 export type InvoiceFilter = { search?: string; status?: string } & Omit<InvoiceListOptions, "sort" | "dir">;
-const SORT_FIELDS: Record<InvoiceSort, string> = { updated: "updatedAt", created: "createdAt", number: "number", client: "clientCompanyName", due: "dueDate" };
+const SORT_FIELDS: Record<InvoiceSort, string> = { date: "date", updated: "updatedAt", created: "createdAt", number: "number", client: "clientCompanyName", due: "dueDate" };
 const isoDay = (v?: string) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
 
 /** The Prisma `where` for a set of list filters. */
@@ -314,11 +314,18 @@ export async function listInvoices(search = "", status = "ALL", page = 1, pageSi
   const where = invoiceWhere({ ...opts, search, status });
 
   const dir = opts.dir === "asc" ? "asc" : "desc";
-  const sort = opts.sort && opts.sort in SORT_FIELDS ? opts.sort : "updated";
+  // Newest invoice date first by default (the owner's choice, 2026-10-16).
+  const sort = opts.sort && opts.sort in SORT_FIELDS ? opts.sort : "date";
   const [rows, total] = await Promise.all([
     prisma.invoice.findMany({
       where,
-      orderBy: [{ [SORT_FIELDS[sort]]: dir }, { id: "desc" }],
+      // Bills on the same date go by number; by number, bills without one (drafts, cash invoices) follow
+      // the numbered ones rather than sitting above them for good, as plain NULL ordering would put them.
+      orderBy: sort === "date"
+        ? [{ date: dir }, { number: { sort: dir, nulls: "last" } }, { createdAt: dir }]
+        : sort === "number"
+        ? [{ number: { sort: dir, nulls: "last" } }, { date: "desc" }, { id: "desc" }]
+        : [{ [SORT_FIELDS[sort]]: dir }, { id: "desc" }],
       take: pageSize,
       skip: (page - 1) * pageSize,
       include: withItems,
