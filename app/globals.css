@@ -239,8 +239,9 @@ html.lenis, html.lenis body { height: auto; }
   .ih-overlay[data-live] { background: transparent; }
   .ih-overlay[data-done] { display: none; }
   .ih-overlay .ih-ov-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
-  .ih-overlay .ih-ov-logo { position: absolute; z-index: 2; left: 0; top: 0; width: 92px; height: 34px; object-fit: contain; object-position: left center; opacity: 0; pointer-events: none; will-change: transform;
+  .ih-overlay .ih-ov-logo { position: absolute; z-index: 2; left: 0; top: 0; width: 92px; height: 34px; opacity: 0; pointer-events: none; will-change: transform; overflow: visible;
     filter: grayscale(1) drop-shadow(0 12px 28px rgba(0,0,0,.55)) !important; transition: filter 1.2s var(--ease-out), opacity .4s ease; } /* !important: beats the phone-wide img { filter: none !important } */
+  .ih-overlay .ih-ov-logo > svg, .ih-overlay .ih-ov-logo > img { display: block; width: 100%; height: 100%; overflow: visible; }
   .ih-overlay[data-colour] .ih-ov-logo { filter: grayscale(0) drop-shadow(0 0 0 rgba(0,0,0,0)) !important; }
   .ih-overlay .ih-ov-tag { position: absolute; z-index: 2; left: 50%; top: 60%; transform: translateX(-50%); white-space: pre; pointer-events: none; opacity: 0; transition: opacity .45s ease;
     font-family: var(--font-display), system-ui, sans-serif; font-weight: 600; font-size: clamp(.8125rem, calc(.6rem + .9vw), 1.375rem); letter-spacing: .34em; padding-left: .34em; color: #d9dcde; text-shadow: 0 2px 18px rgba(0,0,0,.5); }
