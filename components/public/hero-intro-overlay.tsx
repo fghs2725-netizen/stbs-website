@@ -6,11 +6,14 @@ import { useEffect, useRef } from "react";
  * Opening animation for the homepage hero (Website -> Home -> Hero -> Opening animation).
  * It plays in a fixed overlay above the real hero, which stays exactly as designed underneath:
  *
- *   1. a water drop falls onto the drill tip of the STBS logo; the splash ripple reveals the logo (in grey)
- *   2. the tagline (GO DEEPER BUILD STRONGER) scrambles in under it
- *   3. the logo flies up into its place in the header while grey dots drift in and form the hero photo
- *   4. the dots settle into the photo in greyscale
- *   5. colour spreads out from the centre like a ripple, uncovering the real page; the hero text animates in
+ *   1. a water drop falls and settles as a bead, with a little hop (the dot in the reference intro)
+ *   2. the gold drill grows up out of the bead like an "!", tips left and flings out the S, swings right
+ *      and flings out the B and the last S; the letters tumble into place, the drill settles upright and the
+ *      bead drips into the water rings. The logo is grey until the colour phase.
+ *   3. the tagline (GO DEEPER BUILD STRONGER) scrambles in under it
+ *   4. the logo flies up into its place in the header while grey dots drift in and form the hero photo
+ *   5. the dots settle into the photo in greyscale
+ *   6. colour spreads out from the centre like a ripple, uncovering the real page; the hero text animates in
  *
  * First view in a browser tab only, and only when the page opens at the top. Scrolling is locked while it
  * plays; any scroll, tap, scroll key or the Skip button jumps to the end. A repeat view gets a short
@@ -22,14 +25,15 @@ import { useEffect, useRef } from "react";
 
 const SEEN_KEY = "stbs-intro-seen";
 const FALLBACK_LOGO = "/stbs-logo-only.png";
-// Vector trace of the STBS logo (same 805x340 frame as stbs-logo-only.png), sharp at any size.
-const HD_LOGO = "/brand/stbs-logo-hd.svg";
+// The HD vector logo (same 805x340 frame as stbs-logo-only.png) with each piece in its own group:
+// #ih-s1 (S + the T's top bar), #ih-b, #ih-s2, #ih-drill, #ih-rings.
+const PIECES_LOGO = "/brand/stbs-logo-pieces.svg";
 const NOSCRIPT_CSS = ".ih-overlay{display:none!important}[data-intro-hold] .ph-copy [class*='animate-']{animation:none!important;opacity:1!important}";
 
 export function HeroIntroOverlay({ tagline }: { tagline: string }) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const logoRef = useRef<HTMLImageElement>(null);
+  const logoRef = useRef<HTMLDivElement>(null);
   const tagRef = useRef<HTMLSpanElement>(null);
   const skipRef = useRef<HTMLButtonElement>(null);
 
@@ -58,9 +62,8 @@ export function HeroIntroOverlay({ tagline }: { tagline: string }) {
     <div ref={overlayRef} className="ih-overlay">
       <noscript><style>{NOSCRIPT_CSS}</style></noscript>
       <canvas ref={canvasRef} className="ih-ov-canvas" aria-hidden="true" />
-      {/* Plain <img>: its source is the header's own logo, read at run time. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img ref={logoRef} className="ih-ov-logo" alt="" aria-hidden="true" />
+      {/* Filled at run time with the piece-by-piece vector logo (or the header's logo as a fallback). */}
+      <div ref={logoRef} className="ih-ov-logo" aria-hidden="true" />
       <span ref={tagRef} className="ih-ov-tag" aria-hidden="true">{tagline || " "}</span>
       <button ref={skipRef} type="button" className="ih-skip">Skip intro</button>
     </div>
@@ -81,14 +84,18 @@ interface Ripple { x: number; y: number; t0: number; life: number; max: number }
 const BASE = "#131819"; // --brand-deep, the hero band and header colour
 const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#%&*+=";
 const SKIP_KEYS = new Set(["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " ", "Spacebar", "Escape", "Enter"]);
-// Where the drill tip meets the water rings in the STBS logo artwork (fractions of the image).
-const DRILL_TIP = { x: 0.37, y: 0.8 };
+// Points in the logo's own 805x340 frame.
+const LOGO_W = 805, LOGO_H = 340;
+const TIP = { x: 298, y: 279 };   // the drill tip, at the centre of the water rings
+const HEAD = { x: 290, y: 100 };  // the drill head, where the letters are thrown from
+const HOME = { s1: { x: 241, y: 130 }, b: { x: 478, y: 130 }, s2: { x: 676, y: 130 }, rings: { x: 300, y: 282 } };
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
 const inQuad = (t: number) => t * t;
 const outCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 const inOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const outBack = (t: number) => 1 + 2.4 * Math.pow(t - 1, 3) + 1.4 * Math.pow(t - 1, 2);
 
 /** The original file behind a next/image URL, so the big logo is sharp. */
 function originalSrc(im: HTMLImageElement) {
@@ -114,7 +121,7 @@ function whenLoaded(im: HTMLImageElement, timeout: number) {
 }
 
 function createIntro(els: {
-  hero: HTMLElement; overlay: HTMLElement; canvas: HTMLCanvasElement; logo: HTMLImageElement;
+  hero: HTMLElement; overlay: HTMLElement; canvas: HTMLCanvasElement; logo: HTMLDivElement;
   tag: HTMLSpanElement; skip: HTMLButtonElement; tagline: string;
 }) {
   const { hero, overlay, canvas, logo, tag, skip, tagline } = els;
@@ -138,7 +145,10 @@ function createIntro(els: {
 
   // logo flight
   let headerBox: Box | null = null;
-  let geo = { k: 1, tx: 0, ty: 0, dw: 0, dh: 0, cx: 0, cy: 0, tipX: 0, tipY: 0, lx: 0, ly: 0 };
+  let geo = { k: 1, tx: 0, ty: 0, dw: 0, dh: 0, cx: 0, cy: 0, L: 0, T: 0, s: 1 };
+  type Pieces = { s1: SVGGElement; b: SVGGElement; s2: SVGGElement; drill: SVGGElement; rings: SVGGElement };
+  let pieces: Pieces | null = null;
+  let drillAngle = 0;
 
   // dots
   const mos = document.createElement("canvas");
@@ -154,6 +164,7 @@ function createIntro(els: {
 
   // water
   let drop: { x: number; y: number; k: number; r: number } | null = null;
+  let bead: { x: number; y: number; r: number; a: number } | null = null;
   let flash: { x: number; y: number; t0: number } | null = null;
   const droplets: Droplet[] = [];
   const ripples: Ripple[] = [];
@@ -209,7 +220,7 @@ function createIntro(els: {
    * that shrinks it onto the header logo. (Scaling a small image up is what made it soft.)
    */
   function placeLogo() {
-    const nw = logo.naturalWidth || 805, nh = logo.naturalHeight || 340;
+    const nw = LOGO_W, nh = LOGO_H;
     const box = headerBox ?? { l: W / 2 - 46, t: 11, w: 92, h: 34 };
     // where the header draws its logo: contained in its box, left-aligned, centred vertically
     const hs = Math.min(box.w / nw, box.h / nh);
@@ -218,15 +229,60 @@ function createIntro(els: {
     const cx = W / 2, cy = Math.min(H * 0.42, H / 2 - 20);
     const L = cx - bigW / 2, T = cy - bigH / 2;
     Object.assign(logo.style, { left: `${L}px`, top: `${T}px`, width: `${bigW}px`, height: `${bigH}px`, transformOrigin: "0 0" });
-    geo = {
-      k: hw / bigW, tx: hl - L, ty: ht - T, dw: bigW, dh: bigH, cx, cy,
-      tipX: L + DRILL_TIP.x * bigW, tipY: T + DRILL_TIP.y * bigH,
-      lx: DRILL_TIP.x * bigW, ly: DRILL_TIP.y * bigH,
-    };
+    geo = { k: hw / bigW, tx: hl - L, ty: ht - T, dw: bigW, dh: bigH, cx, cy, L, T, s: bigW / LOGO_W };
     tag.style.top = `${T + bigH * (305 / 340) + Math.max(16, bigH * 0.12)}px`; // just under the water rings
   }
   const setLogo = (p: number) => { // 0 = big in the centre, 1 = exactly over the header logo
     logo.style.transform = p <= 0 ? "none" : `translate(${geo.tx * p}px,${geo.ty * p}px) scale(${lerp(1, geo.k, p)})`;
+  };
+
+  /** Inlines the piece-by-piece vector logo; falls back to the header's own logo as one image. */
+  async function loadLogo(fallbackSrc: string) {
+    try {
+      const res = await fetch(PIECES_LOGO);
+      const text = res.ok ? await res.text() : "";
+      if (!alive) return false;
+      if (!text.includes('id="ih-drill"')) throw new Error("no pieces");
+      logo.innerHTML = text;
+      const q = (id: string) => logo.querySelector<SVGGElement>(`#${id}`);
+      const svg = logo.querySelector("svg"), s1 = q("ih-s1"), b = q("ih-b"), s2 = q("ih-s2"), drill = q("ih-drill"), rings = q("ih-rings");
+      if (!svg || !s1 || !b || !s2 || !drill || !rings) throw new Error("incomplete pieces");
+      svg.setAttribute("width", "100%");
+      svg.setAttribute("height", "100%");
+      pieces = { s1, b, s2, drill, rings };
+      return true;
+    } catch {
+      if (!alive) return false;
+      const im = document.createElement("img");
+      im.alt = "";
+      im.src = fallbackSrc;
+      Object.assign(im.style, { display: "block", width: "100%", height: "100%", objectFit: "contain" });
+      logo.replaceChildren(im);
+      pieces = null;
+      return whenLoaded(im, 2000);
+    }
+  }
+  const setPiece = (g: SVGGElement, transform: string, opacity?: number) => {
+    if (transform) g.setAttribute("transform", transform); else g.removeAttribute("transform");
+    if (opacity === undefined) g.removeAttribute("opacity"); else g.setAttribute("opacity", opacity.toFixed(3));
+  };
+  /** Drill pivots on its tip; grow 0..1 stretches it up out of the bead. */
+  const setDrill = (angle: number, grow: number) => {
+    drillAngle = angle;
+    if (pieces) setPiece(pieces.drill, `translate(${TIP.x} ${TIP.y}) rotate(${angle.toFixed(2)}) scale(1 ${grow.toFixed(3)}) translate(${-TIP.x} ${-TIP.y})`);
+  };
+  /** Throws a letter from the drill head (where it is right now) along an arc into its place, spinning as it lands. */
+  const fling = (g: SVGGElement, home: { x: number; y: number }, spin: number, side: number, ms: number, id: number) => {
+    const a = (drillAngle * Math.PI) / 180;
+    const hx = TIP.x + (HEAD.x - TIP.x) * Math.cos(a) - (HEAD.y - TIP.y) * Math.sin(a);
+    const hy = TIP.y + (HEAD.x - TIP.x) * Math.sin(a) + (HEAD.y - TIP.y) * Math.cos(a);
+    const sx = hx - home.x, sy = hy - home.y, kx = sx * 0.45 + side * 30, ky = Math.min(sy, 0) - 150;
+    return tween(ms, (_e, p) => {
+      const e = outCubic(p), u = 1 - e;
+      const ox = u * u * sx + 2 * u * e * kx, oy = u * u * sy + 2 * u * e * ky;
+      const rot = spin * (1 - outBack(p)), sc = lerp(0.3, 1, outCubic(Math.min(1, p * 1.5)));
+      setPiece(g, `translate(${ox.toFixed(2)} ${oy.toFixed(2)}) rotate(${rot.toFixed(2)} ${home.x} ${home.y}) translate(${home.x} ${home.y}) scale(${sc.toFixed(3)}) translate(${-home.x} ${-home.y})`, Math.min(1, p * 6));
+    }, id, (t) => t).then(() => setPiece(g, ""));
   };
 
   /** The hero photo exactly as the page frames it, desaturated, with the hero's own scrim baked in. */
@@ -387,9 +443,29 @@ function createIntro(els: {
     }
     kick();
   }
+  /** A small landing splash: one low ripple and a few droplets. */
+  function plop(x: number, y: number, size: number) {
+    const now = performance.now();
+    ripples.push({ x, y, t0: now, life: 900, max: size });
+    for (let i = 0; i < 8; i++) {
+      const ang = -Math.PI / 2 + (Math.random() - 0.5) * 1.8, sp = 90 + Math.random() * 140;
+      droplets.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, r: 0.7 + Math.random() * 1.4, t0: now, life: 0.45 + Math.random() * 0.3 });
+    }
+    kick();
+  }
   function drawWater(now: number) {
     let busy = false;
     if (drop) { drawDrop(drop); busy = true; }
+    if (bead && bead.r > 0.3) { // the resting drop: the dot of the "!"
+      const { x, y, r } = bead;
+      const body = c.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r);
+      body.addColorStop(0, "rgba(246,251,255,0.98)");
+      body.addColorStop(1, "rgba(140,185,228,0.9)");
+      c.fillStyle = body;
+      c.beginPath();
+      c.arc(x, y, r, 0, Math.PI * 2);
+      c.fill();
+    }
     if (flash) {
       const q = (now - flash.t0) / 420;
       if (q < 1) {
@@ -552,8 +628,9 @@ function createIntro(els: {
     runId++;
     drop = null; flash = null; droplets.length = 0; ripples.length = 0;
     tag.style.opacity = "0";
-    logo.style.clipPath = "";
     logo.style.opacity = "1";
+    if (pieces) for (const g of [pieces.s1, pieces.b, pieces.s2, pieces.drill, pieces.rings]) setPiece(g, "");
+    bead = null;
     setLogo(1);
     playing = false;
     releasePage();
@@ -591,25 +668,64 @@ function createIntro(els: {
   async function fullSequence(id: number) {
     placeLogo();
     setLogo(0);
-    logo.style.clipPath = "ellipse(0px 0px at 50% 50%)";
     logo.style.opacity = "1";
+    const P = pieces;
+    if (P) {
+      for (const g of [P.s1, P.b, P.s2, P.rings]) setPiece(g, "", 0);
+      setDrill(0, 0);
+    } else logo.style.opacity = "0";
     tween(900, (e) => { glow = e; kick(); }, id).catch(() => {}); // the spotlight comes up while the drop falls
     await sleep(200, id);
 
-    // 1. a drop falls onto the drill tip; its ripple uncovers the logo
-    const rd = Math.max(6, Math.min(11, W * 0.008));
-    await tween(680, (e) => { drop = { x: geo.tipX, y: lerp(-rd * 4, geo.tipY, e), k: 1 + 0.5 * e, r: rd }; kick(); }, id, inQuad);
+    // 1. a drop falls and settles as a bead just under the drill tip, then hops (the dot in the reference)
+    const rd = Math.max(4.5, Math.min(10, geo.dw * 0.017));
+    const bx = geo.L + TIP.x * geo.s, by = geo.T + TIP.y * geo.s + rd + Math.max(5, geo.s * 14);
+    await tween(650, (e) => { drop = { x: bx, y: lerp(-rd * 4, by, e), k: 1 + 0.5 * e, r: rd }; kick(); }, id, inQuad);
     drop = null;
-    impact(geo.tipX, geo.tipY);
-    const big = { w: geo.dw, h: geo.dh };
-    const dx = Math.max(geo.tipX - (geo.cx - big.w / 2), geo.cx + big.w / 2 - geo.tipX);
-    const dy = Math.max(geo.tipY - (geo.cy - big.h / 2), geo.cy + big.h / 2 - geo.tipY);
-    const reach = Math.hypot(dx, dy / 0.5) + 8;
-    await tween(1000, (e) => {
-      const R = reach * e;
-      logo.style.clipPath = `ellipse(${R.toFixed(1)}px ${(R * 0.5).toFixed(1)}px at ${geo.lx.toFixed(1)}px ${geo.ly.toFixed(1)}px)`;
-    }, id, outCubic);
-    logo.style.clipPath = "";
+    bead = { x: bx, y: by, r: rd, a: 1 };
+    plop(bx, by + rd, geo.dw * 0.18);
+    await tween(330, (_e, p) => { if (bead) bead.y = by - Math.sin(Math.PI * p) * rd * 3.4; kick(); }, id, (t) => t);
+    await tween(210, (_e, p) => { if (bead) bead.y = by - Math.sin(Math.PI * p) * rd * 1.2; kick(); }, id, (t) => t);
+
+    if (P) {
+      // 2. the drill grows up out of the bead: an "!"
+      await sleep(120, id);
+      await tween(380, (e) => setDrill(0, e), id, outCubic);
+      await sleep(140, id);
+      // 3. it tips left and flings out the S, then swings right and flings out the B and the last S
+      const flights: Promise<void>[] = [];
+      const throwIt = (g: SVGGElement, home: { x: number; y: number }, spin: number, side: number, ms: number) =>
+        flights.push(fling(g, home, spin, side, ms, id).catch(() => {}));
+      let s1 = false, b = false, s2 = false;
+      await tween(420, (e, p) => {
+        setDrill(-30 * e, 1);
+        if (!s1 && p > 0.45) { s1 = true; throwIt(P.s1, HOME.s1, -150, -1, 640); }
+      }, id);
+      await tween(520, (e, p) => {
+        setDrill(lerp(-30, 28, e), 1);
+        if (!b && p > 0.35) { b = true; throwIt(P.b, HOME.b, 170, 1, 620); }
+        if (!s2 && p > 0.7) { s2 = true; throwIt(P.s2, HOME.s2, 230, 1, 660); }
+      }, id);
+      // 4. the drill rocks back upright; the bead drips into the water rings
+      await tween(460, (_e, p) => setDrill(28 * (1 - outBack(p)), 1), id, (t) => t);
+      await Promise.all(flights);
+      if (id !== runId) throw CANCEL;
+      setPiece(P.drill, "");
+      const tipY = geo.T + TIP.y * geo.s;
+      await tween(180, (e) => { if (bead) { bead.r = rd * (1 - e); bead.y = lerp(by, tipY, e); } kick(); }, id);
+      bead = null;
+      const rcx = geo.L + HOME.rings.x * geo.s, rcy = geo.T + HOME.rings.y * geo.s;
+      impact(rcx, rcy);
+      await tween(560, (e) => {
+        const sc = lerp(0.15, 1, e);
+        setPiece(P.rings, `translate(${HOME.rings.x} ${HOME.rings.y}) scale(${sc.toFixed(3)}) translate(${-HOME.rings.x} ${-HOME.rings.y})`, Math.min(1, e * 2));
+      }, id, outCubic);
+      setPiece(P.rings, "");
+    } else { // no piece file: the header's logo simply fades in over the bead
+      bead = null;
+      kick();
+      await tween(600, (e) => { logo.style.opacity = e.toFixed(3); }, id);
+    }
 
     // 2. the tagline scrambles in under the logo
     if (tagline) {
@@ -642,13 +758,7 @@ function createIntro(els: {
 
       const found = findHeaderLogo();
       headerBox = found?.box ?? null;
-      const fallbackSrc = found ? originalSrc(found.img) : FALLBACK_LOGO;
-      logo.src = HD_LOGO;
-      const logoReady = whenLoaded(logo, 2000).then((ok) => {
-        if (ok) return true;
-        logo.src = fallbackSrc; // HD file missing: use the header's own logo
-        return whenLoaded(logo, 2000);
-      });
+      const logoReady = loadLogo(found ? originalSrc(found.img) : FALLBACK_LOGO);
       heroImg = findHeroImg();
       const fontsReady = document.fonts?.ready ?? Promise.resolve();
       Promise.all([
@@ -677,6 +787,8 @@ function createIntro(els: {
       skip.removeEventListener("click", skipIntro);
       tagNode.nodeValue = tagline || " ";
       logo.style.cssText = "";
+      logo.replaceChildren();
+      pieces = null;
       tag.style.cssText = "";
       delete overlay.dataset.colour; delete overlay.dataset.released; delete overlay.dataset.done; delete overlay.dataset.live;
       c.setTransform(1, 0, 0, 1, 0, 0);
