@@ -844,14 +844,15 @@ function ContactInfoSection({ owner, content, data }: { owner?: RenderableSectio
   const description = str(content, "description");
   const ctaText = str(content, "ctaText", "Request a proposal");
   const ctaUrl = str(content, "ctaUrl", "/quote");
-  // Hours and service area are existing site copy, not verified data: confirm them (see TODO) or edit here.
-  const hours = str(content, "hours", businessInfo.hours.join("\n")).split(/\r?\n/).filter(Boolean);
+  // Hours follow the Google listing (lib/company). A saved copy of the old 8 AM to 7 PM hours is ignored.
+  const savedHours = str(content, "hours", "");
+  const hours = (savedHours && !/8:00\s*AM\s*to\s*7:00\s*PM|08:00\s*-\s*19:00/i.test(savedHours) ? savedHours : businessInfo.hours.join("\n")).split(/\r?\n/).filter(Boolean);
   const serviceArea = str(content, "serviceArea", "Sonipat, Panipat, Kundli, Rohtak and across Haryana and Delhi NCR");
   const target = asSection(owner);
   const s = data.settings;
   const phones = [s?.phone, s?.phone2].filter((p): p is string => Boolean(p));
   const email = s?.email ?? "";
-  const address = s?.address ?? "";
+  const address = s?.address || (businessInfo.registeredOffice ? `${businessInfo.registeredOffice}, Haryana ${businessInfo.pinCode}` : "");
   const whatsapp = s?.whatsapp || phones[0] || "";
   const waHref = whatsapp ? `https://wa.me/91${whatsapp.replace(/\D/g, "").replace(/^91(?=\d{10}$)/, "")}?text=${encodeURIComponent("Hi, I'd like a proposal for borewell drilling.")}` : "";
   const tile = "hairline-card flex flex-col gap-u1 p-u3";

@@ -112,7 +112,7 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
                 <h2>{company.name}</h2>
                 <p>
                   {businessInfo.registeredOffice},<br />
-                  {["Haryana", businessInfo.pinCode].filter(Boolean).join(" ")}<br />
+                  {["Haryana", businessInfo.documentPinCode].filter(Boolean).join(" ")}<br />
                   {company.phones[0] ? formatIndianPhone(company.phones[0]) : ""}
                   {company.email ? ` · ${company.email}` : ""}
                 </p>

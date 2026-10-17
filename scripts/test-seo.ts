@@ -36,20 +36,23 @@ check("logo and image are absolute URLs on the canonical host", () => {
 });
 
 // The guard that matters most: unverified owner data must not be invented.
-check("the supplied address, legal name and hours are emitted, plus the pin and link of the owner's Google listing", () => {
+check("address, pincode, hours, map pin and link match the owner's Google listing", () => {
   assert.equal(businessInfo.registeredOffice, "12, New market, Bahalgarh, Sonipat");
-  assert.equal(businessInfo.pinCode, "131001");
+  assert.equal(businessInfo.pinCode, "131021");
   assert.equal(businessInfo.legalName, "Saini Tubewell Boring Service");
   const address = ld.address as Record<string, string>;
   assert.equal(address.streetAddress, "12, New market, Bahalgarh, Sonipat");
-  assert.equal(address.postalCode, "131001");
+  assert.equal(address.postalCode, "131021");
   assert.equal(ld.legalName, "Saini Tubewell Boring Service");
-  assert.equal(ld.openingHours, "Mo-Su 08:00-19:00");
+  const hours = ld.openingHoursSpecification as { dayOfWeek: string[]; opens: string; closes: string };
+  assert.equal(hours.dayOfWeek.length, 7);
+  assert.deepEqual([hours.opens, hours.closes], ["00:00", "23:59"]);
+  assert.deepEqual(ld.alternateName, ["STBS", "STBS- Saini Tubewell Boring Service"]);
   assert.deepEqual(ld.geo, { "@type": "GeoCoordinates", latitude: 28.962924, longitude: 77.093266 });
   assert.equal(ld.hasMap, "https://maps.google.com/?cid=13861624936793150977");
   assert.deepEqual(ld.sameAs, ["https://maps.google.com/?cid=13861624936793150977"]);
-  // The GSTIN is shown in the footer but is not part of the structured data, and the unconfirmed pincode never leaks.
-  assert.doesNotMatch(json, /06AWTPS|131021|Dipalpur/i);
+  // The GSTIN is shown in the footer but is not part of the structured data; the old pincode and hours are gone.
+  assert.doesNotMatch(json, /06AWTPS|131001|Dipalpur|19:00/i);
 });
 check("no undefined / null values leak into the JSON", () => assert.doesNotMatch(json, /undefined|null/));
 

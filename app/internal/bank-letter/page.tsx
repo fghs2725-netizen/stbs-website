@@ -41,7 +41,7 @@ export default async function BankLetterRender({ searchParams }: { searchParams:
         <div className="ws-contact">{company.phones.join(" · ")}<br />{company.email}</div>
       </div>
       <div className="ws-rule" />
-      <div style={{ fontSize: "9pt", color: "#6e6e73" }}>{businessInfo.registeredOffice} – {businessInfo.pinCode}</div>
+      <div style={{ fontSize: "9pt", color: "#6e6e73" }}>{businessInfo.registeredOffice} – {businessInfo.documentPinCode}</div>
       <div className="bl-date">Date: {date}</div>
       <p>To Whom It May Concern,</p>
       <h1>Bank account details</h1>

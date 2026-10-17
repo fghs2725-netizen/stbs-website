@@ -98,16 +98,16 @@ is `docs/invoice-design-v1.html`; the SQL that was applied is `docs/invoice-migr
 - [ ] Saved terms and standard-items libraries: approved in principle; needs a migration and UI (SQL shown before running).
 - [ ] Homepage content migration: owner marked "Done" but has not said to apply; rehearse first, then apply.
 - [ ] Hero photo: owner needs help arranging one.
-- [ ] Page 3 says 500+ projects while the site says 1,200+; page 3 says 24/7 support while hours are 08:00-19:00.
+- [ ] Page 3 says 500+ projects while the site says 1,200+. (24/7 now matches: the site says open 24 hours since 2026-10-17.)
 
 ### Decisions (quotation)
 Settled: GST (optional, per quotation), discount (one, on the subtotal), amount in words, page overflow (price offer paginates), logo layout. Still open in the questionnaire: specification column, numbering scheme, the "30+ years" / "500+ projects" / "100% ISI" / "24/7" claims on page 3, GST defaults, saved libraries, expiry date.
 
 ### Business data
-- [ ] Registered office address and pincode (documents show Dipalpur Road, Bhalgarh, Sonipat; 131021 in most, 131001 in one)
+- [x] Website address and pincode match the Google Business listing (131021), at the owner's request 2026-10-17. Invoices and the bank letter still print 131001 (`businessInfo.documentPinCode`) until the owner confirms the GST-registered pincode.
 - [x] GSTIN supplied and in use; confirm it may stay in the public footer (questionnaire)
-- [ ] Business hours: the contact page says Mon-Sat 8:00-19:00, Sunday emergency only. Existing copy, unverified.
-- [ ] Geo coordinates for JSON-LD; a real map location once an address is public
+- [x] Business hours: open 24 hours, 7 days, matching the Google listing (owner, 2026-10-17).
+- [x] Geo coordinates and map: from the owner's Google Business listing (2026-10-17).
 - [ ] Email delivery for the quote form: set `SMTP_HOST/PORT/USER/PASS/FROM` (or `RESEND_API_KEY`) in Vercel, and optionally `QUOTE_TO_EMAIL` (defaults to stbs2025@gmail.com). Until then the form shows its failure state with Call / WhatsApp / Email.
 - [ ] Do the `info@stbs.in` / `quotes@stbs.in` mailboxes exist? (Email replacement was dropped; gmail stays everywhere.)
 
