@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { WhatsAppFloat } from "@/components/whatsapp-float";
+import { SiteAssistant } from "@/components/site-assistant";
 import { SmoothScroll } from "@/components/website/smooth-scroll";
 import type { CmsSettings } from "@/components/public/sections";
 
@@ -15,11 +15,14 @@ export function WebsiteFrame({
   navLinks,
   settings,
   phone,
+  assistant = false,
   children,
 }: {
   navLinks: Array<{ label: string; href: string }>;
   settings: CmsSettings | null;
   phone: string;
+  /** The AI chat assistant ("Ask STBS"); off (plain WhatsApp button) unless an AI key is configured. */
+  assistant?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -34,7 +37,7 @@ export function WebsiteFrame({
       />
       <main className="min-w-0 w-full">{children}</main>
       <SiteFooter settings={settings} navLinks={navLinks} />
-      <WhatsAppFloat phone={phone} />
+      <SiteAssistant phone={phone} enabled={assistant} />
     </div>
   );
 }

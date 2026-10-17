@@ -3,6 +3,7 @@ import { WebsiteFrame } from "@/components/website/website-frame";
 import { getPublicSiteConfig } from "@/lib/website/public-config";
 import { getPublicSeoMetadata } from "@/lib/website/seo";
 import { buildLocalBusiness } from "@/lib/website/structured-data";
+import { assistantEnabled } from "@/lib/assistant/providers";
 
 // Cached at the edge; publishing in the website editor revalidates at once, this is only the safety net.
 export const revalidate = 86400;
@@ -16,5 +17,5 @@ export default async function PublicLayout({ children }: Readonly<{ children: Re
   const { navLinks, settings, phone } = await getPublicSiteConfig();
   // "<" is escaped so structured data can never terminate the script element.
   const localBusiness = JSON.stringify(buildLocalBusiness()).replace(/</g, "\\u003c");
-  return <WebsiteFrame navLinks={navLinks} settings={settings} phone={phone}><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: localBusiness }} />{children}</WebsiteFrame>;
+  return <WebsiteFrame navLinks={navLinks} settings={settings} phone={phone} assistant={assistantEnabled()}><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: localBusiness }} />{children}</WebsiteFrame>;
 }
