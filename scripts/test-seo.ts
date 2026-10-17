@@ -36,7 +36,7 @@ check("logo and image are absolute URLs on the canonical host", () => {
 });
 
 // The guard that matters most: unverified owner data must not be invented.
-check("the supplied address, legal name and hours are emitted; geo is still omitted until supplied", () => {
+check("the supplied address, legal name and hours are emitted, plus the pin and link of the owner's Google listing", () => {
   assert.equal(businessInfo.registeredOffice, "12, New market, Bahalgarh, Sonipat");
   assert.equal(businessInfo.pinCode, "131001");
   assert.equal(businessInfo.legalName, "Saini Tubewell Boring Service");
@@ -45,7 +45,9 @@ check("the supplied address, legal name and hours are emitted; geo is still omit
   assert.equal(address.postalCode, "131001");
   assert.equal(ld.legalName, "Saini Tubewell Boring Service");
   assert.equal(ld.openingHours, "Mo-Su 08:00-19:00");
-  assert.equal("geo" in ld, false);
+  assert.deepEqual(ld.geo, { "@type": "GeoCoordinates", latitude: 28.962924, longitude: 77.093266 });
+  assert.equal(ld.hasMap, "https://maps.google.com/?cid=13861624936793150977");
+  assert.deepEqual(ld.sameAs, ["https://maps.google.com/?cid=13861624936793150977"]);
   // The GSTIN is shown in the footer but is not part of the structured data, and the unconfirmed pincode never leaks.
   assert.doesNotMatch(json, /06AWTPS|131021|Dipalpur/i);
 });

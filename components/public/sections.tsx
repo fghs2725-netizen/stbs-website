@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain, Construction, Copy, Download, Drill, Droplets, Eye, EyeOff, Factory, Home, Landmark, Mail, MapPin, MessageCircle, Pencil, Phone, Sprout, Store, Trash2, type LucideIcon } from "lucide-react";
+import { ArrowRight, ArrowDown, ArrowUp, BadgeCheck, Boxes, Building2, CloudRain, Construction, Copy, Download, Drill, Droplets, Eye, EyeOff, Factory, Home, Landmark, Mail, MapPin, MessageCircle, Pencil, Phone, Sprout, Star, Store, Trash2, type LucideIcon } from "lucide-react";
 import { HOME_CTA, HOME_HERO, HOME_SECTORS, HOME_SERVICES, HOME_STATS } from "@/lib/website/home-defaults";
 import { SERVICE_PAGES, serviceHref, servicePageFor } from "@/lib/website/service-pages";
 import { SERVICE_ICONS } from "@/components/public/service-icons";
@@ -100,6 +100,7 @@ import {
   processSteps,
   company,
   businessInfo,
+  googleListing,
 } from "@/lib/company";
 
 /* ── editor overrides (never rendered on the public site) ─────────────────── */
@@ -919,10 +920,16 @@ function ContactInfoSection({ owner, content, data }: { owner?: RenderableSectio
   );
 }
 
+// Pages saved before the Google listing was linked still hold this generic map of Sonipat; they now show
+// the listing. A different map pasted into the editor is kept as it is.
+const GENERIC_MAP = /maps\?q=Sonipat,\s*Haryana/i;
+
 function MapSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
   const eyebrow = str(content, "eyebrow", "Service area");
-  const embedUrl = str(content, "embedUrl", "https://www.google.com/maps?q=Sonipat,Haryana&output=embed");
-  const openUrl = embedUrl.replace(/&output=embed/, "");
+  const saved = str(content, "embedUrl", "");
+  const custom = saved && !GENERIC_MAP.test(saved) && saved !== googleListing.embedUrl ? saved : "";
+  const embedUrl = custom || googleListing.embedUrl;
+  const openUrl = custom ? custom.replace(/&output=embed/, "") : googleListing.url;
   const target = asSection(owner);
   return (
     <section className="theme-public band-alt section-y">
@@ -932,11 +939,16 @@ function MapSection({ owner, content }: { owner?: RenderableSection; content: Re
             <p className="t-eyebrow">{eyebrow}</p>
           </Editable>
           <h2 className="t-h2 mt-u2 text-block">Where we work</h2>
-          {/* The map is centred on Sonipat (the service area), not a street address: none is published yet. */}
+          {/* The owner's Google Business listing: the pin, name and reviews come from Google. */}
           <div className="img-zoom mt-u4 border border-stbs-hairline">
-            <iframe title="Map of Sonipat, Haryana: our service area" src={embedUrl} className="block h-[320px] w-full sm:h-[400px]" loading="lazy" />
+            <iframe title={custom ? "Map" : "Map: STBS, 12 New Market, Bahalgarh, Sonipat"} src={embedUrl} className="block h-[320px] w-full sm:h-[400px]" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
           </div>
-          <a href={openUrl} target="_blank" rel="noopener noreferrer" className="mt-u2 inline-flex min-h-[48px] items-center font-medium text-stbs-brand-mid hover:underline">Open in Google Maps</a>
+          <div className="mt-u2 flex flex-wrap items-center gap-x-u4">
+            <a href={openUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[48px] items-center font-medium text-stbs-brand-mid hover:underline">Open in Google Maps</a>
+            <a href={googleListing.reviewUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[48px] items-center gap-u1 font-medium text-stbs-brand-mid hover:underline">
+              <Star size={18} strokeWidth={1.75} aria-hidden /> Review us on Google
+            </a>
+          </div>
         </Reveal>
       </div>
     </section>
