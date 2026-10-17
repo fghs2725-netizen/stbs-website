@@ -1,13 +1,13 @@
-import { businessInfo, company } from "@/lib/company";
+import { businessInfo, company, googleListing } from "@/lib/company";
 import { absolutePath, canonicalSiteUrl } from "@/lib/site-url";
 import { SERVICE_PAGES } from "@/lib/website/service-pages";
 
 /**
  * LocalBusiness JSON-LD for the whole public site.
  *
- * Only facts we actually have are emitted. Address, geo coordinates and legal name are OMITTED until
- * the owner supplies them (see businessInfo), never guessed. openingHours is the existing site copy
- * (Mo-Sa 08:00-19:00) and is flagged as unverified in docs/TODO.md.
+ * Only facts we actually have are emitted, never guessed: the address and hours the owner gave, and the
+ * map pin and link of the owner's own Google Business listing (sameAs / hasMap tie the site to it, which
+ * helps the listing and the site rank together in local search).
  */
 export function buildLocalBusiness() {
   const url = canonicalSiteUrl();
@@ -41,6 +41,9 @@ export function buildLocalBusiness() {
       })),
     },
     openingHours: businessInfo.openingHours,
+    geo: { "@type": "GeoCoordinates", latitude: googleListing.geo.latitude, longitude: googleListing.geo.longitude },
+    hasMap: googleListing.url,
+    sameAs: [googleListing.url],
   };
   if (businessInfo.legalName) data.legalName = businessInfo.legalName;
   if (businessInfo.registeredOffice) {

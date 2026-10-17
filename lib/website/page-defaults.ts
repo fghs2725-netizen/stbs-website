@@ -3,7 +3,7 @@
  * each page's static fallback (used only when no published CMS page exists), so the copy has one
  * definition. The fallbacks render these through the same section renderers as the CMS.
  */
-import { clients, company, founderBio, founderName, founderTitle } from "./../company";
+import { clients, company, founderBio, founderName, founderTitle, googleListing } from "./../company";
 import { logoFor } from "./client-logos";
 
 export interface DefaultSection {
@@ -202,7 +202,7 @@ export const CONTACT_SECTIONS: DefaultSection[] = [
     position: 2,
     content: {
       eyebrow: "Find us",
-      embedUrl: "https://www.google.com/maps?q=Sonipat,Haryana&output=embed",
+      embedUrl: googleListing.embedUrl,
     },
   },
 ];

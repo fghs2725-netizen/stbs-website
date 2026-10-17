@@ -1,9 +1,9 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight, Pencil } from "lucide-react";
+import { ArrowUpRight, Pencil, Star } from "lucide-react";
 import type { CmsSettings } from "@/components/public/sections";
-import { businessInfo, company } from "@/lib/company";
+import { businessInfo, company, googleListing } from "@/lib/company";
 import { formatIndianPhone, telHref } from "@/lib/phone";
 import { useWebsiteEditor } from "@/lib/website/editor-context";
 import { DEFAULT_NAV_LINKS, ensureAboutLink, FOOTER_ONLY_LINKS, isPublicNavLink } from "@/lib/website/nav-defaults";
@@ -113,6 +113,9 @@ export function SiteFooter({ settings, navLinks }: { settings?: FooterSettings |
             </div>
           </dl>
           <a href={businessInfo.mapsUrl} target="_blank" rel="noopener noreferrer" className={`${LINK} mt-u1 text-stbs-ink-on-dark underline underline-offset-4`}>Open in Google Maps</a>
+          <a href={googleListing.reviewUrl} target="_blank" rel="noopener noreferrer" className={`${LINK} gap-u1 text-stbs-ink-on-dark underline underline-offset-4`}>
+            <Star size={16} strokeWidth={1.75} aria-hidden /> Review us on Google
+          </a>
         </div>
       </div>
 

@@ -31,7 +31,22 @@ export const businessInfo = {
   /** Supplied by the owner, who confirmed it may be shown publicly (2026-09-19). */
   gstin: "06AWTPS2732A1ZI",
   legalName: "Saini Tubewell Boring Service",
-  mapsUrl: "https://www.google.com/maps?q=Sonipat,Haryana",
+  mapsUrl: "https://maps.google.com/?cid=13861624936793150977",
+};
+
+/**
+ * The owner's Google Business listing (link shared by the owner 2026-10-17; the listing shows 98120 03001).
+ * `url` is the listing's permanent address (its CID); `reviewUrl` opens Google's "write a review" box;
+ * `geo` is the listing's map pin. The listing's pincode (131021) and "Open 24 hours" differ from what the
+ * owner gave for the site (131001, 8 AM to 7 PM): the site keeps the owner's values until they confirm.
+ */
+export const googleListing = {
+  name: "STBS- Saini Tubewell Boring Service",
+  placeId: "ChIJdZ00DA6vDTkRAZZAH3BiXsA",
+  url: "https://maps.google.com/?cid=13861624936793150977",
+  reviewUrl: "https://search.google.com/local/writereview?placeid=ChIJdZ00DA6vDTkRAZZAH3BiXsA",
+  embedUrl: "https://www.google.com/maps?q=STBS-%20Saini%20Tubewell%20Boring%20Service%2C%20Bahalgarh%2C%20Sonipat&output=embed",
+  geo: { latitude: 28.962924, longitude: 77.093266 },
 };
 
 export const clients = ["Brackparts Pvt. Ltd.", "Ashoka University", "Jupiter Laminator Pvt. Ltd.", "LT Overseas Pvt. Ltd. (Dawat Rice Mill)", "Amul Milk, Murthal", "BigBasket, Sonipat Site", "Nidaan Hospital", "Devi Lal Park, Sonipat/Panipat", "Alaina Indane Gas", "Voestalpine VAE VKN India Pvt. Ltd.", "Maneta Pvt. Ltd.", "Avicreations", "Ajit Industries Pvt. Ltd.", "Shreeji International School", "Parker Mall, Kundli", "TDI City, Kundli", "ITEC Technopark, IIT Delhi Sonipat Campus", "Coral Drugs Pvt. Ltd.", "Rishi Laser Limited", "Marut Techno Tools Pvt. Ltd.", "A-One Tex Tech Pvt. Ltd.", "O.P. Jindal Global University"];
