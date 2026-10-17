@@ -19,15 +19,19 @@ export const company = {
  * See docs/TODO.md for what the owner still needs to supply.
  */
 export const businessInfo = {
-  /** Confirmed by the owner 2026-09-19. */
-  hours: ["Monday to Sunday: 8:00 AM to 7:00 PM"],
-  /** Machine-readable form of the same hours, for JSON-LD. */
-  openingHours: "Mo-Su 08:00-19:00",
+  /** Matched to the Google Business listing at the owner's request (2026-10-17); was 8 AM to 7 PM. */
+  hours: ["Open 24 hours, 7 days a week"],
   /** Areas named in the owner's brief; Gurugram was requested there. */
   serviceAreas: ["Sonipat", "Panipat", "Kundli", "Rohtak", "Gurugram", "Delhi NCR"],
   /** Supplied by the owner 2026-09-19 (spelling as given: "Bahalgarh"). */
   registeredOffice: "12, New market, Bahalgarh, Sonipat",
-  pinCode: "131001",
+  /** The website's pincode, matched to the Google Business listing at the owner's request (2026-10-17). */
+  pinCode: "131021",
+  /**
+   * Pincode printed on invoices and letters. Left at the value the owner gave on 2026-09-19 because tax
+   * documents must match the GST registration; change it only once the owner confirms.
+   */
+  documentPinCode: "131001",
   /** Supplied by the owner, who confirmed it may be shown publicly (2026-09-19). */
   gstin: "06AWTPS2732A1ZI",
   legalName: "Saini Tubewell Boring Service",
@@ -37,8 +41,7 @@ export const businessInfo = {
 /**
  * The owner's Google Business listing (link shared by the owner 2026-10-17; the listing shows 98120 03001).
  * `url` is the listing's permanent address (its CID); `reviewUrl` opens Google's "write a review" box;
- * `geo` is the listing's map pin. The listing's pincode (131021) and "Open 24 hours" differ from what the
- * owner gave for the site (131001, 8 AM to 7 PM): the site keeps the owner's values until they confirm.
+ * `geo` is the listing's map pin. The site's address, pincode and hours match the listing.
  */
 export const googleListing = {
   name: "STBS- Saini Tubewell Boring Service",

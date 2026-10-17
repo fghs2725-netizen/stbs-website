@@ -16,6 +16,7 @@ export function buildLocalBusiness() {
     "@type": "HomeAndConstructionBusiness",
     "@id": `${url}/#business`,
     name: company.name,
+    alternateName: ["STBS", googleListing.name],
     url,
     logo: absolutePath("/icon-512.png"),
     image: absolutePath("/og/stbs-og-1200x630.png"),
@@ -40,7 +41,13 @@ export function buildLocalBusiness() {
         itemOffered: { "@type": "Service", name: s.fullTitle, url: absolutePath(s.href) },
       })),
     },
-    openingHours: businessInfo.openingHours,
+    // Open 24 hours, as on the Google listing: Google's documented form is 00:00 to 23:59 on every day.
+    openingHoursSpecification: {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      opens: "00:00",
+      closes: "23:59",
+    },
     geo: { "@type": "GeoCoordinates", latitude: googleListing.geo.latitude, longitude: googleListing.geo.longitude },
     hasMap: googleListing.url,
     sameAs: [googleListing.url],
