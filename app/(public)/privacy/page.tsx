@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPage, type LegalSection } from "@/components/public/legal-page";
 import { company } from "@/lib/company";
+import { PRIMARY_WEBSITE_PHONE } from "@/lib/website/business-contact";
 import { pageMetadata } from "@/lib/page-metadata";
 
 // Draft: kept out of search results until the owner has finalised it.
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 const SECTIONS: LegalSection[] = [
   {
     heading: "Who we are",
-    paras: [`This website is run by ${company.name} ("STBS", "we"), a borewell drilling, tubewell construction, rainwater harvesting and material supply business based in Sonipat, Haryana. You can reach us at ${company.email} or on +91 ${company.phones[0]}.`],
+    paras: [`This website is run by ${company.name} ("STBS", "we"), a borewell drilling, tubewell construction, rainwater harvesting and material supply business based in Sonipat, Haryana. You can reach us at ${company.email} or on +91 ${PRIMARY_WEBSITE_PHONE}.`],
   },
   {
     heading: "What we collect",

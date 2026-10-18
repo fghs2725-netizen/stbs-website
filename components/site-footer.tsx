@@ -3,11 +3,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Pencil, Star } from "lucide-react";
 import type { CmsSettings } from "@/components/public/sections";
-import { businessInfo, company, googleListing } from "@/lib/company";
+import { businessInfo, googleListing } from "@/lib/company";
 import { formatIndianPhone, telHref } from "@/lib/phone";
 import { useWebsiteEditor } from "@/lib/website/editor-context";
 import { DEFAULT_NAV_LINKS, ensureAboutLink, FOOTER_ONLY_LINKS, isPublicNavLink } from "@/lib/website/nav-defaults";
 import { SERVICE_PAGES } from "@/lib/website/service-pages";
+import { WEBSITE_PHONES } from "@/lib/website/business-contact";
 
 type FooterSettings = Pick<CmsSettings, "businessName" | "shortDescription" | "phone" | "phone2" | "email" | "address" | "whatsapp" | "primaryLogoUrl" | "lightLogoUrl" | "darkLogoUrl" | "logoUrl">;
 
@@ -19,9 +20,9 @@ const LINK = "flex min-h-[44px] items-center text-stbs-muted-on-dark transition-
  * performance budget (the contact page carries the actual embed).
  */
 export function SiteFooter({ settings, navLinks }: { settings?: FooterSettings | null; navLinks?: Array<{ label: string; href: string }> }) {
-  // The settings row holds two numbers; the third comes from lib/company.ts. Same number twice is shown once.
+  // The website settings hold two numbers; include the remaining website contacts once each.
   const digits = (p?: string | null) => (p ?? "").replace(/\D/g, "").slice(-10);
-  const phones = [settings?.phone, settings?.phone2, ...company.phones]
+  const phones = [settings?.phone, settings?.phone2, ...WEBSITE_PHONES]
     .filter((p, i, all): p is string => Boolean(p) && all.findIndex((q) => digits(q) === digits(p)) === i)
     .slice(0, 3);
   const email = settings?.email ?? "";

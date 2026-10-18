@@ -18,7 +18,7 @@ check("it is valid JSON-LD with the LocalBusiness type and an @id", () => {
   assert.equal(ld["@type"], "HomeAndConstructionBusiness");
   assert.match(String(ld["@id"]), /#business$/);
 });
-check("all phone numbers are in E.164 form", () => assert.deepEqual(ld.telephone, ["+919812003001", "+918708128632", "+917988814808"]));
+check("all phone numbers are in E.164 form, with the owner's primary first", () => assert.deepEqual(ld.telephone, ["+917988814808", "+919812003001", "+918708128632"]));
 check("founding year is 1992", () => assert.equal(ld.foundingDate, "1992"));
 check("all five services are listed as serviceType and as offers with absolute URLs", () => {
   assert.equal((ld.serviceType as string[]).length, 5);

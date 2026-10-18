@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { resolveSettings, field, primaryPhone } from "../lib/website/public-config";
 import { absolutePath, canonicalSiteUrl } from "../lib/site-url";
 import { company } from "../lib/company";
+import { WEBSITE_PHONES } from "../lib/website/business-contact";
 
 let passed = 0;
 function check(name: string, fn: () => void) {
@@ -18,8 +19,8 @@ function check(name: string, fn: () => void) {
 
 console.log("settings resolution (no CMS row → verified fallbacks)");
 check("null settings uses company name", () => assert.equal(resolveSettings(null).businessName, company.name));
-check("null settings uses company phone", () => assert.equal(resolveSettings(null).phone, company.phones[0]));
-check("null settings uses company second phone", () => assert.equal(resolveSettings(null).phone2, company.phones[1]));
+check("null settings uses company phone", () => assert.equal(resolveSettings(null).phone, WEBSITE_PHONES[0]));
+check("null settings uses company second phone", () => assert.equal(resolveSettings(null).phone2, WEBSITE_PHONES[1]));
 check("null settings uses company email", () => assert.equal(resolveSettings(null).email, company.email));
 check("null settings never fabricates an address", () => assert.equal(resolveSettings(null).address ?? "", ""));
 
@@ -48,9 +49,9 @@ check("present null returns empty", () => assert.equal(field({ k: null }, "k", "
 console.log("canonical URLs");
 const prevSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 delete process.env.NEXT_PUBLIC_SITE_URL;
-check("canonical default is https://stbs.in", () => assert.equal(canonicalSiteUrl(), "https://stbs.in"));
-check("absolutePath joins canonically", () => assert.equal(absolutePath("/about"), "https://stbs.in/about"));
-check("absolutePath normalizes missing leading slash", () => assert.equal(absolutePath("quote"), "https://stbs.in/quote"));
+check("canonical default is https://www.stbs.in", () => assert.equal(canonicalSiteUrl(), "https://www.stbs.in"));
+check("absolutePath joins canonically", () => assert.equal(absolutePath("/about"), "https://www.stbs.in/about"));
+check("absolutePath normalizes missing leading slash", () => assert.equal(absolutePath("quote"), "https://www.stbs.in/quote"));
 if (prevSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
 else process.env.NEXT_PUBLIC_SITE_URL = prevSiteUrl;
 

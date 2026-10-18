@@ -129,7 +129,7 @@ function fakeSender(result: { success: boolean; error?: string }) {
   });
   await check("WhatsApp fallback link carries the details, URL-encoded, to the primary number", () => {
     const url = quoteWhatsAppUrl(valid);
-    assert.match(url, /^https:\/\/wa\.me\/919812003001\?text=/);
+    assert.match(url, /^https:\/\/wa\.me\/917988814808\?text=/);
     assert.match(decodeURIComponent(url), /Service: Rainwater Harvesting/);
     assert.match(decodeURIComponent(url), /Site: Kundli, Sonipat/);
   });

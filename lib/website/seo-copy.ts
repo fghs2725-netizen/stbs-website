@@ -55,7 +55,7 @@ export const SEO = {
   },
   contact: {
     title: "Contact Saini Tubewell | Sonipat, Haryana",
-    description: "Call +91 98120 03001 or request a proposal for borewell drilling, tubewell construction or rainwater harvesting in Sonipat, Panipat, Kundli, Rohtak and NCR.",
+    description: "Call +91 79888 14808 or request a proposal for borewell drilling, tubewell construction or rainwater harvesting in Sonipat, Panipat, Kundli, Rohtak and NCR.",
   },
   quote: {
     title: "Request a Proposal | Saini Tubewell",
