@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { company } from "@/lib/company";
+import { PRIMARY_WEBSITE_PHONE, WEBSITE_PHONES } from "@/lib/website/business-contact";
 import { buildKnowledge, buildSystemPrompt, postProcess, selectRelevant, type Knowledge } from "@/lib/assistant/knowledge";
 import { complete, providersFromEnv } from "@/lib/assistant/providers";
 import { MAX_HISTORY, MAX_MESSAGE_CHARS, type ChatFailure, type ChatReply } from "@/lib/assistant/shared";
@@ -37,8 +38,8 @@ async function knowledge(): Promise<Knowledge> {
   const kb = buildKnowledge({
     projects: projects?.length ? projects : PROJECTS,
     contact: {
-      phones: phones.length ? phones : company.phones,
-      whatsapp: s?.whatsapp || s?.phone || company.phones[0],
+      phones: phones.length ? phones : WEBSITE_PHONES,
+      whatsapp: s?.whatsapp || s?.phone || PRIMARY_WEBSITE_PHONE,
       email: s?.email || company.email,
     },
   });

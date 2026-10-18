@@ -1,6 +1,7 @@
 import { businessInfo, company, googleListing } from "@/lib/company";
 import { absolutePath, canonicalSiteUrl } from "@/lib/site-url";
 import { SERVICE_PAGES } from "@/lib/website/service-pages";
+import { WEBSITE_PHONES } from "@/lib/website/business-contact";
 
 /**
  * LocalBusiness JSON-LD for the whole public site.
@@ -21,7 +22,7 @@ export function buildLocalBusiness() {
     logo: absolutePath("/icon-512.png"),
     image: absolutePath("/og/stbs-og-1200x630.png"),
     description: company.description,
-    telephone: company.phones.map((p) => `+91${p}`),
+    telephone: WEBSITE_PHONES.map((p) => `+91${p}`),
     email: company.email,
     foundingDate: String(company.established),
     // Areas the owner named; Delhi NCR is a region, the rest are places in Haryana.

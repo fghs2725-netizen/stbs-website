@@ -8,6 +8,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { serialize } from "./types";
+import { currentBusinessContactText, currentBusinessCtaLinks, currentBusinessSettings } from "@/lib/website/business-contact";
 
 /**
  * Snapshot model: rows stay live (visible to the public) as long as they have a
@@ -56,7 +57,7 @@ export async function getPublishedPage(slug: string) {
       ...s,
       // A published page only ever serves its immutable section snapshot.
       // publishPage writes one for every non-deleted section in the same transaction.
-      content: (s.publishedContent ?? {}) as Record<string, unknown>,
+      content: currentBusinessCtaLinks((s.publishedContent ?? {}) as Record<string, unknown>),
     })),
   });
 }
@@ -75,11 +76,15 @@ export async function getPublishedPageMeta(slug: string) {
   });
   if (!page) return null;
   const { publishedData, ...draft } = page;
-  return serialize(
+  const meta = serialize(
     publishedData && typeof publishedData === "object" && !Array.isArray(publishedData)
       ? { ...draft, ...(publishedData as Record<string, unknown>) }
       : draft
   );
+  for (const key of ["title", "seoTitle", "metaDescription", "ogTitle", "ogDescription"] as const) {
+    if (typeof meta[key] === "string") meta[key] = currentBusinessContactText(meta[key]);
+  }
+  return meta;
 }
 
 // ─── Services ────────────────────────────────────────────────────────────────
@@ -196,7 +201,7 @@ export async function getPublishedSettings() {
   // Settings are global public content. Draft rows must never be observable
   // outside the editor, including image URLs used by the shared frame.
   if (settings.publishedData) {
-    return serialize(settings.publishedData) as Record<string, unknown>;
+    return currentBusinessSettings(serialize(settings.publishedData) as Record<string, unknown>);
   }
   return null;
 }
@@ -208,7 +213,11 @@ export async function getPublishedSeo() {
   if (!seo) return null;
 
   if (seo.publishedData) {
-    return serialize(seo.publishedData) as Record<string, unknown>;
+    const data = serialize(seo.publishedData) as Record<string, unknown>;
+    for (const key of ["globalTitle", "globalDescription", "twitterTitle", "twitterDescription"] as const) {
+      if (typeof data[key] === "string") data[key] = currentBusinessContactText(data[key]);
+    }
+    return data;
   }
   return null;
 }

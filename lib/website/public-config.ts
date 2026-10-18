@@ -2,6 +2,7 @@ import { getPublishedNavigation, getPublishedSettings } from "@/lib/website/quer
 import { company } from "@/lib/company";
 import type { CmsSettings } from "@/components/public/sections";
 import { DEFAULT_NAV_LINKS } from "@/lib/website/nav-defaults";
+import { WEBSITE_PHONES, currentBusinessSettings } from "@/lib/website/business-contact";
 
 
 export interface PublicSiteConfig {
@@ -48,21 +49,22 @@ export function resolveSettings(raw: Record<string, unknown> | null): CmsSetting
     return {
       businessName: company.name,
       shortDescription: company.description,
-      phone: company.phones[0],
-      phone2: company.phones[1],
-      whatsapp: company.phones[0],
+      phone: WEBSITE_PHONES[0],
+      phone2: WEBSITE_PHONES[1],
+      whatsapp: WEBSITE_PHONES[0],
       email: company.email,
       founderName: company.managingDirector,
       founderTitle: "Founder & Managing Director",
       founderBio: null,
     };
   }
+  raw = currentBusinessSettings(raw);
   return {
     businessName: field(raw, "businessName", company.name),
     shortDescription: field(raw, "shortDescription", company.description),
-    phone: field(raw, "phone", company.phones[0]),
-    phone2: field(raw, "phone2", company.phones[1]),
-    whatsapp: field(raw, "whatsapp", company.phones[0]),
+    phone: field(raw, "phone", WEBSITE_PHONES[0]),
+    phone2: field(raw, "phone2", WEBSITE_PHONES[1]),
+    whatsapp: field(raw, "whatsapp", WEBSITE_PHONES[0]),
     email: field(raw, "email", company.email),
     address: field(raw, "addressLine1", ""),
     city: field(raw, "city", ""),

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { company } from "@/lib/company";
+import { PRIMARY_WEBSITE_PHONE } from "@/lib/website/business-contact";
 
 /**
  * Proposal / site-assessment request: one schema for the browser form AND the API route, so
@@ -82,7 +82,7 @@ export function quoteWhatsAppUrl(q: Partial<QuoteRequest>): string {
     q.phone ? `Phone: ${q.phone}` : "",
     q.details ? `Details: ${q.details}` : "",
   ].filter(Boolean);
-  return `https://wa.me/91${company.phones[0]}?text=${encodeURIComponent(lines.join("\n"))}`;
+  return `https://wa.me/91${PRIMARY_WEBSITE_PHONE}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
 
 export type QuoteResult = { ok: true; enquiryId?: string } | { ok: false; status: number; error: string; fields?: QuoteFieldErrors };

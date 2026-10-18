@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Check, Mail, MessageCircle, Phone } from "lucide-react";
 import { company } from "@/lib/company";
+import { PRIMARY_WEBSITE_PHONE } from "@/lib/website/business-contact";
 import { formatIndianPhone, telHref } from "@/lib/phone";
 import { SERVICE_CHOICES, fieldErrors, quoteSchema, quoteWhatsAppUrl, type QuoteFieldErrors, type QuoteRequest } from "@/lib/quote-request";
 
@@ -89,7 +90,7 @@ export function QuoteForm() {
         <div role="alert" className="tile mb-u4 p-u3" style={{ borderColor: "var(--danger)" }}>
           <p className="font-medium text-stbs-ink">{serverMessage} Your details have not been lost: use one of these instead.</p>
           <div className="mt-u2 flex flex-col gap-u1 sm:flex-row sm:flex-wrap">
-            <a className="btn btn-secondary" href={telHref(company.phones[0])}><Phone size={18} strokeWidth={1.75} aria-hidden />Call {formatIndianPhone(company.phones[0])}</a>
+            <a className="btn btn-secondary" href={telHref(PRIMARY_WEBSITE_PHONE)}><Phone size={18} strokeWidth={1.75} aria-hidden />Call {formatIndianPhone(PRIMARY_WEBSITE_PHONE)}</a>
             <a className="btn btn-secondary" href={quoteWhatsAppUrl(draft)} target="_blank" rel="noopener noreferrer"><MessageCircle size={18} strokeWidth={1.75} aria-hidden />WhatsApp with these details</a>
             <a className="btn btn-secondary" href={`mailto:${company.email}?subject=${encodeURIComponent("Proposal request")}`}><Mail size={18} strokeWidth={1.75} aria-hidden />Email us</a>
           </div>
