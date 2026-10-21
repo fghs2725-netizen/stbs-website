@@ -7,12 +7,9 @@ import { CtaSection } from "@/components/public/sections";
 import { Faq } from "@/components/public/site-additions";
 import { pageMetadata } from "@/lib/page-metadata";
 import { AREAS, areaBySlug } from "@/lib/website/areas";
-import { PROJECTS } from "@/lib/website/projects-data";
-import { getPublishedProjects } from "@/lib/website-projects";
 import { SERVICE_FLOW, SERVICE_PAGES } from "@/lib/website/service-pages";
 import { breadcrumbJsonLd, faqJsonLd } from "@/lib/website/structured-data";
 
-export const revalidate = 86400;
 export const dynamicParams = false;
 export function generateStaticParams() {
   return AREAS.map((a) => ({ slug: a.slug }));
@@ -29,9 +26,6 @@ const ORDERED = [...SERVICE_PAGES].sort((a, b) => SERVICE_FLOW.indexOf(a.slug) -
 export default async function AreaPage({ params }: { params: Promise<{ slug: string }> }) {
   const area = areaBySlug((await params).slug);
   if (!area) notFound();
-  // Same rows as /projects (published in admin), falling back to the built-in list.
-  const all = (await getPublishedProjects()) ?? PROJECTS;
-  const projects = area.projectMatch ? all.filter((p) => p.location.includes(area.projectMatch as string)).slice(0, 6) : [];
   const others = AREAS.filter((a) => a.slug !== area.slug);
 
   return (
@@ -80,25 +74,21 @@ export default async function AreaPage({ params }: { params: Promise<{ slug: str
         </div>
       </section>
 
-      {projects.length > 0 && (
-        <section className="theme-public section-y">
-          <div className="container-x">
-            <p className="t-eyebrow">Recent work nearby</p>
-            <h2 className="t-h2 mt-u2 text-block">Documented projects</h2>
-            <ul className="mt-u5 grid gap-u2 md:grid-cols-3">
-              {projects.map((p) => (
-                <li key={p.title} className="tile p-u3">
-                  <p className="t-eyebrow">{p.sector}</p>
-                  <h3 className="t-h3 mt-u1">{p.title}</h3>
-                  <p className="mt-u1 text-[.9375rem] leading-[1.5] text-stbs-muted">{p.summary}</p>
-                  <p className="mt-u2 flex items-center gap-1 text-[.875rem] text-stbs-muted"><MapPin size={14} strokeWidth={1.75} aria-hidden />{p.location}</p>
-                </li>
-              ))}
-            </ul>
-            <Link href="/projects" className="link-arrow mt-u4 inline-flex">All projects</Link>
-          </div>
-        </section>
-      )}
+      <section className="theme-public section-y">
+        <div className="container-x">
+          <p className="t-eyebrow">Clients in {area.name}</p>
+          <h2 className="t-h2 mt-u2 text-block">Who we have worked for here</h2>
+          <ul className="mt-u5 grid gap-x-u4 md:grid-cols-2">
+            {area.clients.map(([name, work, locality, years]) => (
+              <li key={name} className="border-t border-stbs-hairline py-u2">
+                <p className="font-medium text-stbs-ink">{name}</p>
+                <p className="mt-[2px] text-[.9375rem] leading-[1.5] text-stbs-muted">{work} · {locality} · {years}</p>
+              </li>
+            ))}
+          </ul>
+          <Link href="/projects" className="link-arrow mt-u4 inline-flex">Project details</Link>
+        </div>
+      </section>
 
       <Faq items={area.faqs} />
 

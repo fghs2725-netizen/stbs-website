@@ -21,8 +21,8 @@ export const company = {
 export const businessInfo = {
   /** Matched to the Google Business listing at the owner's request (2026-10-17); was 8 AM to 7 PM. */
   hours: ["Open 24 hours, 7 days a week"],
-  /** Areas named in the owner's brief; Gurugram was requested there. */
-  serviceAreas: ["Sonipat", "Panipat", "Kundli", "Rohtak", "Gurugram", "Delhi NCR"],
+  /** Areas named in the owner's brief; Gurugram was requested there. Bahadurgarh added from the invoices (2026-10-20). */
+  serviceAreas: ["Sonipat", "Panipat", "Kundli", "Rohtak", "Gurugram", "Bahadurgarh", "Delhi NCR"],
   /** Supplied by the owner 2026-09-19 (spelling as given: "Bahalgarh"). */
   registeredOffice: "12, New market, Bahalgarh, Sonipat",
   /** The website's pincode, matched to the Google Business listing at the owner's request (2026-10-17). */
