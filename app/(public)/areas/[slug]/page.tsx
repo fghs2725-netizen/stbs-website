@@ -6,10 +6,12 @@ import { PageHero } from "@/components/page-hero";
 import { CtaSection } from "@/components/public/sections";
 import { Faq } from "@/components/public/site-additions";
 import { pageMetadata } from "@/lib/page-metadata";
+import { getAreaClients } from "@/lib/website/area-clients";
 import { AREAS, areaBySlug } from "@/lib/website/areas";
 import { SERVICE_FLOW, SERVICE_PAGES } from "@/lib/website/service-pages";
 import { breadcrumbJsonLd, faqJsonLd } from "@/lib/website/structured-data";
 
+export const revalidate = 86400;
 export const dynamicParams = false;
 export function generateStaticParams() {
   return AREAS.map((a) => ({ slug: a.slug }));
@@ -26,6 +28,7 @@ const ORDERED = [...SERVICE_PAGES].sort((a, b) => SERVICE_FLOW.indexOf(a.slug) -
 export default async function AreaPage({ params }: { params: Promise<{ slug: string }> }) {
   const area = areaBySlug((await params).slug);
   if (!area) notFound();
+  const clients = await getAreaClients(area.slug);
   const others = AREAS.filter((a) => a.slug !== area.slug);
 
   return (
@@ -74,21 +77,23 @@ export default async function AreaPage({ params }: { params: Promise<{ slug: str
         </div>
       </section>
 
-      <section className="theme-public section-y">
-        <div className="container-x">
-          <p className="t-eyebrow">Clients in {area.name}</p>
-          <h2 className="t-h2 mt-u2 text-block">Who we have worked for here</h2>
-          <ul className="mt-u5 grid gap-x-u4 md:grid-cols-2">
-            {area.clients.map(([name, work, locality, years]) => (
-              <li key={name} className="border-t border-stbs-hairline py-u2">
-                <p className="font-medium text-stbs-ink">{name}</p>
-                <p className="mt-[2px] text-[.9375rem] leading-[1.5] text-stbs-muted">{work} · {locality} · {years}</p>
-              </li>
-            ))}
-          </ul>
-          <Link href="/projects" className="link-arrow mt-u4 inline-flex">Project details</Link>
-        </div>
-      </section>
+      {clients.length > 0 && (
+        <section className="theme-public section-y">
+          <div className="container-x">
+            <p className="t-eyebrow">Clients in {area.name}</p>
+            <h2 className="t-h2 mt-u2 text-block">Who we have worked for here</h2>
+            <ul className="mt-u5 grid gap-x-u4 md:grid-cols-2">
+              {clients.map(([name, work, locality, years]) => (
+                <li key={name} className="border-t border-stbs-hairline py-u2">
+                  <p className="font-medium text-stbs-ink">{name}</p>
+                  <p className="mt-[2px] text-[.9375rem] leading-[1.5] text-stbs-muted">{[work, locality, years].filter(Boolean).join(" · ")}</p>
+                </li>
+              ))}
+            </ul>
+            <Link href="/projects" className="link-arrow mt-u4 inline-flex">Project details</Link>
+          </div>
+        </section>
+      )}
 
       <Faq items={area.faqs} />
 

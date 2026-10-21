@@ -84,27 +84,27 @@ model Company {
 }
 
 model User {
-  id               String         @id @default(cuid())
-  name             String?
-  email            String?        @unique
-  emailVerified    DateTime?
-  image            String?
-  password         String?
-  roleId           String?
-  role             Role?          @relation(fields: [roleId], references: [id])
-  companyId        String?
-  company          Company?       @relation(fields: [companyId], references: [id])
-  createdDocuments Document[]
-  auditLogs        AuditLog[]
-  notifications    Notification[]
-  sessions         Session[]
-  accounts         Account[]
+  id                String             @id @default(cuid())
+  name              String?
+  email             String?            @unique
+  emailVerified     DateTime?
+  image             String?
+  password          String?
+  roleId            String?
+  role              Role?              @relation(fields: [roleId], references: [id])
+  companyId         String?
+  company           Company?           @relation(fields: [companyId], references: [id])
+  createdDocuments  Document[]
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+  sessions          Session[]
+  accounts          Account[]
   passkeys          Passkey[]
   pushSubscriptions PushSubscription[]
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  deletedAt        DateTime?
-  lastLoginAt      DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
+  lastLoginAt       DateTime?
 }
 
 model Role {
@@ -567,19 +567,19 @@ model Notification {
 
 // Private company attachments, independent of public website media.
 model CompanyDocument {
-  id             String   @id @default(cuid())
-  title          String
-  category       String   @default("Other")
-  originalName   String
-  mimeType       String
-  size           Int
-  storageKey     String   @unique
-  provider       String
-  status         String   @default("PENDING")
-  uploadedById   String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  deletedAt      DateTime?
+  id           String    @id @default(cuid())
+  title        String
+  category     String    @default("Other")
+  originalName String
+  mimeType     String
+  size         Int
+  storageKey   String    @unique
+  provider     String
+  status       String    @default("PENDING")
+  uploadedById String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
 
   @@index([status, createdAt])
 }
@@ -1288,7 +1288,9 @@ model InvoiceNumberCounter {
 
 // ─── Admin app: enquiries, notifications, Face ID ────────────────────────────
 
-/** A proposal request from the website's quote form. Stored before it is emailed, so none is lost. */
+/**
+ * A proposal request from the website's quote form. Stored before it is emailed, so none is lost.
+ */
 model Enquiry {
   id           String    @id @default(cuid())
   name         String
@@ -1304,7 +1306,9 @@ model Enquiry {
   @@index([createdAt])
 }
 
-/** One device that asked for enquiry notifications (the browser's Web Push subscription). */
+/**
+ * One device that asked for enquiry notifications (the browser's Web Push subscription).
+ */
 model PushSubscription {
   id            String    @id @default(cuid())
   userId        String
@@ -1319,7 +1323,9 @@ model PushSubscription {
   @@index([userId])
 }
 
-/** The site's Web Push identity. One row, generated the first time a notification is needed. */
+/**
+ * The site's Web Push identity. One row, generated the first time a notification is needed.
+ */
 model VapidKey {
   id         String   @id @default("default")
   publicKey  String
@@ -1327,7 +1333,9 @@ model VapidKey {
   createdAt  DateTime @default(now())
 }
 
-/** A Face ID / Touch ID credential (WebAuthn passkey) that can sign its owner in. */
+/**
+ * A Face ID / Touch ID credential (WebAuthn passkey) that can sign its owner in.
+ */
 model Passkey {
   id           String    @id @default(cuid())
   userId       String
@@ -1343,7 +1351,9 @@ model Passkey {
   @@index([userId])
 }
 
-/** A WebAuthn challenge awaiting its answer. Deleted when used, so a response can never be replayed. */
+/**
+ * A WebAuthn challenge awaiting its answer. Deleted when used, so a response can never be replayed.
+ */
 model WebAuthnChallenge {
   id        String   @id @default(cuid())
   challenge String
@@ -1356,14 +1366,18 @@ model WebAuthnChallenge {
 
 // ─── Workers and expenses ────────────────────────────────────────────────────
 
-/** A crew member. "Removing" one archives him (active = false): his work and payment history is kept. */
+/**
+ * A crew member. "Removing" one archives him (active = false): his work and payment history is kept.
+ */
 model Worker {
   id             String        @id @default(cuid())
   name           String
   phone          String?
   role           String?
   notes          String?
-  /** What was pending before the app: positive = the business owed him, negative = he had an advance. */
+  /**
+   * What was pending before the app: positive = the business owed him, negative = he had an advance.
+   */
   openingBalance Decimal       @default(0) @db.Decimal(12, 2)
   active         Boolean       @default(true)
   entries        WorkerEntry[]
@@ -1374,7 +1388,9 @@ model Worker {
   @@index([active])
 }
 
-/** One line of a worker's ledger: work done (earned) or money given (paid). See lib/worker-ledger.ts. */
+/**
+ * One line of a worker's ledger: work done (earned) or money given (paid). See lib/worker-ledger.ts.
+ */
 model WorkerEntry {
   id          String    @id @default(cuid())
   workerId    String
@@ -1386,7 +1402,9 @@ model WorkerEntry {
   quantity    Decimal?  @db.Decimal(10, 2)
   unit        String?
   rate        Decimal?  @db.Decimal(12, 2)
-  /** Work: quantity × rate, stored as it was calculated. Payment: the amount given. */
+  /**
+   * Work: quantity × rate, stored as it was calculated. Payment: the amount given.
+   */
   amount      Decimal   @db.Decimal(12, 2)
   method      String?
   createdAt   DateTime  @default(now())
@@ -1396,7 +1414,9 @@ model WorkerEntry {
   @@index([workerId, date])
 }
 
-/** A business cost that is not money handed to a worker: rig diesel, repairs, drill bits, site food. */
+/**
+ * A business cost that is not money handed to a worker: rig diesel, repairs, drill bits, site food.
+ */
 model Expense {
   id          String    @id @default(cuid())
   date        String // YYYY-MM-DD
@@ -1414,6 +1434,23 @@ model Expense {
 
 /// A project shown on the public site: the homepage "Selected projects" and /projects. Edited in
 /// Admin -> Website projects; `published` rows go live immediately, so there is no separate publish step.
+/// A client shown on a town page (/areas/<area>), switched on in Admin -> Website town pages. The work
+/// done and the years are read live from that client's invoices; a client with no row is not shown.
+model WebsiteAreaClient {
+  id           String   @id @default(cuid())
+  /// The name shown on the website.
+  name         String
+  /// Upper-cased client names as typed on the invoices (several when invoiced under more than one spelling).
+  invoiceNames String[]
+  /// Town slug from lib/website/areas.ts.
+  area         String
+  locality     String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([area])
+}
+
 model WebsiteProject {
   id        String    @id @default(cuid())
   title     String

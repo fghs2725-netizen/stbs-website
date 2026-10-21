@@ -32,6 +32,7 @@
     "test:assistant": "npx tsx scripts/test-assistant.ts",
     "test:services": "npx tsx scripts/test-service-pages.ts",
     "test:projects": "npx tsx scripts/test-projects-data.ts",
+    "test:areas": "npx tsx scripts/test-area-clients.ts",
     "test:quote": "npx tsx scripts/test-quote-request.ts",
     "test:workers": "npx tsx scripts/test-worker-ledger.ts && npx tsx scripts/test-site-work.ts && npx tsx scripts/test-site-work-edit.ts",
     "test:seo": "npx tsx scripts/test-seo.ts",
