@@ -20,7 +20,7 @@ export const ABOUT_SECTIONS: DefaultSection[] = [
     position: 0,
     content: {
       eyebrow: "Our company",
-      heading: "Built from the ground down.",
+      heading: "Borewell and tubewell contractors since 1992.",
       text: "Saini Tubewell Boring Service was established in 1992 and has grown as a trusted provider of borewell, material supply and rainwater harvesting services.",
     },
   },
@@ -180,7 +180,7 @@ export const CONTACT_SECTIONS: DefaultSection[] = [
     position: 0,
     content: {
       eyebrow: "Contact",
-      heading: "Start with the requirement.",
+      heading: "Contact Saini Tubewell in Sonipat.",
       text: "Tell us what service you need and where the project is located. We will use that information to guide the next conversation.",
     },
   },
@@ -214,7 +214,7 @@ export const QUOTE_SECTIONS: DefaultSection[] = [
     position: 0,
     content: {
       eyebrow: "Start a project",
-      heading: "Tell us what the site needs.",
+      heading: "Request a borewell or tubewell quote.",
       text: "Share the basic project details. The request form is structured to help the team understand your service and site requirements.",
     },
   },

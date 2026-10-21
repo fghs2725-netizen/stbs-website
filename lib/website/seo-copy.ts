@@ -50,7 +50,7 @@ export const SEO = {
     description: "Water infrastructure work for Ashoka University, Amul, BigBasket, LT Foods, voestalpine and 20+ industrial, commercial and institutional clients in Haryana.",
   },
   projects: {
-    title: "Rainwater Harvesting Projects, Sonipat | Saini Tubewell",
+    title: "Borewell & Rainwater Harvesting Projects | Saini Tubewell",
     description: "Rainwater harvesting and borewell projects for industrial, institutional and commercial sites in Sonipat and Kundli, Haryana: scope, sizes and locations.",
   },
   contact: {

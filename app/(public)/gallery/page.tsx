@@ -32,7 +32,9 @@ const FALLBACK_SECTIONS = [
 ];
 
 export async function generateMetadata(): Promise<Metadata> {
-  const meta = await getPublishedPageMeta(SLUG);
+  const [meta, cmsPage, items] = await Promise.all([getPublishedPageMeta(SLUG), getPublishedPage(SLUG), getPublishedGalleryItems()]);
+  // Keep the "photos are being prepared" empty state out of Google until a photo is published.
+  if (!cmsPage?.sections.length && !items?.length) return { ...pageMetadata({ ...SEO.gallery, path: "/gallery", absoluteTitle: true }), robots: { index: false, follow: true } };
   if (meta && meta.seoTitle) return pageMetadata({ title: meta.seoTitle, description: meta.metaDescription ?? SEO.gallery.description, path: "/gallery", image: meta.ogImage });
   return pageMetadata({ ...SEO.gallery, path: "/gallery", absoluteTitle: true });
 }

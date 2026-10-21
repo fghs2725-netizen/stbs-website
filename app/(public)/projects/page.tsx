@@ -25,7 +25,7 @@ export default async function ProjectsPage() {
       <section className="section-y">
         <div className="container-x">
           <p className="t-eyebrow">Projects</p>
-          <h1 className="t-h2 mt-u2 text-block">Selected projects</h1>
+          <h1 className="t-h2 mt-u2 text-block">Borewell and rainwater harvesting projects</h1>
           <p className="t-body measure mt-u3">
             Borewell, tubewell and rainwater harvesting work for industrial, institutional and commercial sites in Haryana.
           </p>
