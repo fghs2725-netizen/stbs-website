@@ -12,21 +12,21 @@ function check(label: string, fn: () => void) { fn(); passed++; console.log(`  o
 const has = (msgs: string[], re: RegExp) => assert.ok(msgs.some((m) => re.test(m)), `expected a message matching ${re}; got: ${JSON.stringify(msgs)}`);
 
 check("layout limits are attached to fields as `max`, and the hard limit is 1.5x", () => {
-  const heading = SECTION_TYPE_DEFS.hero.fields!.find((f) => f.key === "heading")!;
+  const heading = SECTION_TYPE_DEFS.page_hero.fields!.find((f) => f.key === "heading")!;
   assert.equal(heading.max, 80);
   assert.equal(SECTION_TYPE_DEFS.cta.fields!.find((f) => f.key === "ctaText")!.max, 30);
   assert.equal(SECTION_TYPE_DEFS.stats.lists![0].fields.find((f) => f.key === "label")!.max, 50);
   assert.equal(hardLimit(80), 120);
 });
 check("over the hard limit is rejected with a readable message naming the field; between recommended and hard is allowed", () => {
-  const ok = validateSectionContent("hero", { heading: "x".repeat(100) });
+  const ok = validateSectionContent("page_hero", { heading: "x".repeat(100) });
   assert.deepEqual(ok, []);
-  const bad = validateSectionContent("hero", { heading: "x".repeat(130) });
-  has(bad, /Hero headline is 130 characters; keep it under 80\./);
+  const bad = validateSectionContent("page_hero", { heading: "x".repeat(130) });
+  has(bad, /Page Hero heading is 130 characters; keep it under 80\./);
 });
 check("blank required fields are rejected; a missing key falls back to the default and is allowed", () => {
-  has(validateSectionContent("hero", { heading: "   " }), /Hero headline cannot be left empty/);
-  assert.deepEqual(validateSectionContent("hero", { supportingText: "ok" }), []);
+  has(validateSectionContent("page_hero", { heading: "   " }), /Page Hero heading cannot be left empty/);
+  assert.deepEqual(validateSectionContent("hero", { eyebrow: "ok" }), []);
   has(validateSectionContent("cta", { heading: "Hi", ctaText: "", ctaUrl: "/quote" }), /Call to Action button text cannot be left empty/);
 });
 check("link fields accept https, relative paths, anchors, tel: and mailto:, and reject the rest", () => {

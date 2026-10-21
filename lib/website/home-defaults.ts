@@ -11,6 +11,7 @@ export const HOME_HERO = {
   style: "intro",
   introTagline: "GO DEEPER BUILD STRONGER",
   eyebrow: "Trusted since 1992",
+  // Headline, subheadline and main button are code-only: the CMS hero has no fields for them.
   heading: "Borewell & tubewell contractors for *factories and commercial sites* across Delhi NCR",
   headingLine2: "",
   supportingText: "From our base in Bahalgarh, Sonipat, we test the ground, drill the borewell and build the tubewell with one team.",
