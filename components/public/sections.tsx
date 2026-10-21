@@ -958,7 +958,7 @@ function MapSection({ owner, content }: { owner?: RenderableSection; content: Re
 
 function QuoteIntroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
   const eyebrow = str(content, "eyebrow", "Start a project");
-  const heading = str(content, "heading", "Tell us what the site needs.");
+  const heading = str(content, "heading", "Request a borewell or tubewell quote.");
   const steps = arr(content, "steps");
   const target = asSection(owner);
   // Seed data stores plain strings; the editor stores { step } rows. Accept both.

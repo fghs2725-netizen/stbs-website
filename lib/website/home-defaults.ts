@@ -11,10 +11,10 @@ export const HOME_HERO = {
   style: "intro",
   introTagline: "GO DEEPER BUILD STRONGER",
   eyebrow: "Trusted since 1992",
-  heading: "Water infrastructure for *industrial & commercial* sites",
+  heading: "Borewell & tubewell contractors for *factories and commercial sites* across Delhi NCR",
   headingLine2: "",
-  supportingText: "Water testing, borewell drilling, tubewell construction, material supply and rainwater recharge across Haryana & NCR.",
-  primaryCtaText: "Get a site assessment",
+  supportingText: "From our base in Bahalgarh, Sonipat, we test the ground, drill the borewell and build the tubewell with one team.",
+  primaryCtaText: "Book a site visit",
   primaryCtaUrl: "/quote",
   // No company profile PDF exists yet (owner, 2026-09-19), so there is no secondary button.
   // To add one later: upload public/docs/stbs-company-profile.pdf and set these two fields in Website -> Home -> Hero.
