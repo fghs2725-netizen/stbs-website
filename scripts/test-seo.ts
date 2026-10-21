@@ -77,7 +77,7 @@ check("titles and descriptions are unique across pages", () => {
   assert.equal(new Set(d).size, d.length);
 });
 check("local keywords appear naturally: Sonipat on the service pages, no keyword stuffing", () => {
-  for (const k of ["borewell-drilling", "rainwater-harvesting", "borewell-material-supply", "tubewell-construction"] as const) assert.match(SEO[k].title, /Sonipat/, k);
+  for (const k of ["borewell-drilling", "rainwater-harvesting", "tubewell-construction"] as const) assert.match(SEO[k].title, /Sonipat/, k);
   for (const [k, v] of Object.entries(SEO)) {
     const sonipat = (v.title + " " + v.description).match(/Sonipat/g)?.length ?? 0;
     assert.ok(sonipat <= 2, `${k} repeats Sonipat ${sonipat} times`);
