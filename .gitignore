@@ -41,8 +41,9 @@ coverage/
 # prisma generated
 /lib/generated/prisma
 
-# local tool configs
-.claude/
+# local tool configs (shared Claude skills in .claude/skills are tracked)
+.claude/*
+!.claude/skills/
 .gemini/
 .neon
 
