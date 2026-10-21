@@ -11,7 +11,7 @@ const font = (f) => `data:font/woff2;base64,${readFileSync(`public/fonts/${f}`).
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const CHROME = process.env.CHROME_PATH ?? "/opt/pw-browsers/chromium";
 const PAGES = [
-  ["home", "Trusted since 1992", "Borewell & tubewell contractors for *factories and commercial sites* in Sonipat", "/hero/stbs-water-outlets-wide.webp"],
+  ["home", "Trusted since 1992", "Borewell & tubewell contractors for *factories and commercial sites* across Delhi NCR", "/hero/stbs-water-outlets-wide.webp"],
   ["water-testing", "Water testing", "Groundwater survey & *water testing*", "/services/water-testing-survey.webp"],
   ["borewell-drilling", "Borewell drilling", "Borewell drilling, planned around *your site*", "/services/borewell-drilling-rods.webp"],
   ["tubewell-construction", "Tubewell construction", "End-to-end *tubewell* construction", "/services/tubewell-rig-pipes.webp"],

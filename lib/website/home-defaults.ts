@@ -11,9 +11,9 @@ export const HOME_HERO = {
   style: "intro",
   introTagline: "GO DEEPER BUILD STRONGER",
   eyebrow: "Trusted since 1992",
-  heading: "Borewell & tubewell contractors for *factories and commercial sites* in Sonipat",
+  heading: "Borewell & tubewell contractors for *factories and commercial sites* across Delhi NCR",
   headingLine2: "",
-  supportingText: "We test the ground, drill the borewell and build the tubewell with one team, across Haryana and NCR.",
+  supportingText: "From our base in Bahalgarh, Sonipat, we test the ground, drill the borewell and build the tubewell with one team.",
   primaryCtaText: "Book a site visit",
   primaryCtaUrl: "/quote",
   // No company profile PDF exists yet (owner, 2026-09-19), so there is no secondary button.
