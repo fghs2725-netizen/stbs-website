@@ -7,6 +7,8 @@ import { Prisma } from "@prisma/client";
 import { HOME_HERO } from "../lib/website/home-defaults";
 
 const HERO_HEADING: string = HOME_HERO.heading;
+// The headline is code-only, so the editor round-trip uses the subheadline.
+const HERO_SUBHEAD: string = HOME_HERO.supportingText;
 
 /**
  * Visual editor browser QA.
@@ -220,7 +222,7 @@ async function main() {
     await waitFor(page, () => visibleText(page, "Publish website"), 20000, "editor toolbar");
     check("editor shell renders (toolbar + page links)", await visibleText(page, "Publish website") && await visibleText(page, "Preview"), "");
     check("editor renders no CMS tabs (single visual editor)", await page.evaluate(() => !document.body.innerText.includes("CMS Pages")), "");
-    check("hero Editable affordance present", await page.evaluate(() => !!document.querySelector('[title="Edit Heading"]')), "");
+    check("hero Editable affordance present", await page.evaluate(() => !!document.querySelector('[title="Edit Subheadline"]')), "");
     check("page switcher lists pages", await visibleText(page, "Home"), "");
 
     // public guard: no editor chrome without provider
@@ -245,16 +247,16 @@ async function main() {
     });
     check("section contextual controls appear on hover (edit/move/hide/dup/delete)", chromeBtns >= 5, `buttons=${chromeBtns}`);
 
-    // ── Edit hero heading (SectionFieldsPanel) ──
+    // ── Edit hero subheadline (SectionFieldsPanel) ──
     // The SectionFieldsPanel drawer is the SAME drawer proven by test:publish-e2e
-    // (33/33). Here we open it via the hero section's chrome-row Edit Heading button
+    // (33/33). Here we open it via the hero section's chrome-row Edit Subheadline button
     // (the hover control) and verify the drawer + Save draft flow.
     await page.evaluate(() => {
-      const target = Array.from(document.querySelectorAll('[title="Edit Heading"]')).find((element) => element.textContent.includes(HERO_HEADING));
+      const target = Array.from(document.querySelectorAll('[title="Edit Subheadline"]')).find((element) => element.textContent.includes(HERO_SUBHEAD));
       (target as HTMLElement | null)?.click();
     });
     await waitFor(page, () => visibleText(page, "Save draft"), 12000, "section editor drawer");
-    check("drawer opens from clicking hero heading (SectionFieldsPanel)", true, "");
+    check("drawer opens from clicking hero subheadline (SectionFieldsPanel)", true, "");
     const drawerFields = await page.evaluate(() => Array.from(document.querySelectorAll("input,textarea,select")).filter((e) => (e as HTMLElement).offsetParent !== null).slice(0, 12).map((e) => {
       const t = e.tagName.toLowerCase();
       const v = (e as HTMLInputElement | HTMLTextAreaElement).value ?? "";
@@ -262,17 +264,17 @@ async function main() {
       return `${t}[ph=${ph.slice(0, 18)}]v=${v.slice(0, 20)}`;
     }));
     console.log("  drawer fields:", JSON.stringify(drawerFields));
-    await typeIntoInputWithValue(page, HERO_HEADING, "Visual Editor QA V1");
+    await typeIntoInputWithValue(page, HERO_SUBHEAD, "Visual Editor QA V1");
     await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.includes("Save draft")); (b as HTMLButtonElement)?.click(); });
     await waitFor(page, () => visibleText(page, "Draft saved. Publish this page to make it live."), 12000, "draft saved notice");
-    check("edit hero heading → Save draft persists", true, "");
+    check("edit hero subheadline → Save draft persists", true, "");
     await page.click('button[aria-label="Close editor"]');
     await waitFor(page, () => page.evaluate(() => !document.querySelector('button[aria-label="Close editor"]')), 10000, "drawer closed");
     await waitFor(page, () => visibleText(page, "Visual Editor QA V1"), 12000, "canvas hero update");
-    check("canvas reflects new hero heading", true, "");
+    check("canvas reflects new hero subheadline", true, "");
 
     // ── Replace hero image (upload) ──
-    await page.click('[title="Edit Heading"]');
+    await page.click('[title="Edit Subheadline"]');
     await waitFor(page, () => visibleText(page, "Hero image"), 12000, "hero fields");
     const fileInput = await page.$('div[class*="bg-[#101012]"] input[type="file"]');
     if (fileInput) { await fileInput.uploadFile(QA_PHOTO); } 
@@ -336,7 +338,7 @@ async function main() {
       editable: document.querySelectorAll('[role="button"][title^="Edit"]').length,
     }));
     check("preview mode disables all editor chrome", previewNoChrome.chrome === 0 && previewNoChrome.editable === 0, JSON.stringify(previewNoChrome));
-    check("preview shows draft hero heading", await visibleText(page, "Visual Editor QA V1"), "");
+    check("preview shows draft hero subheadline", await visibleText(page, "Visual Editor QA V1"), "");
     check("preview shows draft service title", await visibleText(page, "QA Borewell Drilling V1"), "");
 
     // ── Publish website ──
@@ -348,7 +350,7 @@ async function main() {
 
     // ── Public verification ──
     await page.goto(`${BASE}/`, { waitUntil: "networkidle2" });
-    check("public / shows new hero heading", await visibleText(page, "Visual Editor QA V1"), "");
+    check("public / shows new hero subheadline", await visibleText(page, "Visual Editor QA V1"), "");
     check("public / keeps hero subheadline", await visibleText(page, HOME_HERO.supportingText), "");
     check("public / shows published nav (CMS header)", await visibleText(page, "About"), "");
     check("public / shows published QA service", await visibleText(page, "QA Borewell Drilling V1"), "");
@@ -378,7 +380,7 @@ async function main() {
       await page.setViewport({ width: w, height: 850 });
       await new Promise((r) => setTimeout(r, 400));
     const heroEl = await heroWrap.asElement();
-    await page.evaluate(() => { (document.querySelector('[title="Edit Heading"]') as HTMLElement)?.click(); });
+    await page.evaluate(() => { (document.querySelector('[title="Edit Subheadline"]') as HTMLElement)?.click(); });
       await waitFor(page, () => visibleText(page, "Save draft"), 12000, "drawer @" + w);
       const sheet = await page.evaluate(() => {
         const d = Array.from(document.querySelectorAll("div")).find((e) => e.className.includes("rounded-t-2xl") && e.className.includes("bottom-0"));
@@ -439,13 +441,13 @@ async function main() {
     check("delete → DB row soft-deleted", !qaRow || qaRow.deletedAt !== null, qaRow ? `deletedAt=${String(qaRow.deletedAt)}` : "(row gone)");
     await page.click('button[aria-label="Close editor"]').catch(() => {});
 
-    // restore hero heading via UI so baseline doesn't leak into public static
-    await page.evaluate(() => { (document.querySelector('[title="Edit Heading"]') as HTMLElement)?.click(); });
+    // restore hero subheadline via UI so baseline doesn't leak into public static
+    await page.evaluate(() => { (document.querySelector('[title="Edit Subheadline"]') as HTMLElement)?.click(); });
     await waitFor(page, () => page.evaluate(() => Array.from(document.querySelectorAll("input")).some((i) => (i as HTMLInputElement).value === "Visual Editor QA V1")), 12000, "hero panel");
-    await typeIntoInputWithValue(page, "Visual Editor QA V1", HERO_HEADING);
+    await typeIntoInputWithValue(page, "Visual Editor QA V1", HERO_SUBHEAD);
     await page.evaluate(() => { const b = Array.from(document.querySelectorAll("button")).find((x) => x.textContent.includes("Save draft")); (b as HTMLButtonElement)?.click(); });
     await waitFor(page, () => visibleText(page, "Draft saved. Publish this page to make it live."), 12000, "restore saved");
-    check("hero heading restored to baseline via editor", true, "");
+    check("hero subheadline restored to baseline via editor", true, "");
 
     // runtime errors
     await new Promise((r) => setTimeout(r, 800));

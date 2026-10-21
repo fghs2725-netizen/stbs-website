@@ -178,8 +178,8 @@ function CtaLink({ href, className, children }: { href: string; className: strin
 
 export function HeroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
   const eyebrow = str(content, "eyebrow", HOME_HERO.eyebrow);
-  const heading = str(content, "heading", HOME_HERO.heading);
-  const headingLine2 = str(content, "headingLine2", HOME_HERO.headingLine2);
+  // The headline lives in code only (lib/website/home-defaults.ts); any CMS value is ignored.
+  const { heading, headingLine2 } = HOME_HERO;
   const supportingText = str(content, "supportingText", HOME_HERO.supportingText);
   const primaryCtaText = str(content, "primaryCtaText", HOME_HERO.primaryCtaText);
   const primaryCtaUrl = str(content, "primaryCtaUrl", HOME_HERO.primaryCtaUrl);
@@ -216,12 +216,10 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
             <BadgeCheck size={16} strokeWidth={1.75} className="text-[#D2A65A]" aria-hidden />{eyebrow}
           </p>
         </Editable>
-        <Editable target={{ kind: "section", section: target }} label="Heading" className="max-w-fit">
-          <h1 className="t-h1 mt-u3 max-w-[1080px] animate-[fadeSlideUp_1s_cubic-bezier(0.28,0.11,0.32,1)_0.3s_both]">
-            <Accent text={heading} className="t-serif !text-stbs-bronze-light" />
-            {headingLine2 && <>{" "}<span className="block">{headingLine2}</span></>}
-          </h1>
-        </Editable>
+        <h1 className="t-h1 mt-u3 max-w-[1080px] animate-[fadeSlideUp_1s_cubic-bezier(0.28,0.11,0.32,1)_0.3s_both]">
+          <Accent text={heading} className="t-serif !text-stbs-bronze-light" />
+          {headingLine2 && <>{" "}<span className="block">{headingLine2}</span></>}
+        </h1>
         <Editable target={{ kind: "section", section: target }} label="Subheadline" className="max-w-fit">
           <p className="t-body mx-auto mt-u3 max-w-[40rem] text-white/80 animate-[fadeSlideUp_1s_cubic-bezier(0.28,0.11,0.32,1)_0.5s_both]">{supportingText}</p>
         </Editable>
