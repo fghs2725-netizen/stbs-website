@@ -178,11 +178,8 @@ function CtaLink({ href, className, children }: { href: string; className: strin
 
 export function HeroSection({ owner, content }: { owner?: RenderableSection; content: Record<string, unknown> }) {
   const eyebrow = str(content, "eyebrow", HOME_HERO.eyebrow);
-  // The headline lives in code only (lib/website/home-defaults.ts); any CMS value is ignored.
-  const { heading, headingLine2 } = HOME_HERO;
-  const supportingText = str(content, "supportingText", HOME_HERO.supportingText);
-  const primaryCtaText = str(content, "primaryCtaText", HOME_HERO.primaryCtaText);
-  const primaryCtaUrl = str(content, "primaryCtaUrl", HOME_HERO.primaryCtaUrl);
+  // Headline, subheadline and main button live in code only (lib/website/home-defaults.ts); CMS values are ignored.
+  const { heading, headingLine2, supportingText, primaryCtaText, primaryCtaUrl } = HOME_HERO;
   const secondaryCtaText = str(content, "secondaryCtaText", HOME_HERO.secondaryCtaText);
   const secondaryCtaUrl = str(content, "secondaryCtaUrl", HOME_HERO.secondaryCtaUrl);
   const heroImage = str(content, "heroImage", HOME_HERO.heroImage);
@@ -220,13 +217,9 @@ export function HeroSection({ owner, content }: { owner?: RenderableSection; con
           <Accent text={heading} className="t-serif !text-stbs-bronze-light" />
           {headingLine2 && <>{" "}<span className="block">{headingLine2}</span></>}
         </h1>
-        <Editable target={{ kind: "section", section: target }} label="Subheadline" className="max-w-fit">
-          <p className="t-body mx-auto mt-u3 max-w-[40rem] text-white/80 animate-[fadeSlideUp_1s_cubic-bezier(0.28,0.11,0.32,1)_0.5s_both]">{supportingText}</p>
-        </Editable>
+        <p className="t-body mx-auto mt-u3 max-w-[40rem] text-white/80 animate-[fadeSlideUp_1s_cubic-bezier(0.28,0.11,0.32,1)_0.5s_both]">{supportingText}</p>
         <div className="mt-u5 flex flex-col items-center gap-u2 sm:flex-row sm:gap-u4 animate-[fadeSlideUp_1s_cubic-bezier(0.28,0.11,0.32,1)_0.7s_both]">
-          <Editable target={{ kind: "section", section: target }} label="Primary CTA">
-            <CtaLink href={primaryCtaUrl} className="btn btn-primary">{primaryCtaText}</CtaLink>
-          </Editable>
+          <CtaLink href={primaryCtaUrl} className="btn btn-primary">{primaryCtaText}</CtaLink>
           {secondaryCtaText && secondaryCtaUrl ? (
             <Editable target={{ kind: "section", section: target }} label="Secondary CTA">
               <CtaLink href={secondaryCtaUrl} className="btn btn-secondary-dark"><Download size={18} strokeWidth={1.75} aria-hidden />{secondaryCtaText}</CtaLink>

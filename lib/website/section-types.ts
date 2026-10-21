@@ -58,14 +58,11 @@ export const SECTION_TYPES: Record<string, string> = {
 export const SECTION_TYPE_DEFS: Record<string, SectionTypeDef> = {
   hero: {
     label: "Hero",
-    description: "Homepage hero: badge, one-line subheadline, two CTAs, photo background, and an optional opening animation. The headline is set in code.",
+    description: "Homepage hero: badge, optional second button, photo background, and an optional opening animation. The headline, subheadline and main button are set in code.",
     fields: [
       { key: "style", label: "Opening animation", type: "select", options: [{ value: "intro", label: "On: water drop, logo, then the photo in grey turning to colour" }, { value: "photo", label: "Off: show the hero straight away" }] },
       { key: "introTagline", label: "Tagline under the logo in the opening animation (leave empty to skip it)", type: "text", placeholder: "GO DEEPER BUILD STRONGER" },
       { key: "eyebrow", label: "Badge", type: "text", placeholder: "Trusted since 1992" },
-      { key: "supportingText", label: "Subheadline (one line: services + service area)", type: "text", placeholder: "Borewell drilling, tubewell construction and rainwater recharge across Haryana & NCR." },
-      { key: "primaryCtaText", label: "Primary CTA text", type: "text", placeholder: "Get a site assessment" },
-      { key: "primaryCtaUrl", label: "Primary CTA URL", type: "url", placeholder: "/quote" },
       { key: "secondaryCtaText", label: "Secondary CTA text", type: "text", placeholder: "Download company profile" },
       { key: "secondaryCtaUrl", label: "Secondary CTA URL (PDF, page or tel:)", type: "url", placeholder: "/company-profile" },
       { key: "heroImage", label: "Hero photo (use a real, owned site photo of a rig)", type: "image" },
@@ -302,7 +299,7 @@ export const SECTION_TYPE_DEFS: Record<string, SectionTypeDef> = {
 // (list rows use "<listKey>.<fieldKey>"). Applied to SECTION_TYPE_DEFS below so
 // the editor (counters) and the server (validation) read one source of truth.
 const LIMITS: Record<string, Record<string, number>> = {
-  hero: { introTagline: 28, eyebrow: 40, supportingText: 120, primaryCtaText: 30, secondaryCtaText: 30, heroImageAlt: 150 },
+  hero: { introTagline: 28, eyebrow: 40, secondaryCtaText: 30, heroImageAlt: 150 },
   page_hero: { eyebrow: 40, heading: 80, text: 300 },
   stats: { "items.label": 50, "items.value": 20 },
   why_choose: { heading: 80, "items.title": 60, "items.text": 220 },
@@ -326,7 +323,6 @@ const LIMITS: Record<string, Record<string, number>> = {
 
 // Fields that must not be saved blank. Only the few whose absence would leave a broken button or heading.
 const REQUIRED: Record<string, string[]> = {
-  hero: ["heading"],
   page_hero: ["heading"],
   cta: ["heading", "ctaText", "ctaUrl"],
 };
