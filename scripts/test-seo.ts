@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { businessInfo } from "../lib/company";
 import { SEO } from "../lib/website/seo-copy";
-import { buildLocalBusiness } from "../lib/website/structured-data";
+import { buildLocalBusiness, websiteJsonLd } from "../lib/website/structured-data";
 
 let passed = 0;
 function check(label: string, fn: () => void) {
@@ -29,6 +29,12 @@ check("all five services are listed as serviceType and as offers with absolute U
 check("areas served include Haryana, each named place and Delhi NCR (Gurugram from the owner's list)", () => {
   const names = (ld.areaServed as Array<{ name: string }>).map((a) => a.name);
   for (const n of ["Haryana", "Sonipat", "Panipat", "Kundli", "Rohtak", "Gurugram", "Delhi NCR"]) assert.ok(names.includes(n), n);
+});
+check("WebSite data names the business, so Google shows it instead of the domain", () => {
+  const site = websiteJsonLd();
+  assert.equal(site["@type"], "WebSite");
+  assert.equal(site.name, "Saini Tubewell Boring Service");
+  assert.equal(site.url, "https://www.stbs.in/");
 });
 check("logo and image are absolute URLs on the canonical host", () => {
   assert.match(String(ld.logo), /^https:\/\/www\.stbs\.in\//);

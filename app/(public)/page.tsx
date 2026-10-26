@@ -3,6 +3,7 @@ import { HomePage } from "@/components/home-page";
 import { PageRenderer } from "@/components/public/page-renderer";
 import { getPublishedPage, getPublishedPageMeta } from "@/lib/website/queries";
 import { pageMetadata, SITE_DEFAULT_DESCRIPTION, SITE_DEFAULT_TITLE } from "@/lib/page-metadata";
+import { websiteJsonLd } from "@/lib/website/structured-data";
 
 export const revalidate = 86400;
 
@@ -23,8 +24,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Home() {
   const cmsPage = await getPublishedPage(SLUG);
+  // The site name Google shows above search results ("Saini Tubewell Boring Service", not "stbs.in").
+  const website = <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }} />;
   if (cmsPage && cmsPage.sections.length > 0) {
-    return <PageRenderer sections={cmsPage.sections.map((s) => ({ type: s.type, content: s.content as Record<string, unknown> }))} />;
+    return <>{website}<PageRenderer sections={cmsPage.sections.map((s) => ({ type: s.type, content: s.content as Record<string, unknown> }))} /></>;
   }
-  return <HomePage />;
+  return <>{website}<HomePage /></>;
 }
