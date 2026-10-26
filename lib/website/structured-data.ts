@@ -60,6 +60,22 @@ export function buildLocalBusiness() {
   return data;
 }
 
+/**
+ * WebSite structured data for the homepage. Google reads `name` here first when it chooses the site name
+ * shown above a search result; without it, results show the bare domain ("stbs.in").
+ */
+export function websiteJsonLd() {
+  const url = canonicalSiteUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${url}/#website`,
+    name: company.name,
+    alternateName: ["Saini Tubewell", "STBS"],
+    url: `${url}/`,
+  };
+}
+
 /** FAQPage structured data built from the exact visible FAQ text. */
 export function faqJsonLd(items: Array<[string, string]>) {
   return {
