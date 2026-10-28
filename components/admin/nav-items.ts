@@ -13,6 +13,7 @@ import {
   ReceiptText,
   RotateCcw,
   SlidersHorizontal,
+  Store,
   Truck,
   Users,
   Wallet,
@@ -43,6 +44,7 @@ export const ADMIN_WORK_NAV: NavItemDef[] = [
   { name: 'Sale returns', short: 'Returns', href: '/admin/sale-returns', icon: RotateCcw },
   { name: 'Clients', short: 'Clients', href: '/admin/clients', icon: Users },
   { name: 'Enquiries', short: 'Enquiries', href: '/admin/enquiries', icon: Inbox },
+  { name: 'Google Business', short: 'Google', href: '/admin/google-business', icon: Store },
 ];
 
 /**
@@ -73,7 +75,7 @@ const nav = (href: string): NavItemDef => {
 export const ADMIN_TAB_NAV: NavItemDef[] = ['/admin', '/admin/quotations', '/admin/invoices', '/admin/workers'].map(nav);
 
 /** Everything the tab bar could not fit, in the order the More sheet lists it. */
-export const ADMIN_MORE_NAV: NavItemDef[] = ['/admin/company-documents', '/admin/enquiries', '/admin/clients', '/admin/expenses', '/admin/delivery-challans', '/admin/sale-returns'].map(nav);
+export const ADMIN_MORE_NAV: NavItemDef[] = ['/admin/company-documents', '/admin/enquiries', '/admin/google-business', '/admin/clients', '/admin/expenses', '/admin/delivery-challans', '/admin/sale-returns'].map(nav);
 
 /** `/admin` must match exactly or it would light up on every child route. */
 export function isNavItemActive(href: string, pathname: string): boolean {

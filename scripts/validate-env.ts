@@ -26,6 +26,8 @@ const ENV_VARS: EnvVar[] = [
   { name: 'SMTP_PASSWORD', required: false, description: 'SMTP password' },
   { name: 'SMTP_FROM', required: false, description: 'Default from address' },
   { name: 'REDIS_URL', required: false, pattern: /^redis:\/\//, description: 'Redis connection URL' },
+  { name: 'GOOGLE_BUSINESS_CLIENT_ID', required: false, description: 'OAuth client ID for Admin -> Google Business (docs/google-business.md)' },
+  { name: 'GOOGLE_BUSINESS_CLIENT_SECRET', required: false, description: 'OAuth client secret for Admin -> Google Business' },
 ];
 
 function validate(): { success: boolean; errors: string[]; warnings: string[] } {
