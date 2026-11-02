@@ -135,6 +135,9 @@ export default async function InvoiceDetailPage({
         <form action={duplicateInvoiceAction.bind(null, id)}>
           <Button type="submit" variant="secondary">Duplicate</Button>
         </form>
+        {invoice.status !== "CANCELLED" && (
+          <Link href={`/admin/delivery-challans/new?invoice=${encodeURIComponent(id)}`} className="a-btn a-btn-secondary">Delivery challan</Link>
+        )}
       </div>}
 
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">

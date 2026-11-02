@@ -1,0 +1,27 @@
+/* Only what a delivery challan adds to the invoice's stylesheet (components/invoice/invoice.css). */
+
+.ch-transport {
+  display: flex; flex-wrap: wrap; gap: 2mm 9mm; margin: 4mm 0 0; padding: 2.5mm 0;
+  border-top: 1px solid #d9dee2; border-bottom: 1px solid #d9dee2; font-size: 10px;
+}
+.ch-transport > div { display: flex; gap: 2.5mm; }
+.ch-transport dt { font-weight: 700; color: #3d4852; }
+.ch-transport dd { margin: 0; color: #2b333b; }
+
+.ch-table td.ch-empty { color: #93a0aa; font-style: italic; padding: 6mm 0; text-align: center; }
+
+.ch-sum { display: flex; justify-content: flex-end; gap: 10mm; margin-top: 3mm; font-size: 10.5px; }
+.ch-sum > div { display: flex; gap: 4mm; align-items: baseline; }
+.ch-sum span { color: #5b6670; }
+.ch-sum b { color: #2b333b; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.ch-remarks { margin-top: 5mm; max-width: 120mm; }
+.ch-remarks h3 { margin: 0 0 2px; font: 700 9.5px Inter; color: #3d4852; }
+.ch-remarks p { margin: 0; font-size: 9.5px; line-height: 1.4; white-space: pre-line; }
+.ch-cancelled-note { margin: 3mm 0 0; font-size: 9.5px; color: #b21f2d; }
+
+.ch-signs { display: flex; justify-content: space-between; align-items: flex-end; gap: 14mm; margin-top: 10mm; }
+.ch-receiver { width: 70mm; font-size: 9px; }
+.ch-declare { margin: 0; color: #5b6670; }
+.ch-signspace { height: 12mm; }
+.ch-receiver .inv-line { border-top: 1px solid #3d4852; padding-top: 5px; font-weight: 700; color: #3d4852; font-size: 9.5px; }

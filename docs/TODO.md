@@ -48,6 +48,15 @@ invoice migration have both been applied to production; the homepage content mig
 - [x] Phase 9 migration `20260919_website_revisions` is applied (confirmed 2026-09-21 by `prisma migrate status`), so version history is live. Still open from Phase 9: two live gallery photos have file names as alt text (WhatsApp image names) and will block publish until described. Alt text cannot be enforced (no column) for service images, testimonial and founder photos, logos, favicon and OG image.
 - [ ] Phase 9 not verified in a browser: the website admin needs a login and every save writes to the live database, so I did not click through it. Test on a non-production database.
 
+### Delivery challans (built 2026-11-02; no migration, never run against a database)
+
+- [x] Editor (short form, extras under "More details"), one-tap material presets (`lib/challan-presets.ts`),
+      issue with `STBS/DC/{FY}/NNNN` numbering, cancel (keeps its number), PDF and share, raise from a
+      quotation or an invoice. Stored in the existing `Document` / `DocumentItem` / `DocumentSection` tables.
+- [x] `npm run test:challan` (14 checks) and `npm run test:challan-snapshot` (print layout and page breaks).
+- [ ] Click through on a Neon branch: new, save, issue, PDF, share, cancel, and from quotation / invoice.
+      `.env` is production; issuing there takes a real challan number.
+
 ### Brief 3: invoicing (built 2026-09-21; migration applied, never run in a browser)
 
 Owner's decisions are recorded in `docs/invoice-questionnaire.md` and were answered in full. The design

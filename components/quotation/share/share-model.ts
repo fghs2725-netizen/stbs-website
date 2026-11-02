@@ -17,7 +17,7 @@ import { formatRupees } from "@/lib/worker-ledger";
  * absent means a quotation, which keeps every existing caller working unchanged.
  */
 export type ShareSubject = {
-  kind?: "quotation" | "invoice" | "statement" | "summary";
+  kind?: "quotation" | "invoice" | "statement" | "summary" | "challan";
   /** Worker statements only: the period's figures, for the message. */
   statement?: { work: number; paid: number; balanceText: string; contributions?: number; reimbursements?: number };
   /** Invoices only: when payment is due, and what is left to pay. */
@@ -64,7 +64,7 @@ export function shareSubjectFrom(q: Pick<QuotationState, "quotationReference" | 
 }
 
 /** "Quotation" or "Invoice", as the document calls itself in a message. */
-export const documentLabel = (s: Pick<ShareSubject, "kind">) => (s.kind === "invoice" ? "Invoice" : s.kind === "statement" ? "Statement" : s.kind === "summary" ? "Summary" : "Quotation");
+export const documentLabel = (s: Pick<ShareSubject, "kind">) => (s.kind === "invoice" ? "Invoice" : s.kind === "statement" ? "Statement" : s.kind === "summary" ? "Summary" : s.kind === "challan" ? "Delivery challan" : "Quotation");
 
 /** The subject line for mail and the title in a share sheet. */
 export function shareTitle(s: ShareSubject): string {
@@ -96,6 +96,12 @@ export function buildShareMessage(s: ShareSubject): string {
     return lines.join("\n");
   }
   const to = s.contact || s.clientName || "Sir/Madam";
+  if (s.kind === "challan") {
+    // A delivery note: what was sent and where, no amounts. `service` carries the site.
+    const lines = [`Dear ${to},`, "", `Please find attached delivery challan${s.reference ? ` ${s.reference}` : ""} for the material sent${s.service ? ` to ${s.service}` : ""}.`, "", "Kindly check the goods on arrival and sign the challan.", "", "Regards,", s.company];
+    if (s.phones) lines.push(s.phones);
+    return lines.join("\n");
+  }
   const isInvoice = s.kind === "invoice";
   const noun = isInvoice ? "invoice" : "quotation";
   const lines = [`Dear ${to},`, "", `Please find attached our ${noun}${s.reference ? ` ${s.reference}` : ""}${s.service ? ` for ${s.service}` : ""}.`];

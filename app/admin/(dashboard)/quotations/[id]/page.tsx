@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect, notFound } from 'next/navigation';
-import { Calendar, FileText, ReceiptText, UserRound } from 'lucide-react';
+import { Calendar, FileText, ReceiptText, Truck, UserRound } from 'lucide-react';
 import { auth } from '@/auth';
 import { getQuotation } from '@/lib/quotation-management';
 import { QuotationPreview } from '@/components/quotation/QuotationPreview';
@@ -84,6 +84,14 @@ export default async function ViewPage({ params }: { params: Promise<{ id: strin
             </Button>
           </form>
         )
+      )}
+      {isFinal && (
+        <Button asChild variant="secondary">
+          <Link href={`/admin/delivery-challans/new?quotation=${encodeURIComponent(quotation.id!)}`}>
+            <Truck className="size-4" />
+            Delivery challan
+          </Link>
+        </Button>
       )}
     </div>
   );
