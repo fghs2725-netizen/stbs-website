@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
   // Patterns use "*" for dynamic segments ("[id]"), which picomatch would otherwise read as a character class.
   outputFileTracingIncludes: Object.fromEntries(
     [
+      "/api/challans/*/pdf",
       "/api/company-documents/bank-letter",
       "/api/documents/*/pdf",
       "/api/invoices/*/pdf",

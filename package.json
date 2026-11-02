@@ -26,6 +26,8 @@
     "test:quotation-items-ui": "npx tsx scripts/test-quotation-items-ui.ts",
     "test:invoice": "npx tsx scripts/test-invoice-logic.ts",
     "test:invoice-snapshot": "npx tsx scripts/test-invoice-snapshot.ts",
+    "test:challan": "npx tsx scripts/test-challan.ts",
+    "test:challan-snapshot": "npx tsx scripts/test-challan-snapshot.ts",
     "test:invoice-editor-ui": "npx tsx scripts/test-invoice-editor-ui.ts",
     "test:invoice-e2e": "npx tsx scripts/test-invoice-e2e.ts",
     "test:website": "npx tsx scripts/test-website-config.ts",
