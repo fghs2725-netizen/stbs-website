@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const MAX_DOCUMENT_BYTES = 20 * 1024 * 1024;
 export const MAX_SHARE_BYTES = 50 * 1024 * 1024;
-export const DOCUMENT_CATEGORIES = ["GSTIN", "Bank Details", "PAN", "Registration", "Other"] as const;
+export const DOCUMENT_CATEGORIES = ["GSTIN", "Bank Details", "PAN", "Registration", "Letters", "Other"] as const;
 export const DOCUMENT_TYPES: Record<string, string> = {
   pdf: "application/pdf", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp",
   doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

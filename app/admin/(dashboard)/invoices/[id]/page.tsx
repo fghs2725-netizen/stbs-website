@@ -130,6 +130,16 @@ export default async function InvoiceDetailPage({
             </Button>
           </form>
         )}
+        {/* The header's Edit button is desktop-only; this one is on every screen, issued invoices included. */}
+        {invoice.status !== "CANCELLED" && (
+          <Link
+            href={`/admin/invoices/${id}/edit`}
+            className="a-btn a-btn-secondary lg:hidden"
+            title={invoice.status === "DRAFT" ? undefined : "Every change to an issued invoice is recorded in its edit history"}
+          >
+            Edit
+          </Link>
+        )}
         <InvoicePdfActions id={id} subject={shareSubjectFromInvoice(invoice, effective, { grandTotal: totals.grandTotal, balance: totals.balance })} />
         <InvoiceSegmentsButton base={settings} initial={invoice.settingsOverride ?? {}} save={saveSegmentsAction.bind(null, id)} />
         <form action={duplicateInvoiceAction.bind(null, id)}>
