@@ -24,6 +24,8 @@ const nextConfig: NextConfig = {
     [
       "/api/challans/*/pdf",
       "/api/company-documents/bank-letter",
+      "/api/company-documents/letter",
+      "/api/letterhead/blank",
       "/api/documents/*/pdf",
       "/api/invoices/*/pdf",
       "/api/portal/documents/*/pdf",
@@ -31,7 +33,10 @@ const nextConfig: NextConfig = {
       "/api/quotations/pdf-self-test",
       "/api/workers/*/statement",
       "/api/workers/summary",
-    ].map((route) => [route, ["./node_modules/@sparticuz/chromium/bin/**"]]),
+    ].map((route): [string, string[]] => [route, ["./node_modules/@sparticuz/chromium/bin/**"]]).concat([
+      // The Word letterpad embeds the logo, read from disk when the file is built.
+      ["/api/letterhead/word", ["./public/stbs-logo-dark.png"]],
+    ]),
   ),
   images: {
     formats: ["image/avif", "image/webp"],

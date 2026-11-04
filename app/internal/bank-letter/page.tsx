@@ -2,11 +2,11 @@ import { notFound } from "next/navigation";
 import { company, businessInfo } from "@/lib/company";
 import { verifyQuotationRenderToken } from "@/lib/quotation-render-auth";
 import { bankLetterBinding, decodeBankLetter } from "@/lib/company-documents/bank-letter";
-import { STATEMENT_CSS } from "@/components/admin/workers/StatementDocument";
+import { LETTERHEAD_CSS, LetterheadPage } from "@/components/letterhead/Letterhead";
 
 export const dynamic = "force-dynamic";
 
-const CSS = `
+const CSS = `*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{size:A4 portrait;margin:0}
   #bank-letter-document { font-family: Inter, Arial, sans-serif; color: #1d1d1f; font-size: 11pt; line-height: 1.55; }
   #bank-letter-document .bl-date { text-align: right; margin: 4px 0 18px; }
   #bank-letter-document h1 { font-size: 14pt; margin: 18px 0 6px; text-align: center; letter-spacing: .03em; text-transform: uppercase; }
@@ -31,17 +31,8 @@ export default async function BankLetterRender({ searchParams }: { searchParams:
   ];
   return (
     <div id="bank-letter-document" data-pdf-ready="true">
-      <style dangerouslySetInnerHTML={{ __html: STATEMENT_CSS + CSS }} />
-      <div className="ws-head">
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/stbs-logo-only.png" alt="" />
-          <span className="ws-brand">{company.name.toUpperCase()}</span>
-        </div>
-        <div className="ws-contact">{company.phones.join(" · ")}<br />{company.email}</div>
-      </div>
-      <div className="ws-rule" />
-      <div style={{ fontSize: "9pt", color: "#6e6e73" }}>{businessInfo.registeredOffice} – {businessInfo.documentPinCode}</div>
+      <style dangerouslySetInnerHTML={{ __html: LETTERHEAD_CSS + CSS }} />
+      <LetterheadPage>
       <div className="bl-date">Date: {date}</div>
       <p>To Whom It May Concern,</p>
       <h1>Bank account details</h1>
@@ -56,6 +47,7 @@ export default async function BankLetterRender({ searchParams }: { searchParams:
         <img src="/invoice/signature.png" alt="Signature" />
         <b>{company.managingDirector}</b><br />Managing Director
       </div>
+      </LetterheadPage>
     </div>
   );
 }

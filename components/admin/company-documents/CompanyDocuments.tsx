@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { upload } from "@vercel/blob/client";
-import { Download, Eye, FileSignature, FileText, Loader2, Pencil, Search, Share2, Trash2, Upload } from "lucide-react";
+import { Download, Eye, FileSignature, FileText, Loader2, Mail, Pencil, Search, Share2, Trash2, Upload } from "lucide-react";
+import { LetterDialog } from "./LetterDialog";
 import { bankLetterSchema, DOCUMENT_ACCEPT, DOCUMENT_CATEGORIES, documentMime, documentUploadSchema, formatDocumentSize, previewable, type CompanyDocumentItem } from "@/lib/company-documents/shared";
 import { ShareDocuments } from "./ShareDocuments";
 import "./company-documents.css";
@@ -34,6 +35,7 @@ export function CompanyDocuments() {
   const [editing, setEditing] = useState<CompanyDocumentItem | null>(null);
   const [deleting, setDeleting] = useState<CompanyDocumentItem | null>(null);
   const [letterOpen, setLetterOpen] = useState(false);
+  const [writeOpen, setWriteOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true); setError("");
@@ -116,6 +118,11 @@ export function CompanyDocuments() {
         <input ref={input} type="file" accept={DOCUMENT_ACCEPT} multiple className="sr-only" aria-label="Upload company documents" disabled={uploading || !storageReady || loading} onChange={(event) => addFiles(event.target.files)} />
         <button type="button" className="a-btn a-btn-primary" disabled={uploading || !storageReady || loading} onClick={() => input.current?.click()}>{uploading ? <Loader2 size={17} className="animate-spin" /> : <Upload size={17} />} {uploading ? "Uploading…" : "Upload documents"}</button>
         <button type="button" className="a-btn a-btn-secondary" disabled={!storageReady || loading} onClick={() => setLetterOpen(true)}><FileSignature size={17} /> Create bank details letter</button>
+        <button type="button" className="a-btn a-btn-secondary" disabled={!storageReady || loading} onClick={() => setWriteOpen(true)}><Mail size={17} /> Write a letter</button>
+        <div className="flex gap-2">
+          <a className="a-btn a-btn-secondary flex-1" href="/api/letterhead/blank" download><Download size={17} /> Letterpad PDF</a>
+          <a className="a-btn a-btn-secondary flex-1" href="/api/letterhead/word" download><Download size={17} /> Letterpad Word</a>
+        </div>
       </div>
     </section>
     {!storageReady && <p role="alert" className="cd-notice">Private document storage needs to be configured before you can upload files.</p>}
@@ -150,6 +157,7 @@ export function CompanyDocuments() {
         </div>
       </li>)}</ul>}
     </section>
+    {writeOpen && <LetterDialog onClose={() => setWriteOpen(false)} onCreated={(doc) => { remember(doc); setWriteOpen(false); }} />}
     {letterOpen && <BankLetterDialog onClose={() => setLetterOpen(false)} onCreated={(doc) => { remember(doc); setLetterOpen(false); }} />}
     {shareItems && <ShareDocuments documents={shareItems} onClose={() => setShareItems(null)} onRemove={removeShareItem} />}
     {editing && <DocumentEditor document={editing} onClose={() => setEditing(null)} onSaved={(doc) => { setDocuments((items) => items.map((item) => item.id === doc.id ? doc : item)); setEditing(null); }} />}
