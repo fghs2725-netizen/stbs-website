@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import {
   challanFromInvoice, challanPageCount, challanPages, challanTotals, draftReference, emptyChallan, emptyItem,
   financialYearStart, formatChallanNumber, isDraftReference, nextChallanNumber, quantityByUnit, whatIsMissing,
-  PAGE_LINES, savedItems, type ChallanState,
+  savedItems, wrappedLines, type ChallanState,
 } from "../lib/challan";
 import { CHALLAN_PRESETS } from "../lib/challan-presets";
 import { CHALLAN_FIXTURES } from "../lib/challan-fixtures";
@@ -73,11 +73,34 @@ check("a short challan is one page; a long one breaks and keeps every item", () 
   assert.equal(pages.flat().length, many.items.length);
 });
 
+check("twelve short lines and a plain header stay on one page with the signatures", () => {
+  assert.equal(challanPageCount(CHALLAN_FIXTURES["twelve-items"]), 1);
+});
+
 check("a page that cannot fit the signatures hands them a page of their own", () => {
-  const fill = Array.from({ length: PAGE_LINES.first - PAGE_LINES.footer + 1 }, (_, n) => ({ ...emptyItem(), description: `Line ${n}`, quantity: 1 }));
-  const pages = challanPages({ items: fill, showRates: false });
+  const line = (n: number) => ({ ...emptyItem(), description: `Line ${n}`, quantity: 1 });
+  // Add lines until the signatures no longer fit on page one, then check they moved, not the rows.
+  let n = 1;
+  while (challanPageCount({ ...emptyChallan(), items: Array.from({ length: n }, (_, i) => line(i)) }) === 1) n++;
+  const pages = challanPages({ ...emptyChallan(), items: Array.from({ length: n }, (_, i) => line(i)) });
   assert.equal(pages.length, 2);
   assert.equal(pages[1].length, 0);
+  assert.ok(n > 25, `only ${n - 1} single-line rows fit with the signatures`);
+});
+
+check("a header with a site, a driver and a long remark leaves fewer rows on page one", () => {
+  const items = Array.from({ length: 30 }, (_, i) => ({ ...emptyItem(), description: `Line ${i}`, quantity: 1 }));
+  const plain = challanPages({ ...emptyChallan(), items })[0].length;
+  const crowded = challanPages({ ...CHALLAN_FIXTURES.crowded, items })[0].length;
+  assert.ok(crowded < plain, `${crowded} rows with a crowded header, ${plain} with a plain one`);
+});
+
+check("wrapping goes word by word at the font's widths", () => {
+  // The description cell of a challan without HSN or rates: 131.8 mm at 10.5 px.
+  assert.equal(wrappedLines("PVC Pipe 225mm 10kg Pressure", 131.8, 10.5), 1);
+  assert.equal(wrappedLines("Assorted fittings set 22: couplers, reducers, clamps and the sealing compound needed for the joint at depth", 131.8, 10.5), 2);
+  assert.equal(wrappedLines("one\ntwo", 131.8, 10.5), 2);
+  assert.equal(wrappedLines("x".repeat(400), 131.8, 10.5), 5); // one unbroken word still breaks
 });
 
 check("raising from an invoice copies client, site and lines, and links back", () => {
