@@ -59,6 +59,8 @@ const addressLines = (p: {
 export function InvoiceDocument({ invoice, settings, template, templateSnapshot, business, isEditorPreview }: InvoiceDocumentProps) {
   const t = resolveTemplate(templateSnapshot, template).content;
   const { columns: col, blocks } = settings;
+  const businessName = blocks.gstName ? businessInfo.gstName : company.name;
+  const signatureFor = blocks.gstName ? t.signatureFor.replace(company.name, businessInfo.gstName) : t.signatureFor;
   /*
    * `table-layout: fixed` sizes every column from the cells of the table's first row. That is a
    * one-time measurement: removing or adding a `<th>` in place — which is what a settings toggle
@@ -109,7 +111,7 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
 
             <div className="inv-top">
               <div className="inv-from">
-                <h2>{company.name}</h2>
+                <h2>{businessName}</h2>
                 <p>
                   {businessInfo.registeredOffice},<br />
                   {["Haryana", businessInfo.documentPinCode].filter(Boolean).join(" ")}<br />
@@ -122,7 +124,7 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
                   a page nearly fifty points of height that the item table wanted. */}
               <div className="inv-head-right">
                 <div className="inv-logo">
-                  <DocumentImage src={business?.logoUrl} fallback="/stbs-logo-dark.png" alt={company.name} />
+                  <DocumentImage src={business?.logoUrl} fallback="/stbs-logo-dark.png" alt={businessName} />
                 </div>
                 {isFirst && (
                   <div className="inv-title">
@@ -328,7 +330,7 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
 
                 {blocks.signature && (
                   <div className="inv-sign">
-                    <span className="inv-for">{t.signatureFor}</span>
+                    <span className="inv-for">{signatureFor}</span>
                     <div className="inv-signbox">
                       {/* Settings can override it with a URL; the owner's own signature is the
                           default, and is drawn too when that URL no longer resolves. */}
@@ -341,7 +343,7 @@ export function InvoiceDocument({ invoice, settings, template, templateSnapshot,
             )}
 
             <footer>
-              <span>{company.name}{businessInfo.gstin ? ` · GSTIN ${businessInfo.gstin}` : ""}</span>
+              <span>{businessName}{businessInfo.gstin ? ` · GSTIN ${businessInfo.gstin}` : ""}</span>
               <span>Page {pageIndex + 1} of {totalPages}</span>
             </footer>
           </section>

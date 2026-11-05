@@ -28,7 +28,7 @@ function metaOf(c: ChallanState): Meta {
     date: c.date, purpose: c.purpose, client: c.client, deliverToSame: c.deliverToSame, deliverTo: c.deliverTo,
     vehicleNumber: c.vehicleNumber, driverName: c.driverName, driverPhone: c.driverPhone, transportMode: c.transportMode,
     ewayBill: c.ewayBill, invoiceId: c.invoiceId, invoiceRef: c.invoiceRef, quotationId: c.quotationId, quotationRef: c.quotationRef,
-    showRates: c.showRates,
+    showRates: c.showRates, gstName: c.gstName,
   };
 }
 
@@ -57,6 +57,7 @@ function toState(row: Row): ChallanState & { deletedAt: Date | null } {
     invoiceId: str(m.invoiceId) || undefined, invoiceRef: str(m.invoiceRef),
     quotationId: str(m.quotationId) || undefined, quotationRef: str(m.quotationRef),
     showRates: Boolean(m.showRates),
+    gstName: Boolean(m.gstName),
     remarks: row.notes ?? "",
     cancelledReason: str(m.cancelledReason) || undefined,
     items: row.items.map((i): ChallanItem => ({

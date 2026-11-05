@@ -35,6 +35,11 @@ export const businessInfo = {
   /** Supplied by the owner, who confirmed it may be shown publicly (2026-09-19). */
   gstin: "06AWTPS2732A1ZI",
   legalName: "Saini Tubewell Boring Service",
+  /**
+   * The name on the GST registration, which some clients (ISGEC) also hold in their vendor records.
+   * Printed instead of `company.name` on an invoice or challan that asks for it. Owner, 2026-11-05.
+   */
+  gstName: "Saini Tyubvel Boring Service",
   mapsUrl: "https://maps.google.com/?cid=13861624936793150977",
 };
 

@@ -63,6 +63,8 @@ export type ChallanState = {
   quotationRef: string;
   /** Off by default: most challans are a delivery note, and the value travels on the invoice. */
   showRates: boolean;
+  /** Print the name on the GST registration (`businessInfo.gstName`) instead of the usual one. */
+  gstName: boolean;
   remarks: string;
   items: ChallanItem[];
   cancelledReason?: string;
@@ -81,7 +83,7 @@ export function emptyChallan(today = new Date().toISOString().slice(0, 10)): Cha
     reference: "", status: "DRAFT", date: today, purpose: CHALLAN_PURPOSES[0],
     client: emptyParty(), deliverToSame: true, deliverTo: emptyParty(),
     vehicleNumber: "", driverName: "", driverPhone: "", transportMode: "By road", ewayBill: "",
-    invoiceRef: "", quotationRef: "", showRates: false, remarks: "", items: [emptyItem()],
+    invoiceRef: "", quotationRef: "", showRates: false, gstName: false, remarks: "", items: [emptyItem()],
   };
 }
 
