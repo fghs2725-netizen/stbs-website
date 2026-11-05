@@ -1438,3 +1438,24 @@ model WebsiteProject {
 
   @@index([published, position])
 }
+
+// ─── Google Business Profile (Admin -> Google Business) ──────────────────────
+
+/// The Google account connected to manage the Business Profile. One row. Both tokens are stored
+/// encrypted (AES-256-GCM, key derived from AUTH_SECRET); the listing chosen is remembered so
+/// pages do not have to look it up on every visit.
+model GoogleBusinessConnection {
+  id            String    @id @default("default")
+  email         String?
+  refreshToken  String
+  accessToken   String?
+  expiresAt     DateTime?
+  scope         String?
+  /// "accounts/123" from the Account Management API.
+  accountName   String?
+  /// "locations/456" from the Business Information API.
+  locationName  String?
+  locationTitle String?
+  connectedAt   DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
