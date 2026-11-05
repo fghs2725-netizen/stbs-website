@@ -27,6 +27,7 @@ export function ChallanDocument({ challan: c, business }: { challan: ChallanStat
   const totals = challanTotals(c);
   const number = c.reference || (c.status === "DRAFT" ? "Draft" : "");
   const site = !c.deliverToSame;
+  const businessName = c.gstName ? businessInfo.gstName : company.name;
   let row = 0;
 
   return (
@@ -40,7 +41,7 @@ export function ChallanDocument({ challan: c, business }: { challan: ChallanStat
 
             <div className="inv-top">
               <div className="inv-from">
-                <h2>{company.name}</h2>
+                <h2>{businessName}</h2>
                 <p>
                   {businessInfo.registeredOffice},<br />
                   {["Haryana", businessInfo.documentPinCode].filter(Boolean).join(" ")}<br />
@@ -51,7 +52,7 @@ export function ChallanDocument({ challan: c, business }: { challan: ChallanStat
               </div>
               <div className="inv-head-right">
                 <div className="inv-logo">
-                  <DocumentImage src={business?.logoUrl} fallback="/stbs-logo-dark.png" alt={company.name} />
+                  <DocumentImage src={business?.logoUrl} fallback="/stbs-logo-dark.png" alt={businessName} />
                 </div>
                 {isFirst && (
                   <div className="inv-title">
@@ -179,7 +180,7 @@ export function ChallanDocument({ challan: c, business }: { challan: ChallanStat
                     <div className="inv-line">Receiver&apos;s name, signature &amp; date</div>
                   </div>
                   <div className="inv-sign">
-                    <span className="inv-for">For {company.name}</span>
+                    <span className="inv-for">For {businessName}</span>
                     <div className="inv-signbox">
                       <DocumentImage src={business?.signatureUrl} fallback="/invoice/signature.png" alt="" />
                     </div>
@@ -190,7 +191,7 @@ export function ChallanDocument({ challan: c, business }: { challan: ChallanStat
             )}
 
             <footer>
-              <span>{company.name}{businessInfo.gstin ? ` · GSTIN ${businessInfo.gstin}` : ""}</span>
+              <span>{businessName}{businessInfo.gstin ? ` · GSTIN ${businessInfo.gstin}` : ""}</span>
               <span>Page {pageIndex + 1} of {total}</span>
             </footer>
           </section>

@@ -150,6 +150,10 @@ check("challan presets are goods only, each with a unit, and keys are unique", (
   }
 });
 
+check("a new challan prints the usual name; the GST-registered one is opt-in", () => {
+  assert.equal(emptyChallan().gstName, false);
+});
+
 check("a new challan starts with no quotation link", () => {
   assert.equal(emptyChallan().quotationRef, "");
   assert.equal(emptyChallan().quotationId, undefined);

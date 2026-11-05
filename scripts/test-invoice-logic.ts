@@ -367,4 +367,10 @@ check("a fresh invoice starts empty but carries the settings", () => {
   assert.equal(d.dueDate, "2026-10-05");
 });
 
+check("the GST-registered name is off unless an invoice turns it on", () => {
+  assert.equal(resolveSettings({}).blocks.gstName, false);
+  assert.equal(resolveSettings({ blocks: { terms: true } }).blocks.gstName, false); // a row saved before the switch existed
+  assert.equal(effectiveInvoiceSettings(DEFAULT_INVOICE_SETTINGS, { blocks: { gstName: true } }).blocks.gstName, true);
+});
+
 console.log(`\n${passed} checks passed`);

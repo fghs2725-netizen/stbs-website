@@ -41,6 +41,8 @@ export type InvoiceBlocks = {
   declaration: boolean;
   /** A PAID or OVERDUE stamp across the page. */
   statusStamp: boolean;
+  /** Print the name on the GST registration (`businessInfo.gstName`) instead of the usual one. */
+  gstName: boolean;
 };
 
 export type InvoiceSettings = {
@@ -68,6 +70,9 @@ export const DEFAULT_INVOICE_SETTINGS: InvoiceSettings = {
     // Off, as the owner asked for: the terms already cover it, and it cost the closing block a
     // sixth of the page. The switch stays for a CA who wants it back.
     declaration: false,
+    // Off: most clients know the business by its usual name. Turned on per invoice where the client's
+    // records carry the GST-registered spelling.
+    gstName: false,
   },
   gstEnabled: true,
   gstRate: 18,
@@ -171,6 +176,7 @@ export const INVOICE_BLOCK_SEGMENTS: Array<{ key: keyof InvoiceBlocks; label: st
   { key: "terms", label: "Terms and conditions" },
   { key: "declaration", label: "Declaration" },
   { key: "statusStamp", label: "PAID / OVERDUE stamp across the page" },
+  { key: "gstName", label: "Name as on GST (Saini Tyubvel Boring Service)", help: "For clients whose records carry the GST-registered name" },
 ];
 
 /**

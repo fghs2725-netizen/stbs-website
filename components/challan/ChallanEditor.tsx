@@ -152,6 +152,10 @@ export function ChallanEditor({ initial }: { initial: ChallanState }) {
             <input type="checkbox" checked={c.showRates} onChange={(e) => set("showRates", e.target.checked)} />
             Print rates and value
           </label>
+          <label className="flex items-center gap-2 text-[0.9375rem] sm:col-span-3" style={{ color: "var(--a-body)" }}>
+            <input type="checkbox" checked={c.gstName} onChange={(e) => set("gstName", e.target.checked)} />
+            Name as on GST (Saini Tyubvel Boring Service)
+          </label>
           <label className="sm:col-span-3">
             <span className="a-label">Remarks (printed)</span>
             <textarea className="a-input mt-1" rows={2} value={c.remarks} onChange={(e) => set("remarks", e.target.value)} />
