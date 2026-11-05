@@ -87,10 +87,10 @@ export function AdminTabBar() {
           role="dialog"
           aria-modal={more || undefined}
           aria-label="More sections"
-          className={`absolute inset-x-0 bottom-0 rounded-t-[22px] pb-[calc(16px+env(safe-area-inset-bottom))] transition-transform duration-[450ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${more ? 'translate-y-0' : 'translate-y-full'}`}
+          className={`absolute inset-x-0 bottom-0 flex max-h-[calc(100dvh-env(safe-area-inset-top)-24px)] flex-col rounded-t-[22px] pb-[calc(16px+env(safe-area-inset-bottom))] transition-transform duration-[450ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${more ? 'translate-y-0' : 'translate-y-full'}`}
           style={{ background: 'var(--a-surface)', boxShadow: '0 -12px 40px -20px rgba(0,0,0,.4)' }}
         >
-          <div className="flex items-center justify-between px-5 pb-1 pt-4">
+          <div className="flex shrink-0 items-center justify-between px-5 pb-1 pt-4">
             <h2 className="a-h2">More</h2>
             <button
               type="button"
@@ -104,7 +104,8 @@ export function AdminTabBar() {
             </button>
           </div>
 
-          <ul className="a-divide px-5">
+          {/* The list is taller than a phone screen: it scrolls inside the sheet, which stays below the status bar. */}
+          <ul className="a-divide min-h-0 flex-1 overflow-y-auto overscroll-contain px-5" style={{ WebkitOverflowScrolling: 'touch' }}>
             {sheetItems.map((item: NavItemDef) => {
               const active = isNavItemActive(item.href, pathname);
               return (
