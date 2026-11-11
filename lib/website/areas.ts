@@ -2,9 +2,9 @@
  * Pages for the towns the business serves (/areas/<slug>).
  *
  * Only facts the owner has confirmed appear here: the base in Bahalgarh, Sonipat, and the services and
- * their ranges already on the site. Each town's client list comes from the owner's invoice export
- * (2026-10-20), placed by the invoice address: businesses and institutions only, never people,
- * amounts or invoice numbers. Each page has its own wording so the
+ * their ranges already on the site. Each town's client list is switched on in Admin -> Website town
+ * pages and read from the invoices (lib/website/area-clients.ts); `clients` below is the owner-approved
+ * list from the 2026-10-20 invoice export, used only when that table cannot be read. Each page has its own wording so the
  * set is useful on its own rather than one template with the town swapped.
  */
 export type AreaClient = [name: string, work: string, locality: string, years: string];
@@ -23,7 +23,7 @@ export interface Area {
   local: [string, string];
   /** Neighbourhoods, estates and nearby towns covered from here. */
   places: string[];
-  /** Invoiced clients here: [name, work, locality, years]. */
+  /** Fallback client list: [name, work, locality, years]. */
   clients: AreaClient[];
   image: { src: string; alt: string };
   faqs: Array<[string, string]>;
