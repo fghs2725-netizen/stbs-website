@@ -29,7 +29,7 @@ export function SiteFooter({ settings, navLinks }: { settings?: FooterSettings |
   const email = settings?.email ?? "";
   const name = settings?.businessName ?? "";
   const tagline = settings?.shortDescription ?? "";
-  const address = settings?.address || (businessInfo.registeredOffice ? `${businessInfo.registeredOffice}, Haryana ${businessInfo.pinCode}` : "");
+  const address = settings?.address || (businessInfo.listingAddress ? `${businessInfo.listingAddress}, Haryana ${businessInfo.pinCode}` : "");
   const whatsapp = (settings?.whatsapp || phones[0] || "").replace(/\D/g, "").replace(/^91(?=\d{10}$)/, "");
   // Main nav links first, then footer-only pages (About, Gallery) that are no longer in the navbar.
   const main = ensureAboutLink((navLinks?.length ? navLinks : DEFAULT_NAV_LINKS).filter(isPublicNavLink));

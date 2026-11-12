@@ -23,9 +23,18 @@ export const businessInfo = {
   hours: ["Open 24 hours, 7 days a week"],
   /** Areas named in the owner's brief; Gurugram was requested there. Bahadurgarh added from the invoices (2026-10-20). */
   serviceAreas: ["Sonipat", "Panipat", "Kundli", "Rohtak", "Gurugram", "Bahadurgarh", "Delhi NCR"],
-  /** Supplied by the owner 2026-09-19 (spelling as given: "Bahalgarh"). */
+  /** Supplied by the owner 2026-09-19 (spelling as given: "Bahalgarh"). Printed on invoices, challans and letters. */
   registeredOffice: "12, New market, Bahalgarh, Sonipat",
-  /** The website's pincode, matched to the Google Business listing at the owner's request (2026-10-17). */
+  /**
+   * The address as the Google Business listing words it (owner's screenshot, 2026-11-12), for the
+   * website, its structured data and the assistant, so the site and the listing read the same.
+   * Tax documents keep `registeredOffice`.
+   */
+  listingAddress: "12, New Bahalgarh Market, Bahalgarh, Sonipat",
+  /**
+   * The website's pincode: Bahalgarh's PIN (owner, 2026-10-17). The Google listing showed 131001 on
+   * 2026-11-12, which is Sonipat head office; the listing is what should change, not this.
+   */
   pinCode: "131021",
   /**
    * Pincode printed on invoices and letters. Left at the value the owner gave on 2026-09-19 because tax

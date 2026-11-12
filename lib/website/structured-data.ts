@@ -54,8 +54,8 @@ export function buildLocalBusiness() {
     sameAs: [googleListing.url],
   };
   if (businessInfo.legalName) data.legalName = businessInfo.legalName;
-  if (businessInfo.registeredOffice) {
-    data.address = { "@type": "PostalAddress", streetAddress: businessInfo.registeredOffice, addressRegion: "Haryana", postalCode: businessInfo.pinCode, addressCountry: "IN" };
+  if (businessInfo.listingAddress) {
+    data.address = { "@type": "PostalAddress", streetAddress: businessInfo.listingAddress, addressRegion: "Haryana", postalCode: businessInfo.pinCode, addressCountry: "IN" };
   }
   return data;
 }

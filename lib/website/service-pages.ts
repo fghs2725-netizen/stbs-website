@@ -23,7 +23,7 @@ export const SERVICE_PAGES: ReadonlyArray<ServicePage> = [
   { slug: "borewell-drilling", href: "/borewell-drilling", title: "Borewell Drilling", fullTitle: "Borewell Drilling", summary: "Precision drilling planned around access, ground conditions and water requirements.", icon: "drill" },
   { slug: "rainwater-harvesting", href: "/rainwater-harvesting", title: "Rainwater Harvesting", fullTitle: "Rainwater Harvesting", summary: "Practical recharge systems for responsible rainwater management.", icon: "rain" },
   { slug: "borewell-material-supply", href: "/borewell-material-supply", title: "Material Supply", fullTitle: "Borewell Material Supply", summary: "Borewell components selected around durability and fit for the installation.", icon: "supply" },
-  { slug: "tubewell-construction", href: "/tubewell-construction", title: "Tubewell Construction", fullTitle: "Tubewell Construction", summary: "Coordinated execution from planning to installation and handover.", icon: "tubewell" },
+  { slug: "tubewell-construction", href: "/tubewell-construction", title: "Tubewell Construction", fullTitle: "Tubewell Construction", summary: "Tubewell boring and construction, from survey to pump installation and handover.", icon: "tubewell" },
 ];
 
 /** CMS slugs are stored bare ("borewell-drilling"); accept a leading slash too. */
