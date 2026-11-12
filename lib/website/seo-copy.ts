@@ -26,8 +26,8 @@ export const SEO = {
     description: "Groundwater survey up to 800 m before drilling, plus yield and water-quality testing after, for sites in Sonipat, Panipat, Kundli, Rohtak and Delhi NCR.",
   },
   "borewell-drilling": {
-    title: "Borewell Drilling in Sonipat & Panipat | Saini Tubewell",
-    description: "Borewell drilling, 150–300 mm, with our own rotary rigs after a ground survey up to 800 m. Industrial and commercial sites in Sonipat, Panipat, Kundli, Rohtak.",
+    title: "Borewell Drilling Contractor, Haryana & NCR | Saini Tubewell",
+    description: "Borewell drilling, 150–300 mm, with our own rotary rigs after a ground survey up to 800 m, for industrial and commercial sites across Haryana and Delhi NCR.",
   },
   "rainwater-harvesting": {
     title: "Rainwater Harvesting in Sonipat & Kundli | Saini Tubewell",
@@ -37,13 +37,14 @@ export const SEO = {
     title: "Borewell Material Supply, Haryana | Saini Tubewell",
     description: "Casing pipes, pump sets, fittings and control panels for borewell installations, supplied across Sonipat, Panipat, Kundli, Rohtak and Delhi NCR.",
   },
+  // Leads with "Tubewell": the bare word is the site's most-shown query (Search Console, Nov 2026).
   "tubewell-construction": {
-    title: "Tubewell Construction, Sonipat & Haryana | Saini Tubewell",
-    description: "End-to-end tubewell construction for agricultural, commercial and industrial sites in Sonipat, Panipat, Rohtak and Haryana: planning to handover.",
+    title: "Tubewell Boring & Construction Contractor | Saini Tubewell",
+    description: "Tubewell boring and construction across Haryana and Delhi NCR: ground survey, drilling, casing and well screen, gravel pack, submersible pump and handover.",
   },
   about: {
-    title: "About Saini Tubewell Boring Service | Since 1992",
-    description: "Saini Tubewell Boring Service has drilled borewells and built tubewells across Haryana and Delhi NCR since 1992, led by founder Rajesh Saini.",
+    title: "Saini Tubewell Boring Service | Borewell Contractor Since 1992",
+    description: "Borewell drilling and tubewell construction across Haryana and Delhi NCR since 1992, led by founder Rajesh Saini, with our own rigs, crews and material yard.",
   },
   clients: {
     title: "Our Clients | Industrial & Institutional | Saini Tubewell",

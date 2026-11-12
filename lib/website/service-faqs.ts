@@ -24,6 +24,9 @@ export const SERVICE_FAQS: Record<string, Faq[]> = {
     AREA,
   ],
   "tubewell-construction": [
+    ["What is the difference between a tubewell and a borewell?", "Both are drilled wells. A tubewell is the complete installation: the drilled bore with casing, well screen and gravel pack, plus the submersible pump, rising main, cable and starter panel. We build both, from the survey to handover."],
+    ["How deep will my tubewell be?", "That depends on where the water-bearing strata lie at your site. Our ground survey reaches up to 800 m, and the drilling depth is fixed from it before work starts."],
+    ["What size of pump will I need?", "It depends on how much water you need and the depth it has to be lifted from. We size the stainless-steel submersible pump, from 1 to 50 HP, to the yield test and your requirement."],
     ["What does tubewell construction include?", "Site coordination, casing, slotted filter pipe and gravel pack, a stainless-steel submersible pump with HDPE rising main, cable and starter panel, then well-head assembly, testing, cleanup and handover."],
     ["Who is this for?", "Residential properties, agricultural sites, and commercial and industrial facilities."],
     ["Can you supply the materials as well?", "Yes. We supply uPVC casing, submersible pumps, cable, delivery pipe and starter panels from our own yard, so one team handles the job end to end."],

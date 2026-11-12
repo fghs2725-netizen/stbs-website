@@ -843,7 +843,7 @@ function ContactInfoSection({ owner, content, data }: { owner?: RenderableSectio
   const s = data.settings;
   const phones = [s?.phone, s?.phone2].filter((p): p is string => Boolean(p));
   const email = s?.email ?? "";
-  const address = s?.address || (businessInfo.registeredOffice ? `${businessInfo.registeredOffice}, Haryana ${businessInfo.pinCode}` : "");
+  const address = s?.address || (businessInfo.listingAddress ? `${businessInfo.listingAddress}, Haryana ${businessInfo.pinCode}` : "");
   const whatsapp = s?.whatsapp || phones[0] || "";
   const waHref = whatsapp ? `https://wa.me/91${whatsapp.replace(/\D/g, "").replace(/^91(?=\d{10}$)/, "")}?text=${encodeURIComponent("Hi, I'd like a proposal for borewell drilling.")}` : "";
   const tile = "hairline-card flex flex-col gap-u1 p-u3";
@@ -933,7 +933,7 @@ function MapSection({ owner, content }: { owner?: RenderableSection; content: Re
           <h2 className="t-h2 mt-u2 text-block">Where we work</h2>
           {/* The owner's Google Business listing: the pin, name and reviews come from Google. */}
           <div className="img-zoom mt-u4 border border-stbs-hairline">
-            <iframe title={custom ? "Map" : "Map: STBS, 12 New Market, Bahalgarh, Sonipat"} src={embedUrl} className="block h-[320px] w-full sm:h-[400px]" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+            <iframe title={custom ? "Map" : `Map: STBS, ${businessInfo.listingAddress}`} src={embedUrl} className="block h-[320px] w-full sm:h-[400px]" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
           </div>
           <div className="mt-u2 flex flex-wrap items-center gap-x-u4">
             <a href={openUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[48px] items-center font-medium text-stbs-brand-mid hover:underline">Open in Google Maps</a>

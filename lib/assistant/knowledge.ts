@@ -75,11 +75,11 @@ export function buildKnowledge(input: { projects: ReadonlyArray<ProjectCase>; co
   const services = SERVICE_PAGES.map((s) => `${s.fullTitle}: ${s.summary} (page ${s.href})`).join("\n  - ");
   const phones = contact.phones.filter(Boolean).map(fmtPhone);
   const core = [
-    `- Saini Tubewell Boring Service (STBS): borewell and tubewell contractor based in ${businessInfo.registeredOffice}, Haryana, working since ${company.established}. Founder and Managing Director: ${company.managingDirector}.`,
+    `- Saini Tubewell Boring Service (STBS): borewell and tubewell contractor based in ${businessInfo.listingAddress}, Haryana, working since ${company.established}. Founder and Managing Director: ${company.managingDirector}.`,
     `- Track record: ${stats}.`,
     `- Areas served: ${businessInfo.serviceAreas.join(", ")}.`,
     `- Services:\n  - ${services}`,
-    `- Office: ${businessInfo.registeredOffice}, Haryana ${businessInfo.pinCode}. Hours: ${businessInfo.hours.join("; ")}.`,
+    `- Office: ${businessInfo.listingAddress}, Haryana ${businessInfo.pinCode}. Hours: ${businessInfo.hours.join("; ")}.`,
     `- Contact: phone ${phones.join(", ")}; WhatsApp ${fmtPhone(contact.whatsapp)}; email ${contact.email}.`,
     `- A written proposal can be requested on the page /quote, or in this chat.`,
   ].join("\n");

@@ -43,11 +43,11 @@ check("logo and image are absolute URLs on the canonical host", () => {
 
 // The guard that matters most: unverified owner data must not be invented.
 check("address, pincode, hours, map pin and link match the owner's Google listing", () => {
-  assert.equal(businessInfo.registeredOffice, "12, New market, Bahalgarh, Sonipat");
+  assert.equal(businessInfo.listingAddress, "12, New Bahalgarh Market, Bahalgarh, Sonipat");
   assert.equal(businessInfo.pinCode, "131021");
   assert.equal(businessInfo.legalName, "Saini Tubewell Boring Service");
   const address = ld.address as Record<string, string>;
-  assert.equal(address.streetAddress, "12, New market, Bahalgarh, Sonipat");
+  assert.equal(address.streetAddress, "12, New Bahalgarh Market, Bahalgarh, Sonipat");
   assert.equal(address.postalCode, "131021");
   assert.equal(ld.legalName, "Saini Tubewell Boring Service");
   const hours = ld.openingHoursSpecification as { dayOfWeek: string[]; opens: string; closes: string };
@@ -82,8 +82,13 @@ check("titles and descriptions are unique across pages", () => {
   assert.equal(new Set(t).size, t.length);
   assert.equal(new Set(d).size, d.length);
 });
-check("local keywords appear naturally: Sonipat on the service pages, no keyword stuffing", () => {
-  for (const k of ["borewell-drilling", "rainwater-harvesting", "tubewell-construction"] as const) assert.match(SEO[k].title, /Sonipat/, k);
+check("local keywords appear naturally on the service pages, no keyword stuffing", () => {
+  assert.match(SEO["rainwater-harvesting"].title, /Sonipat/);
+  // Owner, Nov 2026: the borewell and tubewell pages target Haryana and Delhi NCR, not Sonipat.
+  for (const k of ["borewell-drilling", "tubewell-construction"] as const) {
+    assert.doesNotMatch(SEO[k].title + SEO[k].description, /Sonipat/, k);
+    assert.match(SEO[k].description, /Haryana and Delhi NCR/, k);
+  }
   for (const [k, v] of Object.entries(SEO)) {
     const sonipat = (v.title + " " + v.description).match(/Sonipat/g)?.length ?? 0;
     assert.ok(sonipat <= 2, `${k} repeats Sonipat ${sonipat} times`);
