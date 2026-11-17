@@ -183,10 +183,11 @@ export default async function InvoicesPage({
                 </Link>
               ))}
             </nav>
-            <form action="/admin/invoices" method="GET" className="flex items-center gap-2">
+            <form action="/admin/invoices" method="GET" className="flex min-w-0 max-w-full items-center gap-2">
               {hidden(["month"])}
-              <label className="sr-only" htmlFor="invoice-month">Month</label>
-              <input id="invoice-month" type="month" name="month" defaultValue={month} className="a-input w-auto" />
+              {/* iPhone shows an empty month box until one is picked, so the word is shown beside it. */}
+              <label className="a-label" htmlFor="invoice-month">Month</label>
+              <input id="invoice-month" type="month" name="month" defaultValue={month} className="a-input w-auto min-w-0 flex-1" />
               <Button type="submit" variant="secondary" size="sm">Show month</Button>
               {month && <Link href={hrefWith({ month: undefined })} className="a-link whitespace-nowrap text-[0.875rem]">All months</Link>}
             </form>
