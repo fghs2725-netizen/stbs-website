@@ -1,12 +1,13 @@
+import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Settings, Store } from 'lucide-react';
+import { Search, Settings } from 'lucide-react';
 
 /**
- * The 56px bar above the content. On phones it carries the business name (the
- * sidebar shows it on desktop); search collapses to an icon below `sm` so the
- * name keeps the room it needs.
+ * The 56px bar above the content. On phones it carries the STBS icon and
+ * "STBS Admin" (the sidebar shows the business name on desktop); search
+ * collapses to an icon below `sm` so the name keeps the room it needs.
  */
-export function AdminTopBar({ businessName, userName }: { businessName: string; userName?: string | null }) {
+export function AdminTopBar({ userName }: { userName?: string | null }) {
   const initial = userName?.trim().charAt(0).toUpperCase();
 
   return (
@@ -15,15 +16,10 @@ export function AdminTopBar({ businessName, userName }: { businessName: string; 
       style={{ borderBottom: '1px solid var(--a-hairline)' }}
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span
-          aria-hidden
-          className="inline-flex size-8 shrink-0 items-center justify-center rounded-full lg:hidden"
-          style={{ background: 'var(--a-brand-soft)', color: 'var(--a-brand)' }}
-        >
-          <Store size={17} strokeWidth={1.75} />
-        </span>
+        {/* The app's own icon (the same one on the phone's home screen), then the app's name. */}
+        <Image src="/icon-192.png" alt="" width={34} height={34} priority className="shrink-0 rounded-[9px] lg:hidden" />
         <h1 className="truncate text-[1.0625rem] font-semibold lg:hidden" style={{ color: 'var(--a-ink)' }}>
-          {businessName}
+          STBS Admin
         </h1>
 
         <form

@@ -27,7 +27,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <AdminSidebar businessName={businessName} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <AdminTopBar businessName={businessName} userName={session.user?.name} />
+        <AdminTopBar userName={session.user?.name} />
         {/* The phone tab bar floats over the content, so the last row needs
             clearance; on desktop the bar is gone and normal padding applies. */}
         <main className="flex-1 px-4 py-5 pb-[calc(78px+env(safe-area-inset-bottom))] lg:px-8 lg:py-8 lg:pb-10">
