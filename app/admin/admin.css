@@ -144,15 +144,22 @@
 .theme-admin .a-pill-brand { background: var(--a-brand-soft); color: var(--a-brand); }
 
 /* ---- segmented control (the pair of tabs at the top of the phone layout) ---- */
+/* A segment never makes the page wider than the phone: when its options do not fit (the seven invoice
+   statuses on a phone) they wrap onto a second row, so every option stays in view and on one line.
+   A 19px radius is a full pill for one row (38px tall) and a rounded box for two. */
 .theme-admin .a-segment {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   padding: 2px;
   gap: 2px;
   background: rgba(0, 0, 0, 0.05);
-  border-radius: 980px;
+  border-radius: 19px;
 }
 .theme-admin .a-segment > * {
   display: inline-flex;
+  flex-shrink: 0;
+  white-space: nowrap;
   min-height: 34px;
   align-items: center;
   justify-content: center;
