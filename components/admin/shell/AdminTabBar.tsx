@@ -15,8 +15,20 @@ import { ADMIN_MORE_NAV, ADMIN_SETUP_NAV, ADMIN_TAB_NAV, isNavItemActive, type N
 export function AdminTabBar() {
   const pathname = usePathname();
   const [more, setMore] = useState(false);
+  const [unread, setUnread] = useState(0);
 
   useEffect(() => setMore(false), [pathname]);
+  // Re-counted on every page change, so opening an enquiry clears its share of the badge.
+  useEffect(() => {
+    let live = true;
+    fetch('/api/enquiries/unread', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { count?: number } | null) => live && typeof d?.count === 'number' && setUnread(d.count))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [pathname]);
   useEffect(() => {
     if (!more) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMore(false);
@@ -33,7 +45,9 @@ export function AdminTabBar() {
   // The More tab reads as selected whenever the current page lives inside the sheet.
   const inSheet = sheetItems.some((item) => isNavItemActive(item.href, pathname));
 
-  const tabStyle = (active: boolean) => ({ color: active ? 'var(--a-brand)' : 'var(--a-faint)' });
+  // Inactive labels use the muted grey, not the faint one: at this size the faint grey is too light to read outdoors.
+  const tabStyle = (active: boolean) => ({ color: active ? 'var(--a-brand)' : 'var(--a-muted)' });
+  const sections: Array<{ title?: string; items: NavItemDef[] }> = [{ items: ADMIN_MORE_NAV }, { title: 'Settings', items: ADMIN_SETUP_NAV }];
 
   return (
     <>
@@ -53,7 +67,7 @@ export function AdminTabBar() {
               style={tabStyle(active)}
             >
               <item.icon size={22} strokeWidth={active ? 2 : 1.75} aria-hidden />
-              <span className="text-[0.625rem] font-medium tracking-[0.01em]">{item.short ?? item.name}</span>
+              <span className="text-[0.6875rem] font-medium tracking-[0.01em]">{item.short ?? item.name}</span>
             </Link>
           );
         })}
@@ -62,11 +76,15 @@ export function AdminTabBar() {
           onClick={() => setMore(true)}
           aria-expanded={more}
           aria-controls="admin-more-sheet"
+          aria-label={unread ? `More, ${unread} unread ${unread === 1 ? 'enquiry' : 'enquiries'}` : undefined}
           className="flex min-h-[54px] flex-1 flex-col items-center justify-center gap-[3px] pt-[6px] transition-colors duration-200"
           style={tabStyle(inSheet || more)}
         >
-          <Ellipsis size={22} strokeWidth={inSheet ? 2 : 1.75} aria-hidden />
-          <span className="text-[0.625rem] font-medium tracking-[0.01em]">More</span>
+          <span className="relative">
+            <Ellipsis size={22} strokeWidth={inSheet ? 2 : 1.75} aria-hidden />
+            {unread > 0 && <Badge count={unread} className="absolute -right-2.5 -top-1.5" />}
+          </span>
+          <span className="text-[0.6875rem] font-medium tracking-[0.01em]">More</span>
         </button>
       </nav>
 
@@ -104,40 +122,64 @@ export function AdminTabBar() {
             </button>
           </div>
 
-          {/* The list is taller than a phone screen: it scrolls inside the sheet, which stays below the status bar. */}
-          <ul className="a-divide min-h-0 flex-1 overflow-y-auto overscroll-contain px-5" style={{ WebkitOverflowScrolling: 'touch' }}>
-            {sheetItems.map((item: NavItemDef) => {
-              const active = isNavItemActive(item.href, pathname);
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    tabIndex={more ? undefined : -1}
-                    aria-current={active ? 'page' : undefined}
-                    className="flex min-h-[52px] items-center gap-3 text-[1rem]"
-                    style={{ color: active ? 'var(--a-brand)' : 'var(--a-ink)', fontWeight: active ? 600 : 450 }}
-                  >
-                    <item.icon size={20} strokeWidth={1.75} aria-hidden style={{ color: active ? 'var(--a-brand)' : 'var(--a-muted)' }} />
-                    {item.name}
-                  </Link>
-                </li>
-              );
-            })}
-            <li>
-              <button
-                type="button"
-                tabIndex={more ? undefined : -1}
-                onClick={() => signOut({ redirectTo: '/admin/login' })}
-                className="flex min-h-[52px] w-full items-center gap-3 text-[1rem]"
-                style={{ color: 'var(--a-danger)' }}
-              >
-                <LogOut size={20} strokeWidth={1.75} aria-hidden />
-                Sign out
-              </button>
-            </li>
-          </ul>
+          {/* The list is taller than a phone screen: it scrolls inside the sheet, which stays below the status bar.
+              Everyday work comes first; settings sit under their own heading. */}
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5" style={{ WebkitOverflowScrolling: 'touch' }}>
+            {sections.map((section, n) => (
+              <section key={section.title ?? 'work'} aria-label={section.title ?? 'Work'}>
+                {section.title && <h3 className="a-eyebrow pb-1 pt-5">{section.title}</h3>}
+                <ul className="a-divide">
+                  {section.items.map((item) => {
+                    const active = isNavItemActive(item.href, pathname);
+                    const count = item.href === '/admin/enquiries' ? unread : 0;
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          tabIndex={more ? undefined : -1}
+                          aria-current={active ? 'page' : undefined}
+                          className="flex min-h-[52px] items-center gap-3 text-[1rem]"
+                          style={{ color: active ? 'var(--a-brand)' : 'var(--a-ink)', fontWeight: active ? 600 : 450 }}
+                        >
+                          <item.icon size={20} strokeWidth={1.75} aria-hidden style={{ color: active ? 'var(--a-brand)' : 'var(--a-muted)' }} />
+                          <span className="flex-1">{item.name}</span>
+                          {count > 0 && <Badge count={count} />}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                  {n === sections.length - 1 && (
+                    <li>
+                      <button
+                        type="button"
+                        tabIndex={more ? undefined : -1}
+                        onClick={() => signOut({ redirectTo: '/admin/login' })}
+                        className="flex min-h-[52px] w-full items-center gap-3 text-[1rem]"
+                        style={{ color: 'var(--a-danger)' }}
+                      >
+                        <LogOut size={20} strokeWidth={1.75} aria-hidden />
+                        Sign out
+                      </button>
+                    </li>
+                  )}
+                </ul>
+              </section>
+            ))}
+          </div>
         </div>
       </div>
     </>
+  );
+}
+
+/** A small red count, for things waiting to be looked at. */
+function Badge({ count, className = '' }: { count: number; className?: string }) {
+  return (
+    <span
+      className={`inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-[5px] text-[0.6875rem] font-semibold leading-none text-white ${className}`}
+      style={{ background: 'var(--a-danger)' }}
+    >
+      {count > 99 ? '99+' : count}
+    </span>
   );
 }

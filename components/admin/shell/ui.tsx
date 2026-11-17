@@ -32,17 +32,24 @@ export function QuickLinks({ links }: { links: Array<{ label: string; href: stri
   );
 }
 
-/** A metric tile. Values are strings so callers control INR / count formatting. */
-export function StatTiles({ stats }: { stats: Array<{ label: string; value: string; hint?: string }> }) {
+/** A metric tile. Values are strings so callers control INR / count formatting. A tile with `href` opens the page behind the figure. */
+export function StatTiles({ stats }: { stats: Array<{ label: string; value: string; hint?: string; href?: string; tone?: 'danger' }> }) {
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {stats.map((s) => (
-        <div key={s.label} className="a-card p-4">
-          <p className="a-label">{s.label}</p>
-          <p className="a-num mt-1 text-[1.5rem] font-semibold leading-tight" style={{ color: 'var(--a-ink)' }}>{s.value}</p>
-          {s.hint && <p className="mt-1 text-[0.75rem]" style={{ color: 'var(--a-faint)' }}>{s.hint}</p>}
-        </div>
-      ))}
+      {stats.map((s) => {
+        const body = (
+          <>
+            <p className="a-label">{s.label}</p>
+            <p className="a-num mt-1 text-[1.375rem] font-semibold leading-tight" style={{ color: s.tone === 'danger' ? 'var(--a-danger)' : 'var(--a-ink)' }}>{s.value}</p>
+            {s.hint && <p className="mt-1 text-[0.75rem]" style={{ color: 'var(--a-muted)' }}>{s.hint}</p>}
+          </>
+        );
+        return s.href ? (
+          <Link key={s.label} href={s.href} className="a-card a-card-link block p-4">{body}</Link>
+        ) : (
+          <div key={s.label} className="a-card p-4">{body}</div>
+        );
+      })}
     </div>
   );
 }
