@@ -28,6 +28,7 @@
     "test:invoice-snapshot": "npx tsx scripts/test-invoice-snapshot.ts",
     "test:challan": "npx tsx scripts/test-challan.ts",
     "test:status": "npx tsx scripts/test-status.ts",
+    "test:admin-ai": "npx tsx scripts/test-admin-ai.ts",
     "test:challan-snapshot": "npx tsx scripts/test-challan-snapshot.ts",
     "test:letter": "npx tsx scripts/test-letter.ts",
     "test:letter-snapshot": "npx tsx scripts/test-letter-snapshot.ts",
@@ -84,6 +85,7 @@
     "react-hook-form": "^7.83.0",
     "shadcn-ui": "^0.9.5",
     "tailwind-merge": "^3.6.0",
+    "unpdf": "^2.2.1",
     "uuid": "^14.0.1",
     "web-push": "^3.6.7",
     "zod": "^4.4.3"

@@ -23,7 +23,7 @@ import { effectiveInvoiceSettings, resolveSettings } from "@/components/invoice/
 export const SERIES_START = 503;
 
 const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
-const BILLED: ReadonlySet<InvoiceStatus> = new Set(["ISSUED", "PARTLY_PAID", "PAID"]);
+export const BILLED: ReadonlySet<InvoiceStatus> = new Set(["ISSUED", "PARTLY_PAID", "PAID"]);
 const MONTHS = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
 
 /** "2025-26" for any date from 1 April 2025 to 31 March 2026. */
@@ -81,7 +81,7 @@ export type InvoiceAnalytics = {
   drafts: number;
 };
 
-const SELECT = {
+export const ANALYTICS_SELECT = {
   id: true, number: true, date: true, dueDate: true, status: true, isCash: true, clientCompanyName: true, clientGstin: true,
   discountType: true, discountValue: true, gstEnabled: true, gstMode: true, gstRate: true, settingsOverride: true, deletedAt: true,
   items: { select: { id: true, description: true, unit: true, quantity: true, rate: true, discountPercent: true, gstRate: true } },
@@ -89,7 +89,7 @@ const SELECT = {
   creditNotes: { select: { amount: true } },
 } as const;
 
-/** One invoice as the figures need it: the columns `SELECT` reads. */
+/** One invoice as the figures need it: the columns `ANALYTICS_SELECT` reads. */
 export type AnalyticsRow = {
   id: string; number: number | null; date: string; dueDate: string | null; status: InvoiceStatus; isCash?: boolean;
   clientCompanyName: string; clientGstin: string | null;
@@ -100,10 +100,27 @@ export type AnalyticsRow = {
   creditNotes: Array<{ amount: unknown }>;
 };
 
+/** One invoice's totals, worked out exactly as its page and PDF work them out. */
+export function rowTotals(r: AnalyticsRow, base: ReturnType<typeof resolveSettings>) {
+  const items: InvoiceItem[] = r.items.map((i) => ({
+    id: i.id, ...decodeItemText(i.description), unit: i.unit, quantity: Number(i.quantity), rate: Number(i.rate),
+    discountPercent: i.discountPercent === null || i.discountPercent === undefined ? undefined : Number(i.discountPercent),
+    gstRate: i.gstRate === null || i.gstRate === undefined ? undefined : Number(i.gstRate),
+  }));
+  return calcInvoiceTotals(
+    {
+      items, discountType: (r.discountType as "PERCENT" | "FLAT" | null) ?? null, discountValue: Number(r.discountValue),
+      gstEnabled: r.gstEnabled, gstMode: r.gstMode === "IGST" ? "IGST" : "CGST_SGST", gstRate: Number(r.gstRate),
+      payments: r.payments.map((p, n) => ({ id: String(n), date: p.date, amount: Number(p.amount) })),
+    },
+    effectiveInvoiceSettings(base, r.settingsOverride),
+  );
+}
+
 export async function getInvoiceAnalytics(fyWanted?: string): Promise<InvoiceAnalytics> {
   await requireAdmin();
   const [rows, setting, counter] = await Promise.all([
-    prisma.invoice.findMany({ select: SELECT }),
+    prisma.invoice.findMany({ select: ANALYTICS_SELECT }),
     prisma.invoiceSetting.findUnique({ where: { id: "singleton" }, select: { settings: true } }),
     prisma.invoiceNumberCounter.findUnique({ where: { id: "invoice" }, select: { lastNumber: true } }),
   ]);
@@ -124,19 +141,7 @@ export function computeInvoiceAnalytics(rows: AnalyticsRow[], storedSettings: un
   for (const r of live) {
     statusCounts[r.status] += 1;
     if (!BILLED.has(r.status)) continue;
-    const items: InvoiceItem[] = r.items.map((i) => ({
-      id: i.id, ...decodeItemText(i.description), unit: i.unit, quantity: Number(i.quantity), rate: Number(i.rate),
-      discountPercent: i.discountPercent === null || i.discountPercent === undefined ? undefined : Number(i.discountPercent),
-      gstRate: i.gstRate === null || i.gstRate === undefined ? undefined : Number(i.gstRate),
-    }));
-    const t = calcInvoiceTotals(
-      {
-        items, discountType: (r.discountType as "PERCENT" | "FLAT" | null) ?? null, discountValue: Number(r.discountValue),
-        gstEnabled: r.gstEnabled, gstMode: r.gstMode === "IGST" ? "IGST" : "CGST_SGST", gstRate: Number(r.gstRate),
-        payments: r.payments.map((p, n) => ({ id: String(n), date: p.date, amount: Number(p.amount) })),
-      },
-      effectiveInvoiceSettings(base, r.settingsOverride),
-    );
+    const t = rowTotals(r, base);
     const credited = r.creditNotes.reduce((s, c) => s + Number(c.amount), 0);
     billed.push({
       r, fy: financialYear(r.date), taxable: t.taxable, cgst: t.cgst, sgst: t.sgst, igst: t.igst, tax: t.tax,
