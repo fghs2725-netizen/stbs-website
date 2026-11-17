@@ -78,7 +78,7 @@ const nav = (href: string): NavItemDef => {
 export const ADMIN_TAB_NAV: NavItemDef[] = ['/admin', '/admin/quotations', '/admin/invoices', '/admin/workers'].map(nav);
 
 /** Everything the tab bar could not fit, in the order the More sheet lists it. */
-export const ADMIN_MORE_NAV: NavItemDef[] = ['/admin/company-documents', '/admin/enquiries', '/admin/clients', '/admin/expenses', '/admin/delivery-challans', '/admin/sale-returns', '/admin/whatsapp-status'].map(nav);
+export const ADMIN_MORE_NAV: NavItemDef[] = ['/admin/ai', '/admin/company-documents', '/admin/enquiries', '/admin/clients', '/admin/expenses', '/admin/delivery-challans', '/admin/sale-returns', '/admin/whatsapp-status'].map(nav);
 
 /** `/admin` must match exactly or it would light up on every child route. */
 export function isNavItemActive(href: string, pathname: string): boolean {
