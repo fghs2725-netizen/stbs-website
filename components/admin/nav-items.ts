@@ -13,6 +13,7 @@ import {
   MessageCircle,
   ReceiptText,
   RotateCcw,
+  Sparkles,
   SlidersHorizontal,
   Truck,
   Users,
@@ -45,6 +46,7 @@ export const ADMIN_WORK_NAV: NavItemDef[] = [
   { name: 'Clients', short: 'Clients', href: '/admin/clients', icon: Users },
   { name: 'Enquiries', short: 'Enquiries', href: '/admin/enquiries', icon: Inbox },
   { name: 'WhatsApp status', short: 'Status', href: '/admin/whatsapp-status', icon: MessageCircle },
+  { name: 'AI helper', short: 'AI', href: '/admin/ai', icon: Sparkles },
 ];
 
 /**

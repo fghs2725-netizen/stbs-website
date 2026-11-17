@@ -7,6 +7,7 @@ import { formatINR } from '@/components/quotation/quotation-model';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { FloatingAction, QuickLinks, StatTiles } from '@/components/admin/shell/ui';
 import { QuotationRows, type QuotationRow } from '@/components/admin/shell/QuotationRows';
+import { TodaySummary } from '@/components/admin/ai/TodaySummary';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,6 +70,8 @@ export default async function AdminHome() {
       ) : (
         <StatTiles stats={stats} />
       )}
+
+      <TodaySummary />
 
       <QuickLinks links={QUICK_LINKS} />
 
